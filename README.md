@@ -21,7 +21,7 @@ Make sure the following is in: */etc/hosts*
 127.0.0.1       openmhz.test api.openmhz.test admin.openmhz.test media.openmhz.test
 ````
 
-## Default user name:
+## Default user name, for Test:
 
 - test@test.com
 - password: password
@@ -38,3 +38,4 @@ CNAMEs need to be created for the various services. Create the CNAMEs below with
 After doing this, you should have the following domains: api.domain.com, account.domain.com, media.domain.com, admin.domain.compose
 
 ## Mailjet
+Sign up for MailJet!
