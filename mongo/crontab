@@ -1,0 +1,4 @@
+# Jobs:
+# m h  dom mon dow   command
+* 3 * * * root mongo /app/trim.js
+# An empty line is required at the end of this file for a valid cron file.

@@ -1,0 +1,99 @@
+/*******************************
+            Global
+*******************************/
+
+/*-------------------
+        Sidebar
+--------------------*/
+
+#player .sidebar {
+  overflow: visible;
+}
+
+/*-------------------
+        Grid
+--------------------*/
+
+
+
+.now-playing {
+    background-color: azure;
+}
+#call-table {
+	
+
+}
+
+.right.rail {
+	margin-top: 25px;
+	width:  400px;
+}
+
+#calls {
+margin-left: 25px;
+margin-right: 25px;
+	margin-bottom: 150px;
+
+}
+
+#sidebar {
+	margin-top: 25px;
+}
+
+.live-call {
+	font-weight: bold;
+}
+
+.loading {
+
+	text-align: center;
+	font-weight: bold;
+}
+
+
+#player .container {
+  position: relative;
+  width: 600px;
+	margin-left: 4em;
+}
+
+
+.ui.sticky.fixed.top {
+	
+	margin-top: 25px !important; 
+}
+
+#call-header {
+	
+	position: -webkit-sticky;
+	position: -moz-sticky;
+	position: -ms-sticky;
+	position: -o-sticky;
+	position: sticky;
+	top: 0;
+}
+
+
+/*******************************
+          Responsive
+*******************************/
+/* Defaults */
+
+.main.container{
+  margin-left: 3em !important;
+  margin-right: 3em !important;
+  width: auto !important;
+  max-width: 960px !important;
+}
+
+.main.container {
+  margin-right: 387px !important;
+}
+
+/* Rail Default */
+.main.container > .right.rail
+{
+  margin-left: 3em;
+  padding-top: 2em;
+  width: 319px;
+}

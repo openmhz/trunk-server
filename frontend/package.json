@@ -1,0 +1,102 @@
+{
+  "name": "react-passport-redux-example",
+  "version": "1.0.0",
+  "description": "Demonstration of PassportJS authentication in React w/ Redux.",
+  "main": "devStart.js",
+  "scripts": {
+    "build:lib": "babel src/server --out-dir lib/server",
+    "build:umd": "webpack --config webpack/webpack.config.dev.js",
+    "build:umd:min": "webpack --config webpack/webpack.config.prod.js",
+    "build": "npm run clean && npm run build:lib && npm run build:umd && npm run build:umd:min",
+    "postinstall": "npm run build",
+    "clean": "rimraf lib public/assets",
+    "server": "better-npm-run server",
+    "server:dev": "better-npm-run server:dev",
+    "start": "npm run server",
+    "start:dev": "npm run server:dev",
+    "storybook": "start-storybook -p 9001 -c .storybook"
+  },
+  "betterScripts": {
+    "server": {
+      "command": "node lib/server/index.js",
+      "env": {
+        "NODE_ENV": "production",
+        "MIN_EXT": ".min"
+      }
+    },
+    "server:dev": {
+      "command": "node devStart.js",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  },
+  "dependencies": {
+    "@babel/cli": "7.2.3",
+    "@babel/plugin-proposal-class-properties": "7.3.3",
+    "@babel/preset-env": "7.3.1",
+    "@babel/preset-react": "7.0.0",
+    "@babel/preset-stage-1": "7.0.0",
+    "@babel/register": "7.0.0",
+    "autoprefixer": "9.4.8",
+    "axios": "0.18.0",
+    "bcrypt-nodejs": "0.0.3",
+    "better-npm-run": "0.1.1",
+    "body-parser": "1.18.3",
+    "connected-react-router": "6.3.1",
+    "date-fns": "1.30.1",
+    "express": "4.16.4",
+    "express-session": "^1.15.6",
+    "file-loader": "3.0.1",
+    "fs-extra": "7.0.1",
+    "less": "^3.9.0",
+    "less-loader": "4.1.0",
+    "lodash": "4.17.11",
+    "moment": "2.24.0",
+    "postcss-flexbugs-fixes": "4.1.0",
+    "postcss-loader": "3.0.0",
+    "query-string": "6.2.0",
+    "react": "16.8.3",
+    "react-audio-player": "0.11.0",
+    "react-datepicker": "2.1.0",
+    "react-dom": "16.8.3",
+    "react-ga": "2.5.7",
+    "react-media-player": "0.7.6",
+    "react-redux": "6.0.1",
+    "react-router": "4.3.1",
+    "react-router-dom": "^4.2.2",
+    "react-router-redux": "^5.0.0-alpha.9",
+    "react-scroll-to-component": "1.0.2",
+    "react-waypoint": "9.0.0",
+    "redux": "^4.0.1",
+    "redux-thunk": "^2.2.0",
+    "semantic-ui-react": "0.85.0",
+    "url-loader": "1.1.2",
+    "victory": "^31.2.0",
+    "webpack-merge": "4.2.1"
+  },
+  "devDependencies": {
+    "@babel/core": "7.3.3",
+    "@babel/plugin-proposal-export-default-from": "7.2.0",
+    "@babel/plugin-proposal-object-rest-spread": "7.3.2",
+    "@storybook/react": "4.1.13",
+    "babel-loader": "8.0.5",
+    "babel-plugin-lodash": "3.3.4",
+    "babel-plugin-react-transform": "^3.0.0",
+    "babel-plugin-transform-react-remove-prop-types": "0.4.24",
+    "babel-polyfill": "^6.26.0",
+    "css-loader": "2.1.0",
+    "detect-node": "2.0.4",
+    "extract-text-webpack-plugin": "4.0.0-beta.0",
+    "mini-css-extract-plugin": "0.5.0",
+    "redux-logger": "3.0.6",
+    "rimraf": "2.6.3",
+    "semantic-ui-css": "2.4.1",
+    "semantic-ui-less": "2.4.1",
+    "style-loader": "0.23.1",
+    "webpack": "4.29.5",
+    "webpack-cli": "3.2.3",
+    "webpack-dev-middleware": "^3.6.0",
+    "webpack-hot-middleware": "2.24.3"
+  }
+}

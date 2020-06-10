@@ -1,0 +1,41 @@
+version: '3'
+services:
+  nginx:
+    logging:
+      driver: "json-file"
+      options:
+        tag: "nginx"
+
+  mongo:
+    logging:
+      driver: "json-file"
+      options:
+        tag: "mongo"
+
+  backend:
+    logging:
+      driver: "json-file"
+      options:
+        tag: "backend"
+
+  admin:
+    logging:
+      driver: "json-file"
+      options:
+        tag: "admin"
+
+  account:
+    logging:
+      driver: "json-file"
+      options:
+        tag: "account"
+
+  frontend:
+    logging:
+      driver: "json-file"
+      options:
+        tag: "frontend"
+
+networks:
+  proxy:
+  node:
