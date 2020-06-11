@@ -22,7 +22,7 @@ import {Waypoint} from 'react-waypoint';
 import "./CallPlayer.css";
 //import setupSocket from '../socket/SetupSocket.js'
 import queryString from '../query-string';
-import ReactGA from 'react-ga';
+
 
 
 
@@ -168,10 +168,7 @@ class CallPlayer extends React.Component {
       var filter = this.getFilter();
       this.startSocket(this.props.shortName, filter.type, filter.code, filter.filterStarred);
       //this.socket = setupSocket(this.addCall, this.props.shortName);
-      ReactGA.event({
-        category: 'Live',
-        action: 'Toggle Live'
-      });
+
     }
   }
 
@@ -216,10 +213,6 @@ class CallPlayer extends React.Component {
 
       this.setState({ callUrl: "", callId: false});
       this.stopSocket();
-      ReactGA.event({
-        category: 'Filter',
-        action: 'Set Date'
-      });
       //this.socket.close();
 
     }
@@ -412,11 +405,7 @@ class CallPlayer extends React.Component {
               filterCode = nextProps.filterTalkgroups;
               break;
       }
-      ReactGA.event({
-        category: 'Filter',
-        action: 'Set Filter',
-        value: nextProps.filterType
-      });
+
       this.updateUri(nextProps);
       if (this.props.live) {
         this.startSocket(this.props.shortName, typeString, filterCode, nextProps.filterStarred);

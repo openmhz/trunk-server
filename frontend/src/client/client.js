@@ -10,7 +10,6 @@ import { routerMiddleware } from 'connected-react-router'
 import isNode from "detect-node"
 import createRootReducer from './reducers'
 import createHistory from 'history/createBrowserHistory'
-import ReactGA from 'react-ga';
 
 import App from "./components/container/App"
 import About from "./components/pure/About"
@@ -27,11 +26,7 @@ import CallPlayerContainer from "./Call/CallPlayerContainer"
 // Create a history of your choosing (we're using a browser history in this case)
 const history = createHistory()
 
-ReactGA.initialize('UA-45563211-1');
-history.listen((location, action) => {
-  ReactGA.pageview(location.pathname + location.search);
-  console.log(location.pathname)
-});
+
 
 // Build the middleware for intercepting and dispatching navigation actions
 const historyMiddleware = routerMiddleware(history)

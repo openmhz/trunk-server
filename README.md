@@ -1,6 +1,58 @@
-trunk-server-docker
+# Trunk Server
+This is the software behind OpenMhz. For a while I had thoughts that I should see if I could make a business out of OpenMHz. I have come to realize though that I don't really want to run a business, I like building things a lot more. 
 
-## For Local Testing:
+In that vein, let's building some awesome things. Help me make OpenMHz better. Take the code and build a scanning site for your community. Add those features you have always been looking for. We can do better together!
+
+ - Luke
+
+*If you are using this project as part of a business, please become a sponsor. A lot of time and effort went into building this*
+
+## Notes
+This code is pretty poorly commented, I am going to work on that. I am also going to use the Wiki to document the project. Please add to the documentation as you learn things.
+
+There are a bunch of experiments lurking in the code. There is some code for adding in Stripe payments. I was going to role out the concept of paid accounts with additional features. There is also a half completed effort to allow more than one user to be associated with a system. 
+
+I haven't done a great job of keeping all the packages up to date... and I never got around to adding tests. Both of these would be great things for folks to go after.
+
+## Path Forward
+It would be great to get the code to a place where there is base code and people can add customization on top of that. They would probably fork the base code, add additional features and design and then rebaseline the code as new things are added to the mainline.
+
+## Architecture
+There are a lot of different components that make up the system. All of the server code is written in NodeJS and the frontend code uses React. Each of the different system components is run as a seperate container. A docker-compose script is used to start everything up. Right now, it is being operated on a single machine. It wouldn't be too hard to split it over a couple machines using Kubernetes. Semantic UI React is being used to create all of the UI components. 
+ - **account**: this frontend / server handles user account creation and profiles. When a user logins, they are re-directed to this app.
+ - **admin**: a logged-in user uses this frontend / server to manage their systems.
+ - **backend**: this just a server with no web frontend. It provides the API for uploading, filtering and fetching calls. It should also handle all of the metdata around a call.
+ - **frontend**: the frontend / server that general public use to look through systems and listen to calls.
+ - **mongo**: all of the metadata around calls is stored here, along with the user and system information.
+ - **nginx**: proxies all of the calls to the correct server and handles the HTTPS certs.
+
+## Operations
+
+You can run things in 2 different modes, `test` and `prod`. The big difference is that `prod` expects all of the calls to be https and gets cranky when they are not. I have gotten `test` to run fine on my laptop, so that is probably a good starting point.
+
+
+`./docker-test.sh` - sets up docker-compose to run with the correct environment variables for testing
+
+`./docker-prod.sh` - sets up docker-compose to run with the correct environment variables for production
+
+Fill out the Environment variables in both these files. You don't need to worry about the Stripe stuff, since that is dormant.
+
+If you are doing frontend work, you can turn off the de-obfuscation. To do this, edit the Dockerfile for the server you are working with. Change the CMD to:
+`CMD ["npm", "run", "start:dev"]` Just remember to turn it off when you make the code public.
+
+
+
+### Hosting
+I use Digital Ocean and they have been pretty great. If you need hosting, give them a try and use my referal code: https://m.do.co/c/402fa446f7a6
+You get $100 of credit to use in 60 days.
+
+If you need storage, give Wasabi a try. The have been mostly reliable and you can't beat the price: https://wasabi.com
+
+
+### HTTPS
+I use Let's Encrypt. It works.
+
+### For Local Testing:
   - In root dir, run: `./docker-test.sh build`
   - `./docker-test.sh up -d`
 
@@ -21,13 +73,13 @@ Make sure the following is in: */etc/hosts*
 127.0.0.1       openmhz.test api.openmhz.test admin.openmhz.test media.openmhz.test
 ````
 
-## Default user name, for Test:
+### Default user name, for Test:
 
 - test@test.com
 - password: password
 
 
-## DNS Entries
+### DNS Entries
 
 CNAMEs need to be created for the various services. Create the CNAMEs below with your DNS host:
 - api
@@ -37,5 +89,6 @@ CNAMEs need to be created for the various services. Create the CNAMEs below with
 
 After doing this, you should have the following domains: api.domain.com, account.domain.com, media.domain.com, admin.domain.compose
 
-## Mailjet
-Sign up for MailJet!
+### Mailjet
+Sign up for MailJet! 
+https://www.mailjet.com
