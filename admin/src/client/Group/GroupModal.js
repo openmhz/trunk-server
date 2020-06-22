@@ -180,7 +180,7 @@ class GroupModal extends Component {
     return (
       <Modal open={this.props.open} onClose={this.handleClose} centered={false}>
         <Modal.Header>
-          {this.props.editGroupId ? "Create Group" : "Edit Group"}
+          {this.props.editGroupId ? "Edit Group" : "Create Group"}
         </Modal.Header>
         <Modal.Content scrolling>
           <Modal.Description>
