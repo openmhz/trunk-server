@@ -7,9 +7,14 @@ FROM mongo:3.4
 MAINTAINER Luke Berndt <lukekb@gmail.com>
 
 # Set timezone
-RUN echo "America/New_York" > /etc/timezone \
- && dpkg-reconfigure -f noninteractive tzdata
-
+ ENV TZ 'America/New_York'
+    RUN echo $TZ > /etc/timezone && \
+    apt-get update && apt-get install -y tzdata && \
+    rm /etc/localtime && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata && \
+    apt-get clean
+    
 # Add main NGINX config
 RUN mkdir -p /app
 ADD trim.js /app
