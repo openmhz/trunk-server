@@ -60,6 +60,7 @@ class SystemForm extends Component {
       this.state.shortName = this.props.system.shortName;
       this.state.description = this.props.system.description;
       this.state.systemType = this.props.system.systemType;
+      this.state.city = this.props.system.city;
       this.state.state = this.props.system.state;
       this.state.county = this.props.system.county;
       this.state.country = this.props.system.country;
