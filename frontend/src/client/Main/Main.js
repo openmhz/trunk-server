@@ -273,7 +273,7 @@ render() {
   if (system.clientCount == 1 ) {
     clientCount = "1 listener";
   } else if (system.clientCount > 1 ) {
-    clientCount = system.clientCount + " listners"
+    clientCount = system.clientCount + " listeners"
   }
 }
   return (
