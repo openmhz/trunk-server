@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect} from "react";
 import {Link} from 'react-router-dom';
 import CallItem from "./CallItem";
 import {
@@ -26,7 +26,12 @@ class ListCalls extends React.Component {
     super(props);
 
   }
-
+  
+  
+  //https://stackoverflow.com/questions/33188994/scroll-to-the-top-of-the-page-after-render-in-react-js
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
  
  
 
