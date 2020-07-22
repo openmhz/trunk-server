@@ -202,7 +202,8 @@ const call = (
 // This will add the array of Calls in the data to the beginning of the existing array of Calls
     case FETCH_SUCCESS_NEWER_CALL:
     const byId = action.data.calls.reduce((acc, call) => ({ ...acc, [call._id]: call }), {});
-    const allIds =  action.data.calls.map(call => call._id).reverse();
+    const allIds = [...(action.data.calls.map(call => call._id))].sort(getCallSorter(byId));
+
     return Object.assign({}, state, {
         isWaiting: false,
         shortName: action.data.shortName,
@@ -215,7 +216,7 @@ const call = (
     case FETCH_SUCCESS_OLDER_CALL:
     {
     const byId = action.data.calls.reduce((acc, call) => ({ ...acc, [call._id]: call }), {});
-    const allIds =  action.data.calls.map(call => call._id);
+    const allIds = [...(action.data.calls.map(call => call._id))].sort(getCallSorter(byId));
     return Object.assign({}, state, {
         isWaiting: false,
         shortName: action.data.shortName,
