@@ -29,7 +29,7 @@ class CallInfo extends React.Component {
       var time = new Date(currentCall.time);
       callTime = time.toLocaleTimeString();
       callDate = time.toLocaleDateString();
-      time.setSeconds(currentCall.time.getSeconds() + currentCall.len);
+      time.setSeconds(time.getSeconds() + currentCall.len);
       callEndTime = time.toLocaleTimeString();
 
       if (currentCall.freq) {
