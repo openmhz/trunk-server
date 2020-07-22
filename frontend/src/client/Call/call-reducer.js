@@ -21,6 +21,17 @@ import {
   ADD_STAR_SUCCESS
 } from "./call-constants";
 
+function getCallSorter(byId) {
+  return (a, b) => {
+    const timeA = new Date(byId[a].time);
+    timeA.setSeconds(timeA.getSeconds() + byId[a].len);
+    const timeB = new Date(byId[b].time);
+    timeB.setSeconds(timeB.getSeconds() + byId[b].len);
+
+    return timeB - timeA;
+  };
+}
+
 function updateObject(oldObject, newValues) {
     // Encapsulate the idea of passing a new object as the first parameter
     // to Object.assign to ensure we correctly copy data instead of mutating
@@ -156,14 +167,14 @@ const call = (
   case FETCH_SUCCESS_CALL:
   {
       const byId = action.data.calls.reduce((acc, call) => ({ ...acc, [call._id]: call }), {});
-      const allIds =  action.data.calls.map(call => call._id);
+      const allIds = [...(action.data.calls.map(call => call._id))].sort(getCallSorter(byId));
       return Object.assign({}, state, {
           isWaiting: false,
           shortName: action.data.shortName,
           newestCallTime: new Date(action.data.calls[0].time),
           oldestCallTime: new Date(action.data.calls[action.data.calls.length-1].time),
           byId:  { ...byId},
-          allIds: [...allIds]
+          allIds
         });
     }
 
