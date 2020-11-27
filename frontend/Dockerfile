@@ -19,4 +19,4 @@ WORKDIR $HOME
 COPY . $HOME/
 RUN npm run build
 
-CMD ["npm", "run", "start:dev"]
+CMD ["npm", "run", "start"]
