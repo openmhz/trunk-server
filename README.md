@@ -30,12 +30,18 @@ There are a lot of different components that make up the system. All of the serv
 
 You can run things in 2 different modes, `test` and `prod`. The big difference is that `prod` expects all of the calls to be https and gets cranky when they are not. I have gotten `test` to run fine on my laptop, so that is probably a good starting point.
 
+Currently, both `test` and `prod` expect to use S3-based storage instead of local storage. Switching to use local storage would be relatively easy - but for the sake of testing, let's just say use something S3-compatible. Make sure that ~/.aws/credentials has the credentials you'd like to use with your S3-compatible storage provider.. IE:
+```
+[default]
+aws_access_key_id = [..]
+aws_secret_access_key = [..]
+```
 
 `./docker-test.sh` - sets up docker-compose to run with the correct environment variables for testing
 
 `./docker-prod.sh` - sets up docker-compose to run with the correct environment variables for production
 
-Fill out the Environment variables in both these files. You don't need to worry about the Stripe stuff, since that is dormant.
+Fill out the Environment variables in both these files. S3_PROFILE should match the profile that is defined in the aws/credentials file. You don't need to worry about the Stripe stuff, since that is dormant.
 
 If you are doing frontend work, you can turn off the de-obfuscation. To do this, edit the Dockerfile for the server you are working with. Change the CMD to:
 `CMD ["npm", "run", "start:dev"]` Just remember to turn it off when you make the code public.
