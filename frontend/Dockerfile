@@ -16,6 +16,6 @@ ENV PATH /usr/app/node_modules/.bin:$PATH
 
 WORKDIR $HOME
 COPY . $HOME/
-RUN npm run build
+RUN node --max_old_space_size=8000 $(which npm) run build
 
 CMD ["npm", "run", "start"]
