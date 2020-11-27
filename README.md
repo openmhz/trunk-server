@@ -37,6 +37,8 @@ aws_access_key_id = [..]
 aws_secret_access_key = [..]
 ```
 
+Copy docker-test.sh.example to docker-test.sh, and/or docker-prod.sh.example to docker-prod.sh.
+
 `./docker-test.sh` - sets up docker-compose to run with the correct environment variables for testing
 
 `./docker-prod.sh` - sets up docker-compose to run with the correct environment variables for production
