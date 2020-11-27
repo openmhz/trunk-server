@@ -15,6 +15,7 @@ var config = require('../config/config.json');
 
 var media_server = process.env['MEDIA_SERVER'] != null ? process.env['MEDIA_SERVER'] : 'https://media.openmhz.com';
 var s3_endpoint = process.env['S3_ENDPOINT'] != null ? process.env['S3_ENDPOINT'] : 's3.us-west-1.wasabisys.com'; 
+var s3_bucket = process.env['S3_BUCKET'] != null ? process.env['S3_BUCKET'] : 'openmhz-west'; 
 var s3_profile = process.env['S3_PROFILE'] != null ? process.env['S3_PROFILE'] : 'wasabi-account'; 
 
 const wasabi = require('aws-sdk');
@@ -126,22 +127,20 @@ process.nextTick(function() {
         var local_path = "/" + shortName + "/" + time.getFullYear() + "/" + (time.getMonth() + 1) + "/" + time.getDate() + "/";
         var target_file = base_path + local_path + path.basename(req.file.originalname);
         var object_key = "media/" + shortName + "-" + talkgroupNum + "-" + startTime + ".m4a";
-        //var endpoint = 'https://s3.amazonaws.com/openmhz/';
-        //var endpoint = 'https://s3.wasabisys.com/openmhz/';
+        
         var endpoint = s3_endpoint;
-        var bucket = 'openmhz'
-        //var url = 'https://openmhz.nyc3.cdn.digitaloceanspaces.com/' + object_key;
-
-        var url = endpoint + object_key;
-        //var url = 'https://s3.wasabisys.com/openmhz/' + object_key;
-        //var url = 'https://s3.amazonaws.com/openmhz/' + object_key;
-        var objectStore = true;
+        var bucket = s3_bucket;
+	
         if (item.plan && (item.plan.type == "pro")) {
+          // If a pro plan, use local storage
+          // TODO: Why?
           url = media_server + local_path + talkgroupNum + "-" + startTime + ".m4a";
           objectStore = false;
+        } else {
+          // If not a pro plan, use S3 storage
+          var url = 'https://' + s3_endpoint + "/" + s3_bucket + "/" + object_key;
+          var objectStore = true;
         }
-
-
 
         var call = new Call({
           shortName: shortName,
@@ -222,7 +221,7 @@ process.nextTick(function() {
             });*/
 
             var wasabiParams = {
-              Bucket: 'openmhz-west',
+              Bucket: s3_bucket,
               Key: object_key,
               Body: wasabiSrc,
               ACL: 'public-read'
