@@ -33,11 +33,6 @@ function planName(planType) {
   }
 }
 
-var backend_server =
-  process.env["BACKEND_SERVER"] != null
-    ? process.env["BACKEND_SERVER"]
-    : "https://api.openmhz.com";
-
 class System extends Component {
   constructor(props) {
     super(props);
