@@ -228,9 +228,10 @@ exports.ownSystem = async function (req, res, next) {
 
 // -------------------------------------------
 exports.uniqueShortName = async function (req, res, next) {
+  console.error("locals: " + res.locals.shortName + " body: " + req.body.shortName )
   try {
     var system = await System.findOne({
-      shortName: res.locals.shortName
+      shortName: res.locals.shortName.toLowerCase()
     });
 
     if (system) {
