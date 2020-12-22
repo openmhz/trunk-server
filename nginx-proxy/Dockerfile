@@ -21,7 +21,6 @@ RUN apt-get update \
 
 # Add main NGINX config
 COPY *.conf /etc/nginx/
-COPY htpasswd /etc/nginx/
 COPY ${STAGE}/certs/ /etc/nginx/certs/
 
 # Add virtual hosts

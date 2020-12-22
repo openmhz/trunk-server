@@ -5,6 +5,7 @@ FROM node:8.11
 
 
 ENV HOME=/home/app
+ENV NODE_OPTIONS="--max_old_space_size=8000"
 
 RUN mkdir -p /home/app
 COPY ./package.json /tmp

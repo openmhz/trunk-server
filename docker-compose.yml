@@ -67,6 +67,7 @@ services:
       - FREE_PLAN_ARCHIVE
       - PRO_PLAN_ARCHIVE
       - S3_ENDPOINT
+      - S3_BUCKET
       - S3_PROFILE
     volumes:
       - "${MEDIA}:/home/app/trunk-server-backend/media"
