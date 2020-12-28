@@ -22,12 +22,16 @@ class CallInfo extends React.Component {
     var callFreq = "-";
     var callDate = "-";
     var callTime = "-";
+    var callEndTime = "-";
     var talkgroupNum = "-";
     if (this.props.call) {
       const currentCall = this.props.call;
       var time = new Date(currentCall.time);
       callTime = time.toLocaleTimeString();
       callDate = time.toLocaleDateString();
+      time.setSeconds(time.getSeconds() + currentCall.len);
+      callEndTime = time.toLocaleTimeString();
+
       if (currentCall.freq) {
         var freq = currentCall.freq / 1000000;
         callFreq = Math.round(freq * 1000) / 1000;
@@ -61,7 +65,7 @@ class CallInfo extends React.Component {
           <List.Item>
             <Icon name="wait"/>
             <List.Content>
-              {callTime}
+              {callTime} ({callEndTime})
             </List.Content>
           </List.Item>
           <List.Item>
