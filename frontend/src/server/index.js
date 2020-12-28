@@ -71,6 +71,7 @@ app.get("*", (req, res, next) => {
 			const freePlanValue = ${freePlanValue};
 			const proPlanArchive = ${proPlanArchive};
 			const freePlanArchive = ${freePlanArchive};
+			const site_name = "${site_name}";
 		</script>
 		<script src="${backend_server}/socket.io/socket.io.js"></script>
 		<script>

@@ -1,9 +1,6 @@
 import React, { Component } from "react";
 import { Container, Header } from "semantic-ui-react";
 
-var site_name = process.env['SITE_NAME'] != null ? process.env['SITE_NAME'] : "OpenMHz";
-var admin_email = process.env['ADMIN_EMAIL'] != null ? process.env['ADMIN_EMAIL'] : "luke@openmhz.com";
-
 class About extends Component {
 
 

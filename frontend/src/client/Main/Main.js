@@ -53,8 +53,6 @@ const HomepageHeading = ({ mobile }) => (
   </Container>
 )
 
-var site_name = process.env['SITE_NAME'] != null ? process.env['SITE_NAME'] : "OpenMHz";
-
 /*
 HomepageHeading.propTypes = {
   mobile: PropTypes.bool,

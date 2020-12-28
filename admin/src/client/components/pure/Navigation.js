@@ -8,8 +8,6 @@ const navStyle = {
 const blankStyle = {
   marginBottom: "50px"
 };
-var account_server = process.env['ACCOUNT_SERVER'] != null ? process.env['ACCOUNT_SERVER'] : 'https://account.openmhz.com';
-var site_name = process.env['SITE_NAME'] != null ? process.env['SITE_NAME'] : "OpenMHz";
 
 class Navigation extends Component {
   constructor(props) {

@@ -132,6 +132,7 @@ function isLoggedIn(req, res, next) {
 
 
 var admin_server = process.env['ADMIN_SERVER'] != null ? process.env['ADMIN_SERVER'] : 'https://admin.openmhz.com';
+var admin_email = process.env['ADMIN_EMAIL'] != null ? process.env['ADMIN_EMAIL'] : "luke@openmhz.com";
 var beta_frontend_server = process.env['BETA_FRONTEND_SERVER'] != null ? process.env['BETA_FRONTEND_SERVER'] : 'https://beta.openmhz.com';
 var backend_server = process.env['BACKEND_SERVER'] != null ? process.env['BACKEND_SERVER'] : 'https://api.openmhz.com';
 var frontend_server = process.env['FRONTEND_SERVER'] != null ? process.env['FRONTEND_SERVER'] : 'https://openmhz.com';
@@ -189,6 +190,8 @@ app.get("*", (req, res, next) => {
       const media_server = "${media_server}";
       const socket_server = "${socket_server}";
       const account_server = "${account_server}";
+      const site_name = "${site_name}";
+      const admin_email = "${admin_email}";
 			const proPlanValue = ${proPlanValue};
 			const freePlanValue = ${freePlanValue};
     </script>
