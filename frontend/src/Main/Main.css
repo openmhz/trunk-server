@@ -1,0 +1,82 @@
+@font-face {
+    font-family: didact;
+    src: url("../resources/DidactGothic-Regular.ttf");
+}
+
+#menu-bar {
+
+  background-color: #365474;
+}
+
+.header {
+    font-family: didact !important;
+}
+
+#header-bg {
+position: relative;
+}
+
+#hero {
+height: 725px;
+}
+
+.z-0 {
+z-index: 0;
+}
+
+.z-5 {
+z-index: 5;
+}
+
+.absolute {
+position: absolute;
+}
+
+.relative {
+position: relative;
+}
+
+.static-gradient-bg {
+background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAAfBAMAAADtgAsKAAAAD1BMVEUAAAAAAAAAAAAAAAAAAABPDueNAAAABXRSTlMVGRsSHUz7Vs0AAAErSURBVCjPHY+BDeUgDEPttAM4wACk/QMEdYHSu/1nOjghQIodPxnRfuPnfWQO0F240K5TvRLKdYXvdAIH8ej+0yTEsh1CUYplr+j91ouhCl3WhEnpNuACvW3vUAgic8woHoA/ojO5MN6uN9EPdIJpRu7IBfTN5+I4aIAowPxSu74OAV7gfFuLJVQeAKS41Kes5k4H6tW8uML0yJcjHTE3WepIAfx+8JhJ6aCeRMRK7EQs9RjPxhheOhZL+P//zh8TW4gKArKGY2m3H1xZgq0ykzzdh9vrWPu4c1eNc0bs+suKQAKmtg4gT4kqleFxCzT1zftKUzmYi0CqWynyr4YSwhq2q/s8pf9l+oD9nbeZAXRAlJ0wFMd43ICcpTanOIQXEDTjdK54eqlV+Q9M1SO8F3P79wAAAABJRU5ErkJggg==");
+
+width: 100%;
+height: 100%;
+}
+/*
+.static-gradient.blue {
+background: -webkit-gradient(linear,left top,right top,from(#2754F0),to(#86ACFE));
+background: linear-gradient(to right, #2754F0, #86ACFE);
+}*/
+
+.static-gradient.blue {
+background: -webkit-gradient(linear,left top,right top,from(#9f0000),to(#ff7543));
+background: linear-gradient(to right, #9f0000, #ff7543);
+}
+
+.static-gradient {
+width: 100%;
+height: 100%;
+overflow: hidden;
+-webkit-transform: skewY(-7deg);
+transform: skewY(-7deg);
+-webkit-transform-origin: 0;
+transform-origin: 0;
+border-bottom: 2px solid rgba(128,128,128,.5);
+bottom: 0;
+}
+
+#menu-bg {
+
+  background-color: #3b5f85;
+
+}
+
+#footer {
+  background: -webkit-gradient(linear, bottom, top,from(#9f0000),to(#ff7543));
+  background: linear-gradient(to top, #9f0000, #ff7543);
+}
+
+.ui.button {
+
+
+}

@@ -3,10 +3,14 @@ import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux'
 import { Route, Switch } from 'react-router' // react-router v4/v5
 import { ConnectedRouter } from 'connected-react-router'
-import configureStore, { history } from './app/configureStore'
+import configureStore, { history } from './redux-router/configureStore'
+import 'semantic-ui-css/semantic.min.css'
 
-import App from './App';
+// Main
+import MainContainer from "./Main/MainContainer"
 
+// System
+import ListSystemsContainer from "./System/ListSystemsContainer"
 
 const store = configureStore(/* provide initial state if any */)
 
@@ -15,7 +19,8 @@ ReactDOM.render(
     <ConnectedRouter history={history}> { /* place ConnectedRouter under Provider */ }
       <> { /* your usual react-router v4/v5 routing */ }
         <Switch>
-          <Route exact path="/" render={() => (<App />)} />
+          <Route exact path="/" component={MainContainer} />
+          <Route exact path="/systems" component={ListSystemsContainer} />
           <Route render={() => (<div>Miss</div>)} />
         </Switch>
       </>
