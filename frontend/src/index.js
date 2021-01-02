@@ -12,6 +12,9 @@ import MainContainer from "./Main/MainContainer"
 // System
 import ListSystemsContainer from "./System/ListSystemsContainer"
 
+// Call
+import CallPlayerContainer from "./Call/CallPlayerContainer"
+
 const store = configureStore(/* provide initial state if any */)
 
 ReactDOM.render(
@@ -21,6 +24,7 @@ ReactDOM.render(
         <Switch>
           <Route exact path="/" component={MainContainer} />
           <Route exact path="/systems" component={ListSystemsContainer} />
+          <Route exact path="/system/:shortName" component={CallPlayerContainer} />
           <Route render={() => (<div>Miss</div>)} />
         </Switch>
       </>
