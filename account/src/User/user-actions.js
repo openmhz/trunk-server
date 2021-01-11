@@ -156,7 +156,7 @@ export function manualLogin(
   return dispatch => {
     dispatch(beginLogin());
 
-    return makeUserRequest("post", data, "/login", {withCredentials: true})
+    return makeUserRequest("post", data, "/login", { withCredentials: true })
       .then(response => {
         if (response.data.success) {
           const user = response.data.user
@@ -164,17 +164,17 @@ export function manualLogin(
           // use browserHistory singleton to control navigation. Will generate a
           // state change for time-traveling as we are using the react-router-redux package
           //browserHistory.push(successPath)
-          if (success && (success.type=="path")) {
+          if (success && (success.type === "path")) {
             dispatch(push(success.nextPathname));
-          } else if (success && (success.type=="location")) {
-            window.location=success.nextLocation;
+          } else if (success && (success.type === "location")) {
+            window.location = success.nextLocation;
           } else {
             dispatch(push("/"));
           }
         } else {
           let loginMessage = response.data.message;
           console.log("loginMessage");
-          if (loginMessage == "unconfirmed email") {
+          if (loginMessage === "unconfirmed email") {
             data.userId = response.data.userId;
             dispatch(loginEmailError(data));
             dispatch(push("/wait-confirm-email"));
@@ -184,7 +184,7 @@ export function manualLogin(
           return loginMessage;
         }
       })
-      .catch(function(response) {
+      .catch(function (response) {
         if (response instanceof Error) {
           // Something happened in setting up the request that triggered an Error
           console.log("Error", response.message);
@@ -197,7 +197,6 @@ export function manualLogin(
 // http://redux.js.org/docs/advanced/AsyncActions.html
 export function isAuthenticated() {
   return dispatch => {
-    dispatch(beginAuthenticated());
 
     return axios
       .get("/authenticated")
@@ -257,11 +256,11 @@ export function confirmEmail(userId, token) {
       response => {
         if (response.data.success) {
           dispatch(confirmSuccess());
-          let requestMessage = {success: true, message: response.data.message};
+          let requestMessage = { success: true, message: response.data.message };
           return requestMessage;
         } else {
           dispatch(confirmError());
-          let requestMessage = {success: false, message: response.data.message};
+          let requestMessage = { success: false, message: response.data.message };
           return requestMessage;
         }
       }
@@ -269,10 +268,10 @@ export function confirmEmail(userId, token) {
   };
 }
 
-export function resetPassword(userId, token,password) {
+export function resetPassword(userId, token, password) {
   return dispatch => {
     dispatch(beginResetPassword());
-    return makeUserRequest("post", {password: password}, "/users/" + userId + "/reset-password/" + token).then(
+    return makeUserRequest("post", { password: password }, "/users/" + userId + "/reset-password/" + token).then(
       response => {
         if (response.data.success) {
           dispatch(resetPasswordSuccess());
