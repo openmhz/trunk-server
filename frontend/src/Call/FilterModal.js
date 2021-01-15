@@ -37,10 +37,7 @@ toggleStarred = () => this.setState(prevState => ({ filterStarred: !prevState.fi
 handleClose = () => this.props.onClose(false);
 handleDone(event) {
   switch(this.state.activeTab) {
-    case 0:
-      this.props.callActions.setAllFilter();
-      this.props.onClose(true);
-    break;
+
     case 1:
       if (this.state.selectedGroup) {
         this.props.callActions.setGroupFilter(this.state.selectedGroup);
@@ -57,8 +54,13 @@ handleDone(event) {
         this.props.onClose(false);
       }
     break;
+    default:
+    case 0:
+      this.props.callActions.setAllFilter();
+      this.props.onClose(true);
+    break;
   }
-  if (this.state.filterStarred != this.props.filterStarred) {
+  if (this.state.filterStarred !== this.props.filterStarred) {
     this.props.callActions.setStarred(this.state.filterStarred);
     this.props.onClose(true);
   }
@@ -73,12 +75,12 @@ componentWillUpdate(nextProps) {
 }
 
   render() {
-
+    var obj;
     var talkgroupList = [];
     if (this.props.talkgroups) {
       for (const num in this.props.talkgroups) {
         const talkgroup = this.props.talkgroups[num];
-        var obj = {
+        obj = {
           key: talkgroup.num,
           value: talkgroup.num,
           text: talkgroup.description
@@ -90,7 +92,7 @@ componentWillUpdate(nextProps) {
     if (this.props.groups) {
       for (const num in this.props.groups) {
         const group = this.props.groups[num];
-        var obj = {
+        obj = {
           key: group._id,
           value: group._id,
           text: group.groupName

@@ -12,10 +12,6 @@ import {
 class CallInfo extends React.Component {
 
 
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     var srcList = "";
     var callLength = "-";

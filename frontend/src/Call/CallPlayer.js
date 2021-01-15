@@ -1,6 +1,5 @@
 import React from "react";
 import {Link} from 'react-router-dom';
-import CallItem from "./CallItem";
 import MediaPlayer from "./MediaPlayer";
 import FilterModal from "./FilterModalContainer";
 import GroupModal from "./GroupModalContainer";
@@ -15,7 +14,6 @@ import {
   Sticky,
   Menu,
   Icon,
-  Table,
   Sidebar
 } from "semantic-ui-react";
 import {Waypoint} from 'react-waypoint';
@@ -51,6 +49,7 @@ class CallPlayer extends React.Component {
     this.handleLiveToggle = this.handleLiveToggle.bind(this);
     this.getFilter = this.getFilter.bind(this);
     this.callList = React.createRef();
+    this.socket = window.socket;
     this.setupSocket = this.setupSocket.bind(this);
     this.endSocket = this.endSocket.bind(this);
     this.changeUrl = this.changeUrl.bind(this);
@@ -125,6 +124,7 @@ class CallPlayer extends React.Component {
         filter.type = "group";
         filter.code = this.props.filterGroupId;
       break;
+      default:
       case 2:
         filter.type = "talkgroup";
         filter.code = this.props.filterTalkgroups;
@@ -134,12 +134,12 @@ class CallPlayer extends React.Component {
     return filter;
   }
   endSocket() {
-    socket.removeAllListeners("new message");
-    socket.removeAllListeners("reconnect");
+    this.socket.removeAllListeners("new message");
+    this.socket.removeAllListeners("reconnect");
   }
   setupSocket() {
-    socket.on('new message', this.addCall);
-    socket.on('reconnect', (attempts) => {
+    this.socket.on('new message', this.addCall);
+    this.socket.on('reconnect', (attempts) => {
       console.log("Socket Reconnected after attempts: " + attempts); // true
       if (this.props.live)  {
         var filter = this.getFilter();
@@ -148,7 +148,7 @@ class CallPlayer extends React.Component {
     })
   }
   startSocket(shortName, filterType="", filterCode="", filterStarred=false) {
-    socket.emit("start", {
+    this.socket.emit("start", {
       filterCode: filterCode,
       filterType: filterType,
       filterName: "OpenMHz",
@@ -157,7 +157,7 @@ class CallPlayer extends React.Component {
     });
   }
   stopSocket(){
-    socket.emit("stop");
+    this.socket.emit("stop");
   }
   handleLiveToggle() {
     if (!this.props.live) {
@@ -179,19 +179,20 @@ class CallPlayer extends React.Component {
         case 1:
             search = search + `filter-type=group&filter-code=${props.filterGroupId}`;
             break;
+        default:
         case 2:
             search = search + `filter-type=talkgroup&filter-code=${props.filterTalkgroups}`;
             break;
     }
     if (props.filterDate) {
-      if (search.length!=1) {
+      if (search.length!==1) {
         search = search + '&';
       }
       search = search + `time=${props.filterDate}`;
     }
 
     if (props.filterStarred) {
-      if (search.length!=1) {
+      if (search.length!==1) {
         search = search + '&';
       }
       search = search + `starred=true`;
@@ -304,7 +305,7 @@ class CallPlayer extends React.Component {
     // is there a star filter?
     if (uri.hasOwnProperty('starred')) {
       const starred = uri['starred'];
-      filter.filterStarred = starred == 'true'? true : false; 
+      filter.filterStarred = starred === 'true'? true : false; 
       this.setState({urlOptions: true});
     }
 
@@ -338,7 +339,7 @@ class CallPlayer extends React.Component {
       this.setState({urlOptions: true});
 
       // The Filter is a group
-      if (uri['filter-type'] == "group") {
+      if (uri['filter-type'] === "group") {
         filter.filterType = 1;
         filter.filterGroupId = uri["filter-code"];
         filterType="group";
@@ -346,7 +347,7 @@ class CallPlayer extends React.Component {
       }
 
       // The Filter is talkgroups
-      if (uri['filter-type'] == 'talkgroup') {
+      if (uri['filter-type'] === 'talkgroup') {
         const tg = uri["filter-code"].split(',').map(Number);
         filter.filterType=2;
         filter.filterTalkgroups=tg;
@@ -395,6 +396,7 @@ class CallPlayer extends React.Component {
               typeString = 'group';
               filterCode = nextProps.filterGroupId;
               break;
+          default:
           case 2:
               typeString = 'talkgroup';
               filterCode = nextProps.filterTalkgroups;
@@ -445,7 +447,6 @@ class CallPlayer extends React.Component {
     }
 
     var callInfoHeader = "Call Info";
-    const {sidebarVisible} = this.state
 
     const currentCall = this.props.callsById[this.state.callId];
 
@@ -466,6 +467,7 @@ class CallPlayer extends React.Component {
       case 1:
         filterLabel = "Group"
         break;
+      default:
       case 2:
         filterLabel = "Talkgroups"
         break;

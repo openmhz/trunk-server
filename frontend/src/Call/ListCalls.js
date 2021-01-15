@@ -9,10 +9,6 @@ import "./CallPlayer.css";
 // ----------------------------------------------------
 class ListCalls extends React.Component {
 
-  constructor(props) {
-    super(props);
-
-  }
 
   //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
   //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
@@ -30,7 +26,7 @@ class ListCalls extends React.Component {
           </Table.Header>
           <Table.Body>
 
-            {this.props.callsAllIds.map((callId, index) => <CallItem activeCall={callId == this.props.activeCallId ? true : false} call={this.props.callsById[callId]} talkgroups={this.props.talkgroups} key={index} onClick={this.props.playCall}/>)}
+            {this.props.callsAllIds.map((callId, index) => <CallItem activeCall={callId === this.props.activeCallId ? true : false} call={this.props.callsById[callId]} talkgroups={this.props.talkgroups} key={index} onClick={this.props.playCall}/>)}
 
           </Table.Body>
         </Table>

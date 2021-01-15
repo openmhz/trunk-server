@@ -71,7 +71,6 @@ showStar() {
 render() {
   const call = this.props.call;
   const time = new Date(call.time);
-  const current = new Date(time).setHours(0, 0, 0, 0);
   var rowSelected={};
   let starButton;
   var starClickable = {};

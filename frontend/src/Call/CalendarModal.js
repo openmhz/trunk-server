@@ -2,8 +2,7 @@ import React, { Component } from "react";
 import {
   Modal,
   Button,
-  Icon,
-  Header
+  Icon
 } from "semantic-ui-react";
 import "./CalendarModal.css";
 import DatePicker from 'react-datepicker';

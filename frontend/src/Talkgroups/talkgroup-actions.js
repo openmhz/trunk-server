@@ -49,16 +49,6 @@ function fetchTalkgroupError(data) {
   data };
 }
 
-
-function makeUserRequest(method, data, api) {
-  // returns a Promise
-  return axios({
-    method: method,
-    url: api,
-    data: data
-  });
-}
-
 export function changeUrl(url) {
   return dispatch => {
     dispatch(push(url));

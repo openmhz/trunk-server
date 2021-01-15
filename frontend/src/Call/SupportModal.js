@@ -2,8 +2,7 @@ import React, { Component } from "react";
 import {
   Modal,
   Button,
-  Icon,
-  Dropdown
+  Icon
 } from "semantic-ui-react";
 import "./FilterModal.css";
 

@@ -3,7 +3,6 @@ import axios from "axios";
 import * as types from "./system-constants";
 import { push } from 'connected-react-router';
 
-const FETCH_SUCCESS_STATISTIC = "FETCH_SUCCESS_STATISTIC"
 
 function beginFetchSystem() {
   return { type: types.FETCH_SYSTEM };
@@ -17,16 +16,6 @@ function fetchSystemSuccess(data) {
 function fetchSystemError(data) {
   return { type: types.FETCH_ERROR_SYSTEM,
   data };
-}
-
-
-function makeUserRequest(method, data, api = "/login") {
-  // returns a Promise
-  return axios({
-    method: method,
-    url: api,
-    data: data
-  });
 }
 
 export function changeUrl(url) {
