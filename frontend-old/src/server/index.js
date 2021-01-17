@@ -29,7 +29,6 @@ if (isDev) {
 
 var backend_server = process.env['BACKEND_SERVER'] != null ? process.env['BACKEND_SERVER'] : 'https://api.openmhz.com';
 var frontend_server = process.env['FRONTEND_SERVER'] != null ? process.env['FRONTEND_SERVER'] : 'https://openmhz.com';
-var media_server = process.env['MEDIA_SERVER'] != null ? process.env['MEDIA_SERVER'] : 'https://media.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
 var socket_server = process.env['SOCKET_SERVER'] != null ? process.env['SOCKET_SERVER'] : 'wss://api.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
 var site_name = process.env['SITE_NAME'] != null ? process.env['SITE_NAME'] : "OpenMHz";
 const proPlanValue = process.env['PRO_PLAN'] != null ? process.env['PRO_PLAN'] : 10;
@@ -65,7 +64,6 @@ app.get("*", (req, res, next) => {
 />
 		<script>
 			const backend_server = "${backend_server}";
-			const media_server = "${media_server}";
 			const socket_server = "${socket_server}";
 			const proPlanValue = ${proPlanValue};
 			const freePlanValue = ${freePlanValue};

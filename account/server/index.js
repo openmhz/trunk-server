@@ -73,7 +73,7 @@ app.post("/users/:userId/send-confirm",  users.sendConfirmEmail)
 app.post("/users/:userId/confirm/:token",  users.confirmEmail)
 
 app.get("*", (req, res, next) => {
-	res.sendFile('public/index.html');
+	res.sendFile(__dirname + '/public/index.html');
 });
 
 

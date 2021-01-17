@@ -247,7 +247,7 @@ class CallPlayer extends React.Component {
     if (this.state.autoPlay && (currentIndex > 0)) {
       const nextCallId = this.props.callsAllIds[currentIndex - 1];
       const nextCall = this.props.callsById[nextCallId];
-      var callUrl = media_server + nextCall.filename;
+      var callUrl = null;
       if (nextCall.url) {
         callUrl = nextCall.url;
       }
@@ -261,7 +261,7 @@ class CallPlayer extends React.Component {
 
   playCall(data) {
     const audio = this.audioRef.current;
-    var callUrl = media_server + data.call.filename;
+    var callUrl = null;
     if (data.call.url) {
       callUrl = data.call.url;
     }
@@ -425,10 +425,7 @@ class CallPlayer extends React.Component {
         if (call) {
           if (call.url) {
             this.setState({callUrl: call.url });
-          } else {
-            this.setState({callUrl: media_server + call.filename });
-          }
-
+          } 
       }
     }
 
@@ -469,9 +466,7 @@ class CallPlayer extends React.Component {
       callLink = "/system/" + this.props.shortName + "?call-id=" + currentCall._id + "&time=" + (callDate.getTime()+1);
       if (currentCall.url) {
         callDownload = currentCall.url;
-      } else {
-        callDownload = media_server + currentCall.filename;
-      }
+      } 
     }
     var archive = freePlanArchive;
     if (this.props.system && (this.props.system.planType == proPlanValue)) {

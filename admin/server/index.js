@@ -142,7 +142,7 @@ app.post("/systems/:shortName", [isLoggedIn, systems.ownSystem, systems.validate
 app.post("/systems", [isLoggedIn, systems.uniqueShortName, systems.validateSystem, systems.createSystem])
 
 app.get("*", (req, res, next) => {
-	res.sendFile('public/index.html');
+	res.sendFile(__dirname + '/public/index.html');
 });
 
 // start listening to incoming requests
