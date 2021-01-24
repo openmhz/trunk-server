@@ -1,6 +1,6 @@
 import React, { Component }  from "react"
 import CallChart from "./CallChart"
-import { ParentSize } from "@vx/responsive";
+import { ParentSize } from "@visx/responsive";
 
 class ResponsiveCallChart extends Component {
   constructor(props) {

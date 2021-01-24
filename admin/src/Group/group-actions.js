@@ -79,7 +79,8 @@ function makeUserRequest(method, data, api = "/login") {
   return axios({
     method: method,
     url: api,
-    data: data
+    data: data,
+    config: {withCredentials: true}
   });
 }
 
@@ -96,7 +97,7 @@ export function updateGroup(data) {
   return dispatch => {
     dispatch(beginUpdateGroup());
 
-    return makeUserRequest("post", data, "/groups/" + data.shortName + "/" + data._id)
+    return makeUserRequest("post", data, process.env.REACT_APP_ADMIN_SERVER + "/groups/" + data.shortName + "/" + data._id)
       .then(response => {
         if (response.data.success) {
           dispatch(updateGroupSuccess(response.data.group));
@@ -144,7 +145,7 @@ export function fetchGroups(shortName) {
     if (shouldFetchGroups(getState(), shortName)) {
       dispatch(beginFetchGroup());
       return axios
-        .get("/groups/" + shortName)
+        .get(process.env.REACT_APP_ADMIN_SERVER + "/groups/" + shortName, {withCredentials: true})
         .then(response => {
           if (response.data.success) {
             const data = { shortName: shortName, groups: response.data.groups };
@@ -175,7 +176,7 @@ export function saveGroupOrder(shortName, data) {
     return makeUserRequest(
       "post",
       data,
-      "/groups/" + shortName + "/reorder"
+      process.env.REACT_APP_ADMIN_SERVER + "/groups/" + shortName + "/reorder"
     )
       .then(response => {
         if (response.data.success) {
@@ -199,7 +200,7 @@ export function deleteGroup(shortName, groupId) {
   return dispatch => {
     dispatch(beginDeleteGroup());
 
-    return makeUserRequest("delete", null, "/groups/" + shortName + "/" + groupId)
+    return makeUserRequest("delete", null, process.env.REACT_APP_ADMIN_SERVER + "/groups/" + shortName + "/" + groupId)
       .then(response => {
         if (response.data.success) {
           const data = {shortName: shortName, groupId: groupId}
@@ -224,7 +225,7 @@ export function createGroup(data) {
   return dispatch => {
     dispatch(beginCreateGroup());
 
-    return makeUserRequest("post", data, "/groups/" + data.shortName)
+    return makeUserRequest("post", data, process.env.REACT_APP_ADMIN_SERVER + "/groups/" + data.shortName)
       .then(response => {
         if (response.data.success) {
           dispatch(createGroupSuccess(response.data.group));

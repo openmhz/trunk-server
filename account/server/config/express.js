@@ -6,8 +6,12 @@ const connectMongo = require("connect-mongo");
 const secrets = require("./secrets");
 
 const MongoStore = connectMongo(session)
-var cookie_domain = process.env['COOKIE_DOMAIN'] != null ? process.env['COOKIE_DOMAIN'] : '.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
-
+var cookie_domain = process.env['REACT_APP_COOKIE_DOMAIN'] != null ? process.env['REACT_APP_COOKIE_DOMAIN'] : '.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
+var backend_server = process.env['REACT_APP_BACKEND_SERVER'] != null ? process.env['REACT_APP_BACKEND_SERVER'] : 'https://api.openmhz.com';
+var frontend_server = process.env['REACT_APP_FRONTEND_SERVER'] != null ? process.env['REACT_APP_FRONTEND_SERVER'] : 'https://openmhz.com';
+var socket_server = process.env['REACT_APP_SOCKET_SERVER'] != null ? process.env['REACT_APP_SOCKET_SERVER'] : 'wss://socket.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
+var account_server = process.env['REACT_APP_ACCOUNT_SERVER'] != null ? process.env['REACT_APP_ACCOUNT_SERVER'] : 'https://account.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
+var dev_server = frontend_server + ":3000"
 
 module.exports = function(app, passport) {
 	app.set("port", 3009)
@@ -22,7 +26,6 @@ module.exports = function(app, passport) {
 	app.use(express.static(path.join(process.cwd(), 'public')));
 
 	const sess = {
-		secret: 'secret',
 		/*saveUninitialized: false,
 		resave: false,*/
 		resave: true,
@@ -56,5 +59,34 @@ module.exports = function(app, passport) {
 
 	app.use(passport.initialize())
 	app.use(passport.session())
+	
+	app.use('/*', function(req, res, next) {
+	    var allowedOrigins = [ account_server];
+	    allowedOrigins.push(frontend_server);
+	    allowedOrigins.push(backend_server);
+	    allowedOrigins.push(socket_server);
+		allowedOrigins.push(dev_server);
+	    var origin = req.headers.origin;
+
+
+	    if (allowedOrigins.indexOf(origin) > -1) {
+	        res.setHeader('Access-Control-Allow-Origin', origin);
+	    } else if (req.headers["user-agent"] == 'TrunkRecorder1.0') {
+	        res.setHeader('Access-Control-Allow-Origin', "*");
+	    } else {
+	        res.setHeader('Access-Control-Allow-Origin', "*");
+	        if (origin) {
+	          console.warn("forcing CORS for: " + origin + " referer: " + req.headers.referer);
+	        }
+	    }
+	    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+		res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,WEBSOCKET');
+		res.header('Access-Control-Allow-Credentials', 'true');
+	    res.header("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Access-Control-Allow-Credentials, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Access-Control-Max-Age");
+	    res.header('Access-Control-Max-Age', '600');
+	    next();
+	});
+
+
 
 }

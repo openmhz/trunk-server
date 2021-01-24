@@ -27,7 +27,7 @@ class Navigation extends Component {
         {this.props.user.authenticated ? (
           <Menu style={navStyle}>
             <Menu.Item name="systems" header>
-              { process.env.REACT_APP_SITE_NAME}
+              {process.env.REACT_APP_SITE_NAME}
             </Menu.Item>
             <Menu.Menu position="right">
               <Link to="/list-systems">

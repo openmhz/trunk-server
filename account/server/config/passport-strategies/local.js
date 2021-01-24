@@ -21,11 +21,15 @@ const local = new LocalStrategy({
       }
     }]
   }, (err, user) => {
- 		if(!user) return done(null, false, { message: `Email ${email} not found` })
+ 		if(!user) {
+			 console.error("Auth Error - user not found: " + email);
+			 return done(null, false, { message: `Invalid email or password` })
+		}
  		user.comparePassword(password, (err, isMatch) => {
  			if (isMatch) {
  				return done(null, user)
  			} else {
+				console.error("Auth Error - password mismatch: " + email);
  				return done(null, false, { message: "Invalid email or password" })
  			}
  		})

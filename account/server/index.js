@@ -15,19 +15,44 @@ const app = express()
 
 // -------------------------------------------
 
-const connect = () => {
-	mongoose.connect(secrets.db, (err, res) => {
+async function connect() {
+
+	// Demonstrate the readyState and on event emitters
+	console.log(mongoose.connection.readyState); //logs 0
+	mongoose.connection.on('connecting', () => { 
+	console.log('Mongoose is connecting')
+	console.log(mongoose.connection.readyState); //logs 2
+	});
+	mongoose.connection.on('connected', () => {
+	console.log('Mongoose is connected');
+	console.log(mongoose.connection.readyState); //logs 1
+	});
+	mongoose.connection.on('disconnecting', () => {
+	console.log('Mongoose is disconnecting');
+	console.log(mongoose.connection.readyState); // logs 3
+	});
+
+	// Connect to a MongoDB server running on 'localhost:27017' and use the
+	// 'test' database.
+	await mongoose.connect(secrets.db, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }, (err, res) => {
 		if (err) {
-			console.log(`Error connecting to ${secrets.db}. ${err}`)
+			console.log(`Mongoose - Error connecting to ${secrets.db}. ${err}`)
 		} else {
-			console.log(`Successfully connected to ${secrets.db}.`)
+			console.log(`Mongoose Successfully connected to ${secrets.db}.`)
 		}
 	})
+	console.log("All Done");
 }
-connect()
-
-mongoose.connection.on("error", console.error)
-mongoose.connection.on("disconnected", connect)
+connect();
+mongoose.connection.on('error', err => {
+	console.error("Mongoose Error!")
+	console.error(err);
+  });
+mongoose.connection.on('disconnected', () => {
+	console.log('Mongoose disconnected');
+	console.log(mongoose.connection.readyState); //logs 0
+	connect();
+});
 
 // -------------------------------------------
 

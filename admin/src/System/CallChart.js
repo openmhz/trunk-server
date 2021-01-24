@@ -1,10 +1,10 @@
 import React, { Component } from "react";
-import { Group } from '@vx/group';
-import { curveStep} from '@vx/curve';
-import { LinePath } from '@vx/shape';
-import { scaleLinear, scaleBand, scaleTime } from '@vx/scale';
+import { Group } from '@visx/group';
+import { curveStep} from '@visx/curve';
+import { LinePath } from '@visx/shape';
+import { scaleLinear, scaleBand, scaleTime } from '@visx/scale';
 import { timeParse, timeFormat } from 'd3-time-format';
-import { AxisBottom, AxisLeft } from '@vx/axis';
+import { AxisBottom, AxisLeft } from '@visx/axis';
 import { Dimmer, Loader } from "semantic-ui-react";
 
 
@@ -29,6 +29,9 @@ constructor(props) {
     const width = this.props.width;
     const height = 500;
     const margin = { top: 20, bottom: 40, left: 40, right: 20 };
+    const parseDate = timeParse("%Y%m%d");
+    const format = timeFormat("%b %d");
+    const formatDate = (date) => format(parseDate(date));
 
     // Then we'll create some bounds
     const xMax = width - margin.left - margin.right;

@@ -7,10 +7,10 @@ const stripeKeySecret = process.env.STRIPE_SECRET_KEY;
 
 const stripe = require("stripe")(stripeKeySecret);
 
-var admin_email = process.env['ADMIN_EMAIL'] != null ? process.env['ADMIN_EMAIL'] : "luke@openmhz.com";
-var site_name = process.env['SITE_NAME'] != null ? process.env['SITE_NAME'] : "OpenMHz";
-var account_server = process.env['ACCOUNT_SERVER'] != null ? process.env['ACCOUNT_SERVER'] : "https://account.openmhz.com";
-var cookie_domain = process.env['COOKIE_DOMAIN'] != null ? process.env['COOKIE_DOMAIN'] : '.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
+var admin_email = process.env['REACT_APP_ADMIN_EMAIL'] != null ? process.env['REACT_ADMIN_ADMIN_EMAIL'] : "luke@openmhz.com";
+var site_name = process.env['REACT_APP_SITE_NAME'] != null ? process.env['REACT_APP_SITE_NAME'] : "OpenMHz";
+var account_server = process.env['REACT_APP_ACCOUNT_SERVER'] != null ? process.env['REACT_APP_ACCOUNT_SERVER'] : "https://account.openmhz.com";
+var cookie_domain = process.env['REACT_APP_COOKIE_DOMAIN'] != null ? process.env['REACT_APP_COOKIE_DOMAIN'] : '.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
 
 exports.isLoggedIn = function (req, res, next) {
     if (req.isAuthenticated()) return next();

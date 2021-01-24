@@ -2,7 +2,7 @@
 #
 # docker build -t mongo .
 
-FROM mongo:3.4
+FROM mongo:4.4
 
 MAINTAINER Luke Berndt <lukekb@gmail.com>
 

@@ -1,6 +1,6 @@
 import React, { Component }  from "react"
 import ErrorChart from "./ErrorChart"
-import { ParentSize } from "@vx/responsive";
+import { ParentSize } from "@visx/responsive";
 
 class ResponsiveErrorChart extends Component {
   constructor(props) {

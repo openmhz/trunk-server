@@ -58,6 +58,7 @@ const UserSchema = new mongoose.Schema({
 /**
  * Password hash middleware.
  */
+/*
 UserSchema.pre("save", function(next) {
 	var user = this
 	if (!user.isModified("password")) return next()
@@ -70,11 +71,23 @@ UserSchema.pre("save", function(next) {
 			next()
 		})
 	})
-})
+})*/
+
+UserSchema.pre("save", function(next) {
+    if(!this.isModified("password")) {
+        return next();
+    }
+	hashed = bcrypt.hashSync(this.password, 8);
+	this.password = hashed;
+	this.local.password = hashed;
+
+    next();
+});
 
 /*
  Defining our own custom document instance method
  */
+/*
  UserSchema.methods = {
  	comparePassword: function(candidatePassword, cb) {
  		bcrypt.compare(candidatePassword, this.local.password, (err, isMatch) => {
@@ -82,7 +95,12 @@ UserSchema.pre("save", function(next) {
  			cb(null, isMatch)
  		})
  	}
- }
+ }*/
+
+ UserSchema.methods.comparePassword = function(plaintext, callback) {
+    return callback(null, bcrypt.compareSync(plaintext, this.local.password));
+};
+
 
 /**
 * Statics

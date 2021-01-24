@@ -213,7 +213,7 @@ exports.ownSystem = async function (req, res, next) {
     next();
 
   } catch (err) {
-    console.error("ERROR: Unique ShortName - caught: " + err);
+    console.error("ERROR: ownSystem - caught: " + err);
     res.json({
       success: false,
       message: err
@@ -225,10 +225,24 @@ exports.ownSystem = async function (req, res, next) {
 
 // -------------------------------------------
 exports.uniqueShortName = async function (req, res, next) {
-  console.error("locals: " + res.locals.shortName + " body: " + req.body.shortName )
+
+  var shortName = res.locals.shortName;
+  if (typeof shortName == 'undefined') {
+    console.error("locals: " + res.locals.shortName + " body: " + req.body.shortName )
+    console.error("ShortName is not in res.local, pulling from req.body instead")
+    shortName = req.body.shortName;
+  }
+  if (typeof shortName == 'undefined') {
+    console.error("ShortName is not in req.body instead")
+    res.json({
+      success: false,
+      message: "Short Name not provided in form"
+    });
+  }
+
   try {
     var system = await System.findOne({
-      shortName: res.locals.shortName.toLowerCase()
+      shortName: shortName.toLowerCase()
     });
 
     if (system) {
@@ -434,12 +448,7 @@ exports.validateSystem = async function (req, res, next) {
 
 exports.createSystem = async function (req, res, next) {
 
-  var key = uuid.v4();
-  key = crypto
-    .createHash("sha256")
-    .update(key)
-    .update("salt")
-    .digest("hex");
+  var key = crypto.randomBytes(16).toString("hex");
   const system = (({
     name,
     shortName,

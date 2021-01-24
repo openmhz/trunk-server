@@ -7,10 +7,10 @@ process.env['MAILJET_KEY'],
 );
 const crypto = require("crypto");
 
-var admin_email = process.env['ADMIN_EMAIL'] != null ? process.env['ADMIN_EMAIL'] : "luke@openmhz.com";
-var site_name = process.env['SITE_NAME'] != null ? process.env['SITE_NAME'] : "OpenMHz";
-var account_server = process.env['ACCOUNT_SERVER'] != null ? process.env['ACCOUNT_SERVER'] : "https://account.openmhz.com";
-var cookie_domain = process.env['COOKIE_DOMAIN'] != null ? process.env['COOKIE_DOMAIN'] : '.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
+var admin_email = process.env['REACT_APP_ADMIN_EMAIL'] != null ? process.env['REACT_APP_ADMIN_EMAIL'] : "luke@openmhz.com";
+var site_name = process.env['REACT_APP_SITE_NAME'] != null ? process.env['REACT_APP_SITE_NAME'] : "OpenMHz";
+var account_server = process.env['REACT_APP_ACCOUNT_SERVER'] != null ? process.env['REACT_APP_ACCOUNT_SERVER'] : "https://account.openmhz.com";
+var cookie_domain = process.env['REACT_APP_COOKIE_DOMAIN'] != null ? process.env['REACT_APP_COOKIE_DOMAIN'] : '.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
 
 exports.isLoggedIn = function(req, res, next) {
   if (req.isAuthenticated()) return next();
@@ -21,8 +21,7 @@ exports.isLoggedIn = function(req, res, next) {
 
 exports.authenticated = function(req, res, next) {
   res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-  console.log("auth: " + req.isAuthenticated());
-  console.log("req.user: " + req.user);
+  console.log("account/server/controllers/users.js - exports.authenticated() Auth check for user: " + req.user + " is: " + req.isAuthenticated());
   if (req.isAuthenticated()) {
     var clientUser = (({
       firstName,
@@ -42,11 +41,7 @@ exports.authenticated = function(req, res, next) {
       req.user
     );
     clientUser.userId = req.user.id
-    if (req.user.customerId) {
-      clientUser.billing = true;
-    } else {
-      clientUser.billing = false;
-    }
+
     return res.json({
       success: true,
       user: clientUser
@@ -93,7 +88,7 @@ exports.login = function(req, res, next) {
           userId: user.id
         });
       }
-      console.log(user);
+      console.log("account/server/controllers/users.js - req.login() Authenicated: " + user.email);
       // go ahead and create the new user
       var clientUser = (({
         firstName,
@@ -454,6 +449,7 @@ exports.terms = function(req, res, next) {
 
 
 exports.validateProfile = function(req, res, next) {
+  console.log("Validating user profile: "+ req.body.email);
   if (!req.body.firstName || (req.body.firstName.length < 2)) {
     console.error("ERROR: Validate System - req.body.firstName");
     res.json({
@@ -549,6 +545,8 @@ exports.updateProfile = function(req, res, next) {
 // -------------------------------------------
 
 exports.register = function(req, res, next) {
+  console.log("Registration request for: " + req.body.email);
+     
   User.findOne({
     $or: [{
       email: req.body.email
@@ -585,16 +583,16 @@ exports.register = function(req, res, next) {
     );
     user.password = req.body.password;
     user.email = req.body.email;
-    
+
     User.create(user).then(function(dbUser) {
-      console.log(dbUser);
+      console.log("Successfully registered: " + dbUser.email + ", now sending confirmation email.");
       // Since regiestration worked, send a confirmation email.
       return handleSendConfirmEmail(dbUser);
     }).then(function(result) {
       res.json(result);
       return;
     }).catch(function(err) {
-      console.error(err);
+      console.error("Error creating user: " + user.email + " Error: " +err);
       res.json({
         success: false,
         message: err

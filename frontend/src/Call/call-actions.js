@@ -3,8 +3,6 @@ import axios from "axios";
 import * as types from "./call-constants";
 import { push } from 'connected-react-router';
 
-const FETCH_SUCCESS_STATISTIC = "FETCH_SUCCESS_STATISTIC"
-
 function beginFetchCallInfo() {
   return { type: types.FETCH_CALL_INFO };
 }

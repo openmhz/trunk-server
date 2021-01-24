@@ -1,7 +1,7 @@
 import React, {Component} from "react";
 import {Link} from "react-router-dom";
 import ListTalkgroups from "../Talkgroups/ListTalkgroups.js";
-import MessageBox from "../components/pure/Message.js";
+import MessageBox from "../Components/Message.js";
 import ListGroups from "../Group/ListGroups.js";
 import GroupModal from "../Group/GroupModalContainer.js";
 import UpdatePermissionModal from "../Permission/UpdatePermissionModalContainer.js";
@@ -24,14 +24,6 @@ import {
   Label
 } from "semantic-ui-react";
 
-function planName(planType) {
-  switch (planType) {
-    case freePlanValue:
-      return "Free";
-    case proPlanValue:
-      return "Pro";
-  }
-}
 
 class System extends Component {
   constructor(props) {
@@ -55,7 +47,6 @@ class System extends Component {
     );
     this.handleSystemDeleteConfirm = this.handleSystemDeleteConfirm.bind(this);
     this.handleSystemDeleteCancel = this.handleSystemDeleteCancel.bind(this);
-    this.handleUpgradePlan = this.handleUpgradePlan.bind(this);
     this.handleUpdatePermissionClose = this.handleUpdatePermissionClose.bind(
       this
     );
@@ -259,9 +250,6 @@ class System extends Component {
       });
   }
 
-  handleUpgradePlan() {
-    window.location = process.env.REACT_APP_ACCOUNT_SERVER + "/update-plans";
-  }
 
   handleUpload(file) {
     this.props.talkgroupActions
@@ -319,7 +307,6 @@ class System extends Component {
     let fileInput = null;
     var location = "";
     var example = "";
-    var plan = "";
     var groupRender = () => {};
 
     if (system) {
@@ -348,25 +335,6 @@ class System extends Component {
         );
       }
 
-      switch (system.planType) {
-        case freePlanValue:
-          const tempPlan = planName(system.planType) + " plan";
-          plan = (
-            <div>
-              {tempPlan}
-              <Label as="a" onClick={this.handleUpgradePlan}>
-                {" "}
-                <Icon name="plus" />
-                Upgrade Plan
-              </Label>
-            </div>
-          );
-          break;
-
-        case proPlanValue:
-          plan = planName(system.planType) + " plan";
-          break;
-      }
 
       example =
         '{\n\t"systems": [\n\t\t{\n\t\t\t"shortName": "' +
@@ -655,7 +623,6 @@ class System extends Component {
             <Header as="h1">
               <Header.Content>
                 {this.props.system.name}
-                {/* <Header.Subheader>{plan}</Header.Subheader> */}
               </Header.Content>
             </Header>
 

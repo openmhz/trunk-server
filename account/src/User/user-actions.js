@@ -156,7 +156,7 @@ export function manualLogin(
   return dispatch => {
     dispatch(beginLogin());
 
-    return makeUserRequest("post", data, "/login", { withCredentials: true })
+    return makeUserRequest("post", data, process.env.REACT_APP_ACCOUNT_SERVER + "/login", { withCredentials: true })
       .then(response => {
         if (response.data.success) {
           const user = response.data.user
@@ -252,7 +252,7 @@ export function manualLogout() {
 export function confirmEmail(userId, token) {
   return dispatch => {
     dispatch(beginConfirm());
-    return makeUserRequest("post", {}, "/users/" + userId + "/confirm/" + token).then(
+    return makeUserRequest("post", {}, process.env.REACT_APP_ACCOUNT_SERVER + "/users/" + userId + "/confirm/" + token).then(
       response => {
         if (response.data.success) {
           dispatch(confirmSuccess());
@@ -271,7 +271,7 @@ export function confirmEmail(userId, token) {
 export function resetPassword(userId, token, password) {
   return dispatch => {
     dispatch(beginResetPassword());
-    return makeUserRequest("post", { password: password }, "/users/" + userId + "/reset-password/" + token).then(
+    return makeUserRequest("post", { password: password }, process.env.REACT_APP_ACCOUNT_SERVER + "/users/" + userId + "/reset-password/" + token).then(
       response => {
         if (response.data.success) {
           dispatch(resetPasswordSuccess());
@@ -289,7 +289,7 @@ export function resetPassword(userId, token, password) {
 export function sendResetPassword(data) {
   return dispatch => {
     dispatch(beginSendResetPassword());
-    return makeUserRequest("post", data, "/api/send-reset-password").then(
+    return makeUserRequest("post", data, process.env.REACT_APP_ACCOUNT_SERVER + "/api/send-reset-password").then(
       response => {
         if (response.data.success) {
           dispatch(sendResetPasswordSuccess());
@@ -307,7 +307,7 @@ export function sendResetPassword(data) {
 export function sendConfirmEmail(data) {
   return dispatch => {
     dispatch(beginSendConfirm());
-    return makeUserRequest("post", data, "/users/" + data + "/send-confirm").then(
+    return makeUserRequest("post", data, process.env.REACT_APP_ACCOUNT_SERVER + "/users/" + data + "/send-confirm").then(
       response => {
         if (response.data.success) {
           dispatch(sendConfirmSuccess());
@@ -325,7 +325,7 @@ export function sendConfirmEmail(data) {
 export function acceptTerms(data) {
   return dispatch => {
     dispatch(beginAgreeTerms());
-    return makeUserRequest("post", data, "/users/" + data + "/terms").then(
+    return makeUserRequest("post", data, process.env.REACT_APP_ACCOUNT_SERVER + "/users/" + data + "/terms").then(
       response => {
         if (response.data.success) {
           dispatch(agreeTermsSuccess());
@@ -343,7 +343,7 @@ export function updateProfile(data) {
   return dispatch => {
     dispatch(beginUpdateProfile());
 
-    return makeUserRequest("post", data, "/users/" + data.userId)
+    return makeUserRequest("post", data, process.env.REACT_APP_ACCOUNT_SERVER + "/users/" + data.userId)
       .then(response => {
         if (response.data.success) {
           const user = response.data.user
@@ -367,8 +367,8 @@ export function updateProfile(data) {
 export function manualRegister(data) {
   return dispatch => {
     dispatch(beginRegister());
-
-    return makeUserRequest("post", data, "/register")
+    console.log("It is: " + process.env.REACT_APP_ACCOUNT_SERVER );
+    return makeUserRequest("post", data, process.env.REACT_APP_ACCOUNT_SERVER + "/register")
       .then(response => {
         if (response.data.success) {
           data.userId = response.data.userId;

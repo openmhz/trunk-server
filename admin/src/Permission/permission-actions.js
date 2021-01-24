@@ -70,7 +70,7 @@ export function fetch(shortName) {
     dispatch(beginFetchPermission());
 
     return axios
-      .get("/permissions/"+shortName)
+      .get(process.env.REACT_APP_ADMIN_SERVER + "/permissions/"+shortName, {withCredentials: true})
       .then(response => {
         if (response.data.success) {
           dispatch(fetchPermissionSuccess(response.data.permissions));
@@ -94,8 +94,8 @@ export function update(data) {
   return (dispatch, getState) => {
 
     dispatch(beginUpdateRole());
-    var url = "/permissions/" + data.shortName + "/" + data.permissionId;
-    return axios.post( url, data)
+    var url = process.env.REACT_APP_ADMIN_SERVER + "/permissions/" + data.shortName + "/" + data.permissionId;
+    return axios.post( url, data, {withCredentials: true})
       .then(response => {
         if (response.data.success) {
           dispatch(updateRoleSuccess(response.data.permission));
@@ -118,8 +118,8 @@ export function update(data) {
 export function addPermission(data) {
   return (dispatch, getState) => {
     dispatch(beginAddPermission());
-    var url = "/permissions/" + data.shortName;
-    return axios.post( url, data)
+    var url = process.env.REACT_APP_ADMIN_SERVER + "/permissions/" + data.shortName;
+    return axios.post( url, data, {withCredentials: true})
       .then(response => {
         if (response.data.success) {
           dispatch(addPermissionSuccess(response.data.permission));
@@ -144,8 +144,8 @@ export function deletePermission(data) {
   return (dispatch, getState) => {
 
     dispatch(beginDeletePermission());
-    var url = "/permissions/" + data.shortName + "/" + data.permissionId;
-    return axios.delete( url)
+    var url = process.env.REACT_APP_ADMIN_SERVER + "/permissions/" + data.shortName + "/" + data.permissionId;
+    return axios.delete( url, {withCredentials: true})
       .then(response => {
         if (response.data.success) {
           dispatch(deletePermissionSuccess(data.permissionId));

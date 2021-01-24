@@ -103,7 +103,7 @@ export function updateSystem(data) {
   return dispatch => {
     dispatch(beginUpdateSystem());
 
-    return makeUserRequest("post", data, process.env.REACT_APP_BACKEND_SERVER + "/systems/" + data.shortName)
+    return makeUserRequest("post", data, process.env.REACT_APP_ADMIN_SERVER + "/systems/" + data.shortName,  {withCredentials: true})
       .then(response => {
         if (response.data.success) {
           dispatch(updateSystemSuccess(response.data.system));
@@ -162,7 +162,7 @@ export function fetchSystems() {
     dispatch(beginFetchSystem());
 
     return axios
-      .get(process.env.REACT_APP_ADMIN_SERVER + "/systems")
+      .get(process.env.REACT_APP_ADMIN_SERVER + "/systems",  {withCredentials: true})
       .then(response => {
         if (response.data.success) {
           dispatch(fetchSystemSuccess(response.data.systems));
@@ -187,7 +187,7 @@ export function deleteSystem(shortName) {
   return dispatch => {
     dispatch(beginDeleteSystem());
 
-    return makeUserRequest("delete", null, process.env.REACT_APP_BACKEND_SERVER + "/systems/"+shortName)
+    return makeUserRequest("delete", null, process.env.REACT_APP_ADMIN_SERVER + "/systems/"+shortName,  {withCredentials: true})
       .then(response => {
         if (response.data.success) {
           dispatch(deleteSystemSuccess({shortName: shortName}));
@@ -211,7 +211,7 @@ export function createSystem(data) {
   return dispatch => {
     dispatch(beginCreateSystem());
 
-    return makeUserRequest("post", data, process.env.REACT_APP_BACKEND_SERVER + "/systems")
+    return makeUserRequest("post", data, process.env.REACT_APP_ADMIN_SERVER + "/systems", {withCredentials: true})
       .then(response => {
         if (response.data.success) {
           dispatch(createSystemSuccess(response.data.system));

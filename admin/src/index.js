@@ -9,6 +9,7 @@ import App from "./App/App"
 import Restricted from "./App/Restricted"
 
 import About from "./Components/About"
+import SystemContainer from "./System/SystemContainer"
 import ListSystemsContainer from "./System/ListSystemsContainer"
 import UpdateSystemContainer from "./System/UpdateSystemContainer"
 import CreateSystemContainer from "./System/CreateSystemContainer"
@@ -22,10 +23,12 @@ ReactDOM.render(
       <> 
       <App>
         <Switch>
-          <Route path="/about" component={About} />
-          <Route path="/update-system/:shortName" component={UpdateSystemContainer} />
-					<Route path="/create-system" component={CreateSystemContainer} />
-          <Route path="/list-systems" component={ListSystemsContainer} />
+          <Route path="/about" component={Restricted(About, store)} />
+          <Route path="/system/:shortName" component={Restricted(SystemContainer, store)} />
+          <Route path="/update-system/:shortName" component={Restricted(UpdateSystemContainer, store)} />
+					<Route path="/create-system" component={Restricted(CreateSystemContainer, store)} />
+          <Route path="/list-systems" component={Restricted(ListSystemsContainer,store)} />
+          <Route path="/" component={Restricted(ListSystemsContainer, store)} />
           <Route render={() => (<div>Miss</div>)} />
         </Switch>
         </App>

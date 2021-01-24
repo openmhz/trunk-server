@@ -20,6 +20,8 @@ import TermsContainer from "./User/TermsContainer"
 
 const store = configureStore(/* provide initial state if any */)
 
+console.log(process.env);
+//This thssi
 ReactDOM.render(
   <Provider store={store}>
     <ConnectedRouter history={history}> { /* place ConnectedRouter under Provider */ }

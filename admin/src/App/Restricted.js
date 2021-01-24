@@ -19,7 +19,6 @@ const restricted = (BaseComponent, store) => {
         }
 
         checkAuthentication(params) {
-            const { history } = params;
             const authenticated = store.getState().user.authenticated;
             if (!authenticated) {
               axios

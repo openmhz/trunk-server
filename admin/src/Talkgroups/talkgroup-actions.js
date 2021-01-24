@@ -49,16 +49,6 @@ function fetchTalkgroupError(data) {
   data };
 }
 
-
-function makeUserRequest(method, data, api) {
-  // returns a Promise
-  return axios({
-    method: method,
-    url: api,
-    data: data
-  });
-}
-
 export function changeUrl(url) {
   return dispatch => {
     dispatch(push(url));
@@ -68,13 +58,14 @@ export function changeUrl(url) {
 
 // https://stackoverflow.com/questions/41878838/how-do-i-set-multipart-in-axios-with-react
 function fileUpload(shortName, file){
-    const url = "/talkgroups/" + shortName + "/import";
+    const url = process.env.REACT_APP_ADMIN_SERVER + "/talkgroups/" + shortName + "/import";
     const formData = new FormData();
     formData.append('file',file)
     const config = {
         headers: {
             'content-type': 'multipart/form-data'
-        }
+        },
+        withCredentials: true 
     }
     return  post(url, formData,config)
   }
@@ -121,7 +112,7 @@ export function exportTalkgroups(
     dispatch(beginExportTalkgroup());
 
     return axios
-      .get("/talkgroups/" + shortName + "/export")
+      .get(process.env.REACT_APP_ADMIN_SERVER + "/talkgroups/" + shortName + "/export", { withCredentials: true })
       .then(response => {
         if (response.data.success) {
           var data = {shortName: shortName, talkgroups: response.data.talkgroups}
@@ -159,7 +150,7 @@ export function fetchTalkgroups(shortName) {
     dispatch(beginFetchTalkgroup());
 
     return axios
-      .get("/talkgroups/"+shortName)
+      .get(process.env.REACT_APP_ADMIN_SERVER + "/talkgroups/"+shortName, { withCredentials: true })
       .then(response => {
         if (response.data.success) {
           var data = {shortName: shortName, talkgroups: response.data.talkgroups}

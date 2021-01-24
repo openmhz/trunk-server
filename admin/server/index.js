@@ -13,28 +13,54 @@ require("./models/user");
 const multer = require('multer');
 
 var upload = multer({
-    dest: 'uploads/'
+  dest: 'uploads/'
 });
 // -------------------------------------------
 
-const app = express() 
+const app = express()
 
 // -------------------------------------------
 
-const connect = () => {
-	mongoose.connect(secrets.db, (err, res) => {
-		if (err) {
-			console.log(`Error connecting to ${secrets.db}. ${err}`)
-		} else {
-			console.log(`Successfully connected to ${secrets.db}.`)
-		}
-	})
+// -------------------------------------------
+
+async function connect() {
+
+  // Demonstrate the readyState and on event emitters
+  console.log(mongoose.connection.readyState); //logs 0
+  mongoose.connection.on('connecting', () => {
+    console.log('Mongoose is connecting')
+    console.log(mongoose.connection.readyState); //logs 2
+  });
+  mongoose.connection.on('connected', () => {
+    console.log('Mongoose is connected');
+    console.log(mongoose.connection.readyState); //logs 1
+  });
+  mongoose.connection.on('disconnecting', () => {
+    console.log('Mongoose is disconnecting');
+    console.log(mongoose.connection.readyState); // logs 3
+  });
+
+  // Connect to a MongoDB server running on 'localhost:27017' and use the
+  // 'test' database.
+  await mongoose.connect(secrets.db, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }, (err, res) => {
+    if (err) {
+      console.log(`Mongoose - Error connecting to ${secrets.db}. ${err}`)
+    } else {
+      console.log(`Mongoose Successfully connected to ${secrets.db}.`)
+    }
+  })
+  console.log("All Done");
 }
-connect()
-
-mongoose.connection.on("error", console.error)
-mongoose.connection.on("disconnected", connect)
-
+connect();
+mongoose.connection.on('error', err => {
+  console.error("Mongoose Error!")
+  console.error(err);
+});
+mongoose.connection.on('disconnected', () => {
+  console.log('Mongoose disconnected');
+  console.log(mongoose.connection.readyState); //logs 0
+  connect();
+});
 // -------------------------------------------
 
 const isDev = process.env.NODE_ENV === "development"
@@ -67,12 +93,12 @@ function isOwner(req, res, next) {
   if (req.params.shortName && req.user) {
     var short_name = req.params.shortName.toLowerCase();
     var userId = req.user._id;
-    Permission.findOne({'userId': userId, 'shortName': short_name}, function(err, permission) {
+    Permission.findOne({ 'userId': userId, 'shortName': short_name }, function (err, permission) {
       if (err) {
         console.error('Error - getRole userId: ' + userId + ' shortName: ' + short_name + ' error: ' + err);
       }
       console.log('Found - getRole userId: ' + userId + ' shortName: ' + short_name + ' role: ' + permission.role);
-      if ( permission.role >= 15) {
+      if (permission.role >= 15) {
         return next();
       } else {
         res.status(401).send({
@@ -90,12 +116,12 @@ function isAdmin(req, res, next) {
   if (req.params.shortName && req.user) {
     var short_name = req.params.shortName.toLowerCase();
     var userId = req.user._id;
-    Permission.findOne({'userId': userId, 'shortName': short_name}, function(err, permission) {
+    Permission.findOne({ 'userId': userId, 'shortName': short_name }, function (err, permission) {
       if (err) {
         console.error('Error - getRole userId: ' + userId + ' shortName: ' + short_name + ' error: ' + err);
       }
       console.log('Found - getRole userId: ' + userId + ' shortName: ' + short_name + ' role: ' + permission.role);
-      if (permission.role  >= 10) {
+      if (permission.role >= 10) {
         return next();
       } else {
         res.status(401).send({
@@ -129,27 +155,27 @@ app.get("")
 app.delete("/permissions/:shortName/:permissionId", isAdmin, permissions.deletePermission);
 app.post("/permissions/:shortName/:permissionId", isAdmin, permissions.updatePermission);
 app.post("/permissions/:shortName", isAdmin, permissions.addPermission);*/
-app.get("/talkgroups/:shortName", isLoggedIn,  talkgroups.fetchTalkgroups)
-app.post("/talkgroups/:shortName/import", isLoggedIn, upload.single('file'),  talkgroups.importTalkgroups)
-app.get("/talkgroups/:shortName/export", isLoggedIn,  talkgroups.exportTalkgroups)
+app.get("/talkgroups/:shortName", isLoggedIn, talkgroups.fetchTalkgroups)
+app.post("/talkgroups/:shortName/import", isLoggedIn, upload.single('file'), talkgroups.importTalkgroups)
+app.get("/talkgroups/:shortName/export", isLoggedIn, talkgroups.exportTalkgroups)
 app.post("/groups/:shortName/reorder", isLoggedIn, groups.reorderGroups);
 app.post("/groups/:shortName/:groupId?", isLoggedIn, groups.upsertGroup);
 app.get("/groups/:shortName/:groupId?", isLoggedIn, groups.getGroups);
 app.delete("/groups/:shortName/:groupId", isLoggedIn, groups.deleteGroup);
-app.get("/systems", isLoggedIn,  systems.listSystems)
+app.get("/systems", isLoggedIn, systems.listSystems)
 app.delete("/systems/:shortName", isLoggedIn, systems.deleteSystem)
 app.post("/systems/:shortName", [isLoggedIn, systems.ownSystem, systems.validateSystem, systems.updateSystem])
 app.post("/systems", [isLoggedIn, systems.uniqueShortName, systems.validateSystem, systems.createSystem])
 
 app.get("*", (req, res, next) => {
-	res.sendFile(__dirname + '/public/index.html');
+  res.sendFile(__dirname + '/public/index.html');
 });
 
 // start listening to incoming requests
 app.listen(app.get("port"), app.get("host"), (err) => {
-	if (err) {
-		console.err(err.stack)
-	} else {
-		console.log(`App listening on port ${app.get("port")} [${process.env.NODE_ENV} mode]`)
-	}
+  if (err) {
+    console.err(err.stack)
+  } else {
+    console.log(`App listening on port ${app.get("port")} [${process.env.NODE_ENV} mode]`)
+  }
 })
