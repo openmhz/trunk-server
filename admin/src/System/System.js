@@ -163,12 +163,15 @@ class System extends Component {
     }
   }
 
-  componentWillReceiveProps(nextProp) {
-    if (!this.props.errors && nextProp.errors) {
-      this.processErrors(nextProp.errors);
+  componentDidReceiveProps(prevProp) {
+
+    // If we just received the error statistics for a system, for the first time, proccess them.
+    if (this.props.errors && !prevProp.errors) {
+      this.processErrors(this.prop.errors);
     }
-    if (!this.props.statistic && nextProp.statistic) {
-      this.processStatistics(nextProp.statistic);
+    // If we just received the call statistics for a system, for the first time, proccess them.
+    if (this.props.statistic && !prevProp.statistic) {
+      this.processStatistics(this.prop.statistic);
     }
   }
 

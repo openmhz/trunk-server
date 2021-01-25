@@ -1,9 +1,5 @@
 import React, { Component } from "react";
-import ReactDOM from "react-dom";
 import {
-  Container,
-  Header,
-  Form,
   Grid,
   Modal,
   Rail,
@@ -11,15 +7,10 @@ import {
   List,
   Input,
   Button,
-  Message,
   Icon,
   Table
 } from "semantic-ui-react";
 
-// ----------------------------------------------------
-const requestMessageStyle = {
-  color: "red"
-};
 
 // ----------------------------------------------------
 class GroupModal extends Component {
@@ -46,14 +37,17 @@ class GroupModal extends Component {
     this.props.talkgroupActions.fetchTalkgroups(this.props.shortName);
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.talkgroups && nextProps.groups && nextProps.editGroupId) {
-      var editGroup = nextProps.groups.find(
-        group => group._id === nextProps.editGroupId
+  componentDidUpdate(prevProps) {
+
+    // This determines if you are trying to edit a group. 
+    // In this case, the value of editGroupID will chane to the group being edited
+    if (this.props.talkgroups && this.props.groups && this.props.editGroupId && !prevProps.editGroupId) {
+      var editGroup = this.props.groups.find(
+        group => group._id === this.props.editGroupId
       );
       var items = [];
 
-      var talkgroups = nextProps.talkgroups;
+      var talkgroups = this.props.talkgroups;
       for (var i = 0; i < editGroup.talkgroups.length; i++) {
         const talkgroupId = editGroup.talkgroups[i];
         const index = talkgroups.findIndex(tg => tg.num === talkgroupId);
@@ -68,19 +62,23 @@ class GroupModal extends Component {
             .concat(talkgroups.slice(index + 1));
         }
       }
-    const group = {name: editGroup.groupName, items: items}
-    this.setState({group: group, talkgroups: talkgroups, groupName: editGroup.groupName});
-  } else {
-    this.setState({ talkgroups: nextProps.talkgroups })
-
-  }
-
-  if (!nextProps.editGroupId && (this.props.editGroupId != nextProps.editGroupId)) {
-    this.setState({ groupName: "", group: {
-      name: "",
-      items: []
-    }});
-  }
+      // we want to remove that are part of the Group from the list on the Left
+      const group = { name: editGroup.groupName, items: items }
+      this.setState({ group: group, talkgroups: talkgroups, groupName: editGroup.groupName });
+    } else {
+      // If we are not editing, make sure there is the full list on the left.
+      this.setState({ talkgroups: this.props.talkgroups })
+    }
+    
+    // If we are done editing, clear out the modal
+    if (!this.props.editGroupId && (this.props.editGroupId !== prevProps.editGroupId)) {
+      this.setState({
+        groupName: "", group: {
+          name: "",
+          items: []
+        }
+      });
+    }
   }
 
   removeTalkgroup(event, index) {
@@ -125,11 +123,7 @@ class GroupModal extends Component {
   handleClose = () => this.props.onClose(false);
   handleSubmit() {
     var talkgroupNums = this.state.group.items.map(a => a.num);
-    const data = {
-      shortName: this.props.shortName,
-      groupName: this.state.groupName,
-      talkgroups: JSON.stringify(talkgroupNums)
-    };
+    
     if (this.props.editGroupId) {
       const data = {
         _id: this.props.editGroupId,

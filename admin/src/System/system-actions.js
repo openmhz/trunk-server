@@ -86,7 +86,8 @@ function makeUserRequest(method, data, api = "/login") {
   return axios({
     method: method,
     url: api,
-    data: data
+    data: data,
+    withCredentials: true
   });
 }
 
@@ -187,7 +188,7 @@ export function deleteSystem(shortName) {
   return dispatch => {
     dispatch(beginDeleteSystem());
 
-    return makeUserRequest("delete", null, process.env.REACT_APP_ADMIN_SERVER + "/systems/"+shortName,  {withCredentials: true})
+    return makeUserRequest("delete", null, process.env.REACT_APP_ADMIN_SERVER + "/systems/"+shortName)
       .then(response => {
         if (response.data.success) {
           dispatch(deleteSystemSuccess({shortName: shortName}));

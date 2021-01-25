@@ -140,15 +140,19 @@ function csv_import(shortName, filename, callback) {
               console.error("Error: csv import 2: " + err);
               callback(err, null);
             } else {
+              var response = [];
               for (var i = 0; i < data.length; i++) {
                 var row = data[i];
+                row.num = parseInt(row.num);
+                row.tag = row.tag.toLowerCase();
+                row.group = row.group.toLowerCase();
                 var newTg = new Talkgroup();
-                newTg.num = parseInt(row.num);
+                newTg.num = row.num;
                 newTg.alpha = row.alpha;
                 newTg.mode = row.mode;
                 newTg.description = row.description;
-                newTg.tag = row.tag.toLowerCase();
-                newTg.group = row.group.toLowerCase();
+                newTg.tag = row.tag;
+                newTg.group = row.group;
                 newTg.priority = row.priority;
                 newTg.shortName = shortName;
                 
@@ -158,8 +162,10 @@ function csv_import(shortName, filename, callback) {
                     callback(err, null);
                   }
                 });
+
+                response.push(row);
               }
-              callback(null, data);
+              callback(null, response);
             }
           }
         );
@@ -242,7 +248,6 @@ exports.fetchTalkgroups = function(req, res, next) {
         res.json({ success: false, message: err });
         return;
       }
-
       res.json({ success: true, talkgroups: talkgroups });
       return;
     }

@@ -54,8 +54,7 @@ class SystemForm extends Component {
       countryError: false,
       isEditing: this.props.isEditing
     };
-    if (this.props.isEditing && this.props.system)
-    {
+    if (this.props.isEditing && this.props.system) {
       this.state.name = this.props.system.name;
       this.state.shortName = this.props.system.shortName;
       this.state.description = this.props.system.description;
@@ -67,18 +66,19 @@ class SystemForm extends Component {
       this.state.showScreenName = this.props.system.showScreenName;
     }
   }
-
-  componentWillReceiveProps(nextProps) {
-    if (this.props.isEditing && nextProps.system) {
+  // If we directly to an updating url, the system fetch will come back after the constructer, so we need to catch this and update the values
+  componentDidUpdate(prevProps) {
+    if (this.props.isEditing && this.props.system && !prevProps.system) {
       this.setState({
-        name: nextProps.system.name,
-        shortName: nextProps.system.shortName,
-        description: nextProps.system.description,
-        systemType: nextProps.system.systemType,
-        state: nextProps.system.state,
-        county: nextProps.system.county,
-        country: nextProps.system.country,
-        showScreenName: nextProps.system.showScreenName,
+        name: this.props.system.name,
+        shortName: this.props.system.shortName,
+        description: this.props.system.description,
+        systemType: this.props.system.systemType,
+        city: this.props.system.city,
+        state: this.props.system.state,
+        county: this.props.system.county,
+        country: this.props.system.country,
+        showScreenName: this.props.system.showScreenName,
       });
     }
   }
@@ -162,7 +162,7 @@ class SystemForm extends Component {
 
   handleInputChange = (e, { name, value }) => this.setState({ [name]: value });
   handleCheckboxChange() {
-    this.setState({showScreenName: !this.state.showScreenName});
+    this.setState({ showScreenName: !this.state.showScreenName });
   }
 
   handleSubmit(event) {
@@ -266,7 +266,7 @@ class SystemForm extends Component {
           <Message.Content>
             <Message.Header>Problems...</Message.Header>
             <ul>
-              {this.state.checkInputMessages.map(function(listValue) {
+              {this.state.checkInputMessages.map(function (listValue) {
                 return <li key={`ListItem_${counter++}`}>{listValue}</li>;
               })}
               {this.props.requestMessage.length > 0 && (
@@ -310,9 +310,9 @@ class SystemForm extends Component {
 
             <p>Your Screen Name: {this.props.screenName}</p>
             <Checkbox
-            onChange={this.handleCheckboxChange}
-            checked={this.state.showScreenName}
-            label="Show in System Listing" />
+              onChange={this.handleCheckboxChange}
+              checked={this.state.showScreenName}
+              label="Show in System Listing" />
 
           </Form.Field>
           <Divider horizontal />
@@ -360,8 +360,8 @@ class SystemForm extends Component {
           </Form.Group>
           <Form.Group widths="equal">
 
-              {this.state.systemType === "city" && (
-                <Form.Field>
+            {this.state.systemType === "city" && (
+              <Form.Field>
                 <Form.Input
                   type="text"
                   name="city"
@@ -372,9 +372,9 @@ class SystemForm extends Component {
                   placeholder="City..."
                 />
               </Form.Field>
-              )}
-              {this.state.systemType === "county" && (
-                <Form.Field>
+            )}
+            {this.state.systemType === "county" && (
+              <Form.Field>
                 <Form.Input
                   type="text"
                   name="county"
@@ -385,9 +385,9 @@ class SystemForm extends Component {
                   placeholder="County..."
                 />
               </Form.Field>
-              )}
-              {this.state.systemType === "international" ? (
-                <Form.Field>
+            )}
+            {this.state.systemType === "international" ? (
+              <Form.Field>
                 <Form.Input
                   type="text"
                   name="country"
@@ -397,18 +397,18 @@ class SystemForm extends Component {
                   label="Country"
                   placeholder="Country..."
                 />
-                </Form.Field>
-              ) : (
+              </Form.Field>
+            ) : (
                 <Form.Field>
-                <Form.Dropdown
-                  name="state"
-                  onChange={this.handleInputChange}
-                  error={this.state.stateError}
-                  value={this.state.state}
-                  options={stateOptions}
-                  label="State"
-                  placeholder="Select State..."
-                />
+                  <Form.Dropdown
+                    name="state"
+                    onChange={this.handleInputChange}
+                    error={this.state.stateError}
+                    value={this.state.state}
+                    options={stateOptions}
+                    label="State"
+                    placeholder="Select State..."
+                  />
                 </Form.Field>
               )}
 

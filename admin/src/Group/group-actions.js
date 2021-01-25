@@ -80,7 +80,7 @@ function makeUserRequest(method, data, api = "/login") {
     method: method,
     url: api,
     data: data,
-    config: {withCredentials: true}
+    withCredentials: true
   });
 }
 

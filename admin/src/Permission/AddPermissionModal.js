@@ -41,9 +41,7 @@ class AddPermissionModal extends Component {
 
   }
 
-  componentWillReceiveProps(nextProps) {
 
-  }
 
   handleInputChange = (e, { name, value }) => this.setState({ [name]: value });
   handleChange = (e, { newRole }) => this.setState({ newRole })
