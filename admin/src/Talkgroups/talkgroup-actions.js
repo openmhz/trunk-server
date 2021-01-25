@@ -26,15 +26,6 @@ function beginExportTalkgroup() {
   return { type: types.EXPORT_TALKGROUP };
 }
 
-function exportTalkgroupSuccess() {
-  return { type: types.EXPORT_SUCCESS_TALKGROUP };
-}
-
-function exportTalkgroupError() {
-  return { type: types.EXPORT_ERROR_TALKGROUP };
-}
-
-
 function beginFetchTalkgroup() {
   return { type: types.FETCH_TALKGROUP };
 }

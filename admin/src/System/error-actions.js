@@ -18,15 +18,6 @@ function fetchError(data) {
   data };
 }
 
-function makeUserRequest(method, data, api) {
-  // returns a Promise
-  return axios({
-    method: method,
-    url: api,
-    data: data
-  });
-}
-
 export function changeUrl(url) {
   return dispatch => {
     dispatch(push(url));
@@ -39,7 +30,7 @@ export function fetch(shortName) {
     dispatch(beginFetch());
 
     return axios
-      .get(process.env.REACT_APP_BACKEND_SERVER + "/" + shortName + "/errors")
+      .get(process.env.REACT_APP_BACKEND_SERVER + "/" + shortName + "/errors",  {withCredentials: true})
       .then(response => {
         if (response.data) {
           var data ={

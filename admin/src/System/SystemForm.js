@@ -1,25 +1,12 @@
 import React, { Component } from "react";
-import ReactDOM from "react-dom";
 import {
-  Container,
-  Header,
-  Dropdown,
   Divider,
-  TextArea,
   Form,
-  Grid,
-  Segment,
-  Input,
   Button,
   Message,
   Checkbox,
   Icon
 } from "semantic-ui-react";
-
-// ----------------------------------------------------
-const checkInputMessagestyle = {
-  color: "red"
-};
 
 // ----------------------------------------------------
 class SystemForm extends Component {
@@ -94,7 +81,7 @@ class SystemForm extends Component {
       this.setState({ nameError: false });
     }
 
-    if (this.state.shortName.length == 0 || this.state.shortName.length > 10) {
+    if (this.state.shortName.length === 0 || this.state.shortName.length > 10) {
       this.setState({ shortNameError: true });
       checkInputMessages.push(
         "Short Name for the system has to be 4-10 charecters"
@@ -416,7 +403,7 @@ class SystemForm extends Component {
 
           <div style={floatStyle}>
             <Button type="submit" size="large" floated="right" value="Login">
-              {isEditing != true ? "Create" : "Update"}
+              {isEditing !== true ? "Create" : "Update"}
             </Button>
           </div>
         </Form>

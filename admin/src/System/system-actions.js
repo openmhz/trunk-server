@@ -138,7 +138,7 @@ export function fetchErrors(shortName) {
     dispatch(beginFetchError());
 
     return axios
-      .get(process.env.REACT_APP_BACKEND_SERVER + "/" + shortName + "/systems")
+      .get(process.env.REACT_APP_BACKEND_SERVER + "/" + shortName + "/systems",  {withCredentials: true})
       .then(response => {
         if (response.data) {
           dispatch(fetchErrorsSuccess(shortName, response.data));

@@ -1,16 +1,5 @@
 import React, { Component } from "react";
-import ReactDOM from "react-dom";
-import { Link } from 'react-router-dom'
 import {
-  Container,
-  Header,
-  Form,
-  Grid,
-  Segment,
-  Input,
-  Button,
-  Message,
-  Icon,
   Table
 } from "semantic-ui-react";
 
@@ -20,11 +9,6 @@ import {
 
 // ----------------------------------------------------
 class ListTalkgroups extends Component {
-  constructor(props) {
-    super(props);
-
-  }
-
 
 //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
 //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter

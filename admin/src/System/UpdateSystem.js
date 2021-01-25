@@ -16,7 +16,6 @@ class UpdateSystem extends Component {
   }
 
   componentDidMount() {
-     const { dispatch } = this.props
      this.props.fetchSystems()
    }
 
