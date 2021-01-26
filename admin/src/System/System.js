@@ -163,7 +163,7 @@ class System extends Component {
     }
   }
 
-  componentDidReceiveProps(prevProp) {
+  componentDidUpdate(prevProp) {
 
     // If we just received the error statistics for a system, for the first time, proccess them.
     if (this.props.errors && !prevProp.errors) {

@@ -97,6 +97,9 @@ CNAMEs need to be created for the various services. Create the CNAMEs below with
 
 After doing this, you should have the following domains: api.domain.com, account.domain.com, media.domain.com, admin.domain.compose
 
+openmhz.test:3000
+
+
 ### Mailjet
 Sign up for MailJet! 
 https://www.mailjet.com

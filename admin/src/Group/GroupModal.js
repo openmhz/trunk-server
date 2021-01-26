@@ -65,18 +65,21 @@ class GroupModal extends Component {
       // we want to remove that are part of the Group from the list on the Left
       const group = { name: editGroup.groupName, items: items }
       this.setState({ group: group, talkgroups: talkgroups, groupName: editGroup.groupName });
-    } else {
-      // If we are not editing, make sure there is the full list on the left.
-      this.setState({ talkgroups: this.props.talkgroups })
     }
-    
+
+    if (this.props.talkgroups && !prevProps.talkgroups) {
+      // If we are not editing, make sure there is the full list on the left.
+      this.setState({ talkgroups: [...this.props.talkgroups] })
+    }
+
     // If we are done editing, clear out the modal
     if (!this.props.editGroupId && (this.props.editGroupId !== prevProps.editGroupId)) {
       this.setState({
         groupName: "", group: {
           name: "",
           items: []
-        }
+        },
+        talkgroups: [...this.props.talkgroups]
       });
     }
   }
@@ -120,10 +123,19 @@ class GroupModal extends Component {
         .concat(this.state.talkgroups.slice(index + 1))
     });
   }
-  handleClose = () => this.props.onClose(false);
+  handleClose = () => {
+    this.setState({
+      groupName: "", group: {
+        name: "",
+        items: []
+      },
+      talkgroups: [...this.props.talkgroups]
+    });
+    this.props.onClose(false);
+  }
   handleSubmit() {
     var talkgroupNums = this.state.group.items.map(a => a.num);
-    
+
     if (this.props.editGroupId) {
       const data = {
         _id: this.props.editGroupId,
@@ -132,6 +144,13 @@ class GroupModal extends Component {
         talkgroups: JSON.stringify(talkgroupNums)
       };
 
+      this.setState({
+        groupName: "", group: {
+          name: "",
+          items: []
+        },
+        talkgroups: [...this.props.talkgroups]
+      });
       this.props.groupActions.updateGroup(data).then(requestMessage => {
         if (requestMessage) {
           // report to the user is there was a problem during registration
@@ -149,6 +168,14 @@ class GroupModal extends Component {
         groupName: this.state.groupName,
         talkgroups: JSON.stringify(talkgroupNums)
       };
+
+      this.setState({
+        groupName: "", group: {
+          name: "",
+          items: []
+        },
+        talkgroups: [...this.props.talkgroups]
+      });
 
       this.props.groupActions.createGroup(data).then(requestMessage => {
         if (requestMessage) {
