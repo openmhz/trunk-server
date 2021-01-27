@@ -123,7 +123,7 @@ class Login extends Component {
                 features over time, but right now it can:
                 </p>
               <ul>
-                <li>3 day archive</li>
+                <li>30 day archive</li>
                 <li>Filter by talkgroup</li>
               </ul>
               <p>

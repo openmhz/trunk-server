@@ -1,6 +1,6 @@
 
 ## Base 
-start using `npx create-react-app admin --template redux`
+started development using `npx create-react-app admin --template redux`
 
 ## Packages used:
 - [connected-react-router](https://github.com/supasate/connected-react-router): Synchronize router state with redux store through 

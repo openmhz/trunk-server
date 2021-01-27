@@ -393,6 +393,7 @@ class SystemForm extends Component {
                     error={this.state.stateError}
                     value={this.state.state}
                     options={stateOptions}
+                    scrolling 
                     label="State"
                     placeholder="Select State..."
                   />

@@ -50,7 +50,6 @@ exports.listSystems = function (req, res, next) {
               country,
               userId,
               key,
-              planType,
               showScreenName
             }) => ({
               name,
@@ -63,7 +62,6 @@ exports.listSystems = function (req, res, next) {
               country,
               userId,
               key,
-              planType,
               showScreenName
             }))(obj);
             if (obj.showScreenName) {

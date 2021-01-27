@@ -28,16 +28,17 @@ ReactDOM.render(
       <> 
       <App>
         <Switch>
-        <Route path="/login" component={LoginContainer} />
-        <Route path="/register" component={RegisterContainer} />
-        <Route path="/wait-confirm-email" component={WaitConfirmEmailContainer} />
+          <Route exact path="/" component={Restricted(ProfileContainer, store)} />
+          <Route path="/login" component={LoginContainer} />
+          <Route path="/register" component={RegisterContainer} />
+					<Route path="/wait-confirm-email" component={WaitConfirmEmailContainer} />
 					<Route path="/sent-confirm-email" component={SentConfirmEmailContainer} />
 					<Route path="/send-reset-password" component={SendResetPasswordContainer} />
 					<Route path="/reset-password/:userId/:token" component={ResetPasswordContainer} />
 					<Route path="/confirm-email/:userId/:token" component={ConfirmEmailContainer} />
 					<Route path="/terms" component={Restricted(TermsContainer, store)} />
           <Route path="/profile" component={Restricted(ProfileContainer, store)} />
-          <Route render={() => (<div>Miss</div>)} />
+
         </Switch>
         </App>
       </>

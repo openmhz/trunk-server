@@ -32,10 +32,6 @@ const UserSchema = new mongoose.Schema({
 		type: Boolean,
 		default: false
 	},
-	customerId: {
-		type: String,
-		default: ""
-	},
 	confirmEmailToken: String,
 	confirmEmailTTL: Date,
 	admin: {

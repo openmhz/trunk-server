@@ -11,15 +11,11 @@ module.exports = function (app, passport) {
   // serializing, and querying the user record by ID from the database when
   // deserializing.
   passport.serializeUser((user, done) => {
-    console.log("passport.serializeUser() - Serializing the user: " + user.id);
   	done(null, user.id)
   })
 
   passport.deserializeUser((id, done) => {
-    console.log("passport.deserializeUser() - Trying to deSerialize the user: " + id);
   	User.findById(id, (err, user) => {
-      console.log("passport.deserializeUser() - Found the user: " + user);
-      console.log("passport.deserializeUser() - Err: " + err);
       done(err, user)
   	})
   })

@@ -68,6 +68,7 @@ const system = (
         state: action.data.state,
         county: action.data.county,
         country: action.data.country,
+        key: action.data.key,
         userId: action.data.userId,
         id: action.data.id,
         showScreenName: action.data.showScreenName

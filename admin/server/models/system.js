@@ -11,7 +11,6 @@ var systemSchema = mongoose.Schema({
   state: String,
   description: String,
   showScreenName: Boolean,
-  planType: {type: Number, default: 0},
   userId:  mongoose.Schema.Types.ObjectId,
   key: String
 });

@@ -97,7 +97,22 @@ CNAMEs need to be created for the various services. Create the CNAMEs below with
 
 After doing this, you should have the following domains: api.domain.com, account.domain.com, media.domain.com, admin.domain.compose
 
-openmhz.test:3000
+
+### Debugging React Apps using Hot Reloading
+If you are trying to make changes to any of react frontends, it is a huge pain to have to compile to site and rebuild the container each time you make a change. Instead, simply run the react app in development mode. This will work for the frontends for the:
+- admin frontend
+- account frontend
+- frontend... frontend
+
+First, start up all of the containers as described above. You will still the backend APIs they provide.
+
+Now go into the respective sub directory for the component you are interested in and run:
+````
+source ../test.env
+yarn start
+````
+
+This should build the frontend and open a browser. In order to have all the cookies work correctly, you have to use the same domain name. Make sure you have setup the local domains as described above. Then goto the base domain, for me that is openmhz.test, at port 3000 `openmhz.test:3000`
 
 
 ### Mailjet
