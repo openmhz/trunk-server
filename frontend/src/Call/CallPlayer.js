@@ -53,6 +53,7 @@ class CallPlayer extends React.Component {
     this.endSocket = this.endSocket.bind(this);
     this.changeUrl = this.changeUrl.bind(this);
     this.audioRef = React.createRef();
+    this.currentCallRef = React.createRef();
     this.state = {
       requestMessage: "",
       callUrl: "",
@@ -252,6 +253,13 @@ class CallPlayer extends React.Component {
       var callUrl = nextCall.url;
 
       this.setState({callUrl: callUrl, callId: nextCallId, sourceIndex: 0, isPlaying: true}, () => { audio.playSource(callUrl)}); //scrollToComponent(this.currentCallRef.current);
+     if (this.currentCallRef.current) {
+      this.currentCallRef.current.scrollIntoView({
+          behavior: "smooth",
+  
+          block: "center",
+          });
+        }
       this.props.callActions.fetchCallInfo( nextCallId);
     } else {
       this.setState({isPlaying: false});
@@ -542,7 +550,7 @@ class CallPlayer extends React.Component {
           style={{ minHeight: '100vh' }}
         >
         <Waypoint onEnter={this.loadNewerCalls}/>
-        <ListCalls callsAllIds={this.props.callsAllIds} callsById={this.props.callsById} activeCallId={this.state.callId} talkgroups={this.props.talkgroups} playCall={this.playCall} />
+        <ListCalls callsAllIds={this.props.callsAllIds} currentCallRef={this.currentCallRef} callsById={this.props.callsById} activeCallId={this.state.callId} talkgroups={this.props.talkgroups} playCall={this.playCall} />
       </Sidebar.Pusher>
       </Sidebar.Pushable>
         <Waypoint onEnter={this.loadOlderCalls}/>

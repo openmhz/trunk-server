@@ -11,23 +11,10 @@ import "./CallPlayer.css";
 class ListCalls extends React.Component {
   constructor(props) {
     super(props);
-    this.handleCurrentCallRef = this.handleCurrentCallRef.bind(this);
 
     //this.currentCallRef = React.createRef();
   }
-  handleCurrentCallRef(ref) {
-    this.currentCallRef = ref
-    console.log("Setting it")
-  }
-  componentDidUpdate(prevProps, prevState) {
-    if (this.currentCallRef && this.props.activeCallId && (this.props.activeCallId != prevProps.activeCallId)) {
-      this.currentCallRef.scrollIntoView({
-        behavior: "smooth",
 
-        block: "center",
-        });
-    }
-  }
 
   //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
   //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
@@ -47,7 +34,7 @@ class ListCalls extends React.Component {
             
             {this.props.callsAllIds.map((callId, index) => {
               if (callId === this.props.activeCallId) {
-                return (<Ref innerRef={this.handleCurrentCallRef}><CallItem activeCall={true}  call={this.props.callsById[callId]} talkgroups={this.props.talkgroups} key={index} onClick={this.props.playCall}/></Ref>)
+                return (<Ref innerRef={this.props.currentCallRef}><CallItem activeCall={true}  call={this.props.callsById[callId]} talkgroups={this.props.talkgroups} key={index} onClick={this.props.playCall}/></Ref>)
               } else {
                 return <CallItem activeCall={false} call={this.props.callsById[callId]} talkgroups={this.props.talkgroups} key={index} onClick={this.props.playCall}/>
               }
