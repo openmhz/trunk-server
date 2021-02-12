@@ -65,8 +65,8 @@ class MediaPlayer extends React.Component {
     });
   }
 
-componentWillUpdate(nextProps) {
-  if (nextProps.call && (nextProps.call !== this.props.call)) {
+componentDidUpdate(prevProps) {
+  if (this.props.call && (prevProps.call !== this.props.call)) {
     this.setState({
       sourceIndex: 0
     });

@@ -49,6 +49,11 @@ sourceString(call) {
     return srcString;
 }
 
+componentDidUpdate(){
+  if (this.props.activeCall) {
+    console.log("Active call mounted")
+  }
+}
 addStar(e) {
  e.preventDefault();
  e.stopPropagation();
@@ -103,7 +108,7 @@ render() {
       talkgroup = this.props.talkgroups[call.talkgroupNum].description;
   }
   return (
-    <Table.Row onClick={(e) => this.props.onClick({call: call}, e)} {...rowSelected}>
+    <Table.Row  onClick={(e) => this.props.onClick({call: call}, e)} {...rowSelected}>
     <Table.Cell>  {call.len} </Table.Cell>
     <Table.Cell> {talkgroup} </Table.Cell>
     <Table.Cell> {time.toLocaleTimeString()} </Table.Cell>

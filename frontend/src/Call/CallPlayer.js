@@ -48,12 +48,10 @@ class CallPlayer extends React.Component {
     this.handleCalendarClose = this.handleCalendarClose.bind(this);
     this.handleLiveToggle = this.handleLiveToggle.bind(this);
     this.getFilter = this.getFilter.bind(this);
-    this.callList = React.createRef();
     this.socket = window.socket;
     this.setupSocket = this.setupSocket.bind(this);
     this.endSocket = this.endSocket.bind(this);
     this.changeUrl = this.changeUrl.bind(this);
-    this.currentCallRef = React.createRef();
     this.audioRef = React.createRef();
     this.state = {
       requestMessage: "",
@@ -69,7 +67,6 @@ class CallPlayer extends React.Component {
       groupVisible: false,
       calendarVisible: false,
       supportVisible: false
-
     }
   }
 
@@ -124,11 +121,14 @@ class CallPlayer extends React.Component {
         filter.type = "group";
         filter.code = this.props.filterGroupId;
       break;
-      default:
       case 2:
         filter.type = "talkgroup";
         filter.code = this.props.filterTalkgroups;
       break;
+      default:
+      case 0:
+        filter.type = "all";
+        filter.code = ""        
     }
     filter.filterStarred = this.props.filterStarred;
     return filter;
@@ -167,8 +167,6 @@ class CallPlayer extends React.Component {
       this.props.callActions.fetchCalls();
       var filter = this.getFilter();
       this.startSocket(this.props.shortName, filter.type, filter.code, filter.filterStarred);
-      //this.socket = setupSocket(this.addCall, this.props.shortName);
-
     }
   }
 
@@ -179,10 +177,13 @@ class CallPlayer extends React.Component {
         case 1:
             search = search + `filter-type=group&filter-code=${props.filterGroupId}`;
             break;
-        default:
         case 2:
             search = search + `filter-type=talkgroup&filter-code=${props.filterTalkgroups}`;
             break;
+        default:
+        case 0:
+          break;
+            
     }
     if (props.filterDate) {
       if (search.length!==1) {
@@ -250,7 +251,6 @@ class CallPlayer extends React.Component {
       const nextCall = this.props.callsById[nextCallId];
       var callUrl = nextCall.url;
 
-
       this.setState({callUrl: callUrl, callId: nextCallId, sourceIndex: 0, isPlaying: true}, () => { audio.playSource(callUrl)}); //scrollToComponent(this.currentCallRef.current);
       this.props.callActions.fetchCallInfo( nextCallId);
     } else {
@@ -294,7 +294,7 @@ class CallPlayer extends React.Component {
     this.props.callActions.setShortName(this.props.shortName);
     var filter = {
       filterDate: false,
-      filterType: "all",
+      filterType: 0,  // this is "all"
       filterTalkgroups: [],
       filterGroupId: false,
       filterStarred: false,
@@ -375,6 +375,7 @@ class CallPlayer extends React.Component {
       }
     return true
   }
+
   componentWillUpdate(nextProps) {
     if (!this.props.groups && nextProps.groups) {
       if (!this.state.urlOptions && (nextProps.groups.length > 0 )) {
@@ -383,8 +384,6 @@ class CallPlayer extends React.Component {
         });
       }
     }
-
-  
 
     const filterChanged = (nextProps.filterType !== this.props.filterType) || !this.compareArray(nextProps.filterTalkgroups, this.props.filterTalkgroups) || (nextProps.filterGroupId !== this.props.filterGroupId) || (nextProps.filterDate !== this.props.filterDate) || (nextProps.filterStarred !== this.props.filterStarred);
     if (filterChanged) {
@@ -396,10 +395,14 @@ class CallPlayer extends React.Component {
               typeString = 'group';
               filterCode = nextProps.filterGroupId;
               break;
-          default:
           case 2:
               typeString = 'talkgroup';
               filterCode = nextProps.filterTalkgroups;
+              break;
+          default:
+          case 0:
+              typeString = "all";
+              filterCode = '';
               break;
       }
 
@@ -423,17 +426,22 @@ class CallPlayer extends React.Component {
             this.setState({callUrl: call.url });
       }
     }
-
   }
-  componentDidUpdate() {
+  
+  componentDidUpdate(prevProps, prevState) {
     const {contextRef} = this.state
     //console.log( contextRef.clientHeight - this.prevHeight );
     if (this.autoScroll) {
       this.autoScroll = false;
       window.scrollBy(0, contextRef.clientHeight - this.prevHeight);
     }
-
-  }
+    if (this.state.callId != prevState.callId) {
+      /*this.currentCallRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+        });*/
+    }
+   }
 
   //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
   //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
@@ -467,10 +475,13 @@ class CallPlayer extends React.Component {
       case 1:
         filterLabel = "Group"
         break;
-      default:
+      
       case 2:
         filterLabel = "Talkgroups"
         break;
+      default:
+      case 0:
+        filterLabel = "All"
     }
     /*    if (this.props.calls) {
       var callRows = calls.map((call) =>
@@ -484,10 +495,10 @@ class CallPlayer extends React.Component {
       <GroupModal shortName={this.props.shortName} open={this.state.groupVisible} onClose={this.handleGroupClose}/>
       <SupportModal open={this.state.supportVisible} onClose={this.handleSupportClose}/>
         <Sidebar as={Menu} animation='overlay' inverted vertical visible={sidebarOpened}
-        onClick={this.handlePusherClick} duration={250}>
-          <Menu.Item>
-            <span> </span><Icon name="close" onClick={this.handlePusherClick} inverted={true} link={true} size="large"/></Menu.Item>
-          <Link to="/"><Menu.Item>Home</Menu.Item></Link>
+        onClick={this.handlePusherClick} duration={50} width='thin'>
+          <Menu.Item onClick={this.handlePusherClick} >
+            <span> </span><Icon name="close" inverted={true} link={true} size='small'/></Menu.Item>
+          <Link to="/"><Menu.Item link>Home</Menu.Item></Link>
           <Link to="/systems"><Menu.Item link>Systems</Menu.Item></Link>
           <Link to="/about"><Menu.Item link>About</Menu.Item></Link>
         </Sidebar>
@@ -535,7 +546,7 @@ class CallPlayer extends React.Component {
       </Sidebar.Pusher>
       </Sidebar.Pushable>
         <Waypoint onEnter={this.loadOlderCalls}/>
-        <Rail position='right' className="desktop-only" dimmed={sidebarOpened}>
+        <Rail position='right' className="desktop-only"  dimmed={sidebarOpened ? "true" : "false"} >
           <Sticky context={contextRef} offset={60}>
             <CallInfo call={currentCall} header={callInfoHeader} />
           </Sticky>

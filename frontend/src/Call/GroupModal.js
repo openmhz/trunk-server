@@ -35,11 +35,11 @@ handleDone(event) {
       }
 
 }
-componentWillUpdate(nextProps) {
+componentDidUpdate(prevProps) {
 
-  const filterChanged = (nextProps.selectedGroup !== this.props.selectedGroup);
+  const filterChanged = (prevProps.selectedGroup !== this.props.selectedGroup);
   if (filterChanged) {
-    this.setState({ selectedGroup: nextProps.selectedGroup});
+    this.setState({ selectedGroup: this.props.selectedGroup});
   }
 }
 

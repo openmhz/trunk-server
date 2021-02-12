@@ -22,22 +22,5 @@ RUN mkdir -p /home/app/upload && cp -a /tmp/node_modules /home/app
 WORKDIR $HOME/
 COPY . $HOME/
 
-#ADD sweep.sh $HOME/sweep.sh
-#RUN chmod +x $HOME/sweep.sh
-
-#ADD mycrontab $HOME/mycrontab
-#RUN crontab $HOME/mycrontab
-#RUN update-rc.d cron defaults
-
-# Add crontab file in the cron directory
-#ADD mycrontab /etc/cron.d/sweep-cron
-
-#RUN touch /var/log/cron.log
-
-# Give execution rights on the cron job
-#RUN chmod 0644 /etc/cron.d/sweep-cron
-
 # Run the command on container startup
-#CMD env > $HOME/env.txt && cron
-#CMD cron && node index.js
 CMD node index.js

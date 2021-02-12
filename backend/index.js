@@ -90,14 +90,6 @@ function isUser(req, res, next) {
   }
 }
 
-function isLoggedIn(req, res, next) {
-  if (req.isAuthenticated()) return next();
-  res.status(401).send({
-    success: false,
-    message: "Not Authenticated."
-  });
-};
-
 
 // -------------------------------------------
 
@@ -121,26 +113,10 @@ connect()
 mongoose.connection.on("error", console.error)
 mongoose.connection.on("disconnected", connect)
 
-/*
-const WebSocket = require('ws');
-const wss = new WebSocket.Server({
-    server
-});*/
-
-
 
 var upload = multer({
     dest: config.uploadDirectory
 });
-
-function isLoggedIn(req, res, next) {
-  if (req.isAuthenticated()) return next();
-  res.status(401).send({
-    success: false,
-    message: "Not Authenticated."
-  });
-};
-
 
 var clients = [];
 

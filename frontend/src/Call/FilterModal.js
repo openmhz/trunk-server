@@ -66,11 +66,11 @@ handleDone(event) {
   }
   
 }
-componentWillUpdate(nextProps) {
+componentDidUpdate(prevProps) {
 
-  const filterChanged = ((nextProps.selectedTalkgroups !== this.props.selectedTalkgroups) || (nextProps.selectedGroup !== this.props.selectedGroup));
+  const filterChanged = ((prevProps.selectedTalkgroups !== this.props.selectedTalkgroups) || (prevProps.selectedGroup !== this.props.selectedGroup));
   if (filterChanged) {
-    this.setState({selectedTalkgroup: nextProps.selectedTalkgroups,  selectedGroup: nextProps.selectedGroup, activeTab: nextProps.activeTab});
+    this.setState({selectedTalkgroup: prevProps.selectedTalkgroups,  selectedGroup: prevProps.selectedGroup, activeTab: prevProps.activeTab});
   }
 }
 
