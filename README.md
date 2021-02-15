@@ -153,3 +153,6 @@ db.runCommand({compact:'calls'})
 This blocks all calls to the DB
 
 
+### Move a DB 
+
+### Setup aws credentials

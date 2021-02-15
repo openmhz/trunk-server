@@ -167,11 +167,11 @@ class System extends Component {
 
     // If we just received the error statistics for a system, for the first time, proccess them.
     if (this.props.errors && !prevProp.errors) {
-      this.processErrors(this.prop.errors);
+      this.processErrors(this.props.errors);
     }
     // If we just received the call statistics for a system, for the first time, proccess them.
     if (this.props.statistic && !prevProp.statistic) {
-      this.processStatistics(this.prop.statistic);
+      this.processStatistics(this.props.statistic);
     }
   }
 
