@@ -118,3 +118,38 @@ This should build the frontend and open a browser. In order to have all the cook
 ### Mailjet
 Sign up for MailJet! 
 https://www.mailjet.com
+
+
+### Managing MongoDB
+
+MongoDB is used in the backend to store data. It is pretty fast, flexible and has worked well enough for me.
+All of the files that MongoDB uses to store the DB are in the */data* directory, which gets mapped into the contianer. 
+Mapping this directory makes sure that the data persists each time you run the mongo container.
+
+#### Working with the MongoDB Container
+
+From the Host OS run:
+```bash
+docker exec -i -t $(docker ps -a | grep mongo | awk '{print $1}') /bin/bash
+```
+
+There are a few scripts included with the container:
+- **clean.js** This script removes all Calls that are over 30 days old
+- **totals.js** Lists different system stats
+
+
+
+#### Compact a collection
+When you run clean.js it doesn't actually remove the files off storge. You can use this command from the mongo cli tool.
+
+First, launch the tool: `mongo`
+Then switch to the scanner db: `use scanner`
+And then the compact command on the **Calls** collection:
+
+```
+db.runCommand({compact:'calls'})
+```
+
+This blocks all calls to the DB
+
+
