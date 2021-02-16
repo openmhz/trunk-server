@@ -2,7 +2,7 @@
 #
 # docker build -t mongo .
 
-FROM mongo:3.4
+FROM mongo:4.4
 
 MAINTAINER Luke Berndt <lukekb@gmail.com>
 
@@ -17,7 +17,6 @@ MAINTAINER Luke Berndt <lukekb@gmail.com>
     
 # Add main NGINX config
 RUN mkdir -p /app
-ADD trim.js /app
 ADD totals.js /app
 ADD init_test_db.js /app
 ADD upgrade_db_admin.js /app

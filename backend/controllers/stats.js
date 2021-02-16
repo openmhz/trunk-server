@@ -2,6 +2,7 @@
 var db = require('../db');
 var schedule = require('node-schedule');
 var sysStats = require("../sys_stats");
+const util = require('util');
 
 exports.init_stats = function() {
 sysStats.initStats();

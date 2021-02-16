@@ -1,3 +1,0 @@
-# Jobs:
-# m h  dom mon dow   command
-  0 4  *   *   *    root env - `cat /home/app/env.txt` /home/app/sweep.sh >> /var/log/cron.log  2>&1

@@ -1,2 +1,8 @@
-docker-prod.sh
-docker-test.sh
+
+prod.env
+test.env
+account/.eslintcache
+account/.eslintcache
+admin/.eslintcache
+frontend/.eslintcache
+admin/.eslintcache

@@ -1,22 +1,21 @@
-# docker build -t trunk-server-frontend .
-# do a `git pull` in trunk-server-frontend to update
-
-FROM node:8.11
-
-
-ENV HOME=/home/app
-ENV NODE_OPTIONS="--max_old_space_size=8000"
-
-RUN mkdir -p /home/app
-COPY ./package.json /tmp
-RUN cd /tmp && npm install
-RUN cp -a /tmp/node_modules /home/app
-
-# add `/usr/src/app/node_modules/.bin` to $PATH
-ENV PATH /usr/app/node_modules/.bin:$PATH
-
-WORKDIR $HOME
-COPY . $HOME/
+# build environment
+FROM node:13.12.0-alpine as build
+WORKDIR /app
+ENV PATH /app/node_modules/.bin:$PATH
+ARG REACT_APP_BACKEND_SERVER
+ARG REACT_APP_SITE_NAME
+ARG REACT_APP_FRONTEND_SERVER
+ARG NODE_ENV
+COPY package.json ./
+RUN npm install
+RUN npm install react-scripts@3.4.1 -g --silent
+COPY . ./
 RUN npm run build
 
-CMD ["npm", "run", "start"]
+# production environment
+FROM node:13.12.0-alpine
+RUN mkdir -p /app/public
+WORKDIR /app
+RUN npm install -g serve
+COPY --from=build /app/build /app/public
+CMD serve -s public -l 3000

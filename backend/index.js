@@ -90,22 +90,6 @@ function isUser(req, res, next) {
   }
 }
 
-function isLoggedIn(req, res, next) {
-  if (req.isAuthenticated()) return next();
-  res.status(401).send({
-    success: false,
-    message: "Not Authenticated."
-  });
-};
-
-
-var admin_server = process.env['ADMIN_SERVER'] != null ? process.env['ADMIN_SERVER'] : 'https://admin.openmhz.com';
-var backend_server = process.env['BACKEND_SERVER'] != null ? process.env['BACKEND_SERVER'] : 'https://api.openmhz.com';
-var frontend_server = process.env['FRONTEND_SERVER'] != null ? process.env['FRONTEND_SERVER'] : 'https://openmhz.com';
-var media_server = process.env['MEDIA_SERVER'] != null ? process.env['MEDIA_SERVER'] : 'https://media.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
-var socket_server = process.env['SOCKET_SERVER'] != null ? process.env['SOCKET_SERVER'] : 'wss://api.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
-var account_server = process.env['ACCOUNT_SERVER'] != null ? process.env['ACCOUNT_SERVER'] : 'https://account.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
-
 
 // -------------------------------------------
 
@@ -129,26 +113,10 @@ connect()
 mongoose.connection.on("error", console.error)
 mongoose.connection.on("disconnected", connect)
 
-/*
-const WebSocket = require('ws');
-const wss = new WebSocket.Server({
-    server
-});*/
-
-
 
 var upload = multer({
     dest: config.uploadDirectory
 });
-
-function isLoggedIn(req, res, next) {
-  if (req.isAuthenticated()) return next();
-  res.status(401).send({
-    success: false,
-    message: "Not Authenticated."
-  });
-};
-
 
 var clients = [];
 

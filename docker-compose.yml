@@ -16,18 +16,18 @@ services:
       - "5602:5602"
     restart: always
     volumes:
-      - ${DATA}/log/syslog:/var/log/syslog
-      - ${DATA}/log/nginx:/var/log/nginx
+      - ${PWD}/data/log/syslog:/var/log/syslog
+      - ${PWD}/data/log/nginx:/var/log/nginx
     depends_on:
       - backend
       - frontend
       - account
       - admin
     command: /bin/bash -c "envsubst '$$DOMAIN_NAME' < /etc/nginx/conf.d/site.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
-    logging:
-      driver: syslog
-      options:
-        tag: "nginx"
+    #logging:
+    #  driver: syslog
+    #  options:
+    #    tag: "nginx"
 
   mongo:
     build:
@@ -39,7 +39,7 @@ services:
       - PRO_PLAN_ARCHIVE
     image: "mongo:${TAG}-${STAGE}"
     volumes:
-      - ${DATA}/mongo:/data/db
+      - ${PWD}/data/mongo:/data/db
     networks:
       - node
     restart: always
@@ -55,22 +55,16 @@ services:
     pid: "host"
     environment:
       - MONGO_NODE_DRIVER_HOST=mongo
-      - BACKEND_SERVER
-      - ADMIN_SERVER
-      - FRONTEND_SERVER
-      - MEDIA_SERVER
-      - SOCKET_SERVER
-      - COOKIE_DOMAIN
-      - ACCOUNT_SERVER
-      - ADMIN_EMAIL
-      - SITE_NAME
-      - FREE_PLAN_ARCHIVE
-      - PRO_PLAN_ARCHIVE
+      - REACT_APP_BACKEND_SERVER
+      - REACT_APP_ADMIN_SERVER
+      - REACT_APP_FRONTEND_SERVER
+      - REACT_APP_SOCKET_SERVER
+      - REACT_APP_COOKIE_DOMAIN
+      - REACT_APP_ACCOUNT_SERVER
       - S3_ENDPOINT
       - S3_BUCKET
       - S3_PROFILE
     volumes:
-      - "${MEDIA}:/home/app/trunk-server-backend/media"
       - "~/.aws:/home/app/.aws"
     depends_on:
       - mongo
@@ -88,20 +82,22 @@ services:
   admin:
     build:
       context: ./admin
+      args:
+        - REACT_APP_BACKEND_SERVER
+        - REACT_APP_ADMIN_SERVER
+        - REACT_APP_ACCOUNT_SERVER
+        - REACT_APP_FRONTEND_SERVER
+        - REACT_APP_SITE_NAME
+        - REACT_APP_ADMIN_EMAIL
+        - NODE_ENV
     image: "admin:${TAG}-${STAGE}"
     environment:
+      - REACT_APP_BACKEND_SERVER
+      - REACT_APP_ADMIN_SERVER
+      - REACT_APP_ACCOUNT_SERVER
+      - REACT_APP_FRONTEND_SERVER
+      - REACT_APP_SITE_NAME
       - MONGO_NODE_DRIVER_HOST=mongo
-      - BACKEND_SERVER
-      - ADMIN_SERVER
-      - FRONTEND_SERVER
-      - MEDIA_SERVER
-      - SOCKET_SERVER
-      - COOKIE_DOMAIN
-      - ACCOUNT_SERVER
-      - ADMIN_EMAIL
-      - SITE_NAME
-      - FREE_PLAN
-      - PRO_PLAN
     depends_on:
       - mongo
     networks:
@@ -116,26 +112,26 @@ services:
   account:
     build:
       context: ./account
+      args:
+        - REACT_APP_BACKEND_SERVER
+        - REACT_APP_ADMIN_SERVER
+        - REACT_APP_ACCOUNT_SERVER
+        - REACT_APP_FRONTEND_SERVER
+        - REACT_APP_SITE_NAME
+        - REACT_APP_ADMIN_EMAIL
+        - NODE_ENV
     image: "acount:${TAG}-${STAGE}"
     environment:
       - MONGO_NODE_DRIVER_HOST=mongo
-      - STRIPE_PUBLISHABLE_KEY
-      - STRIPE_SECRET_KEY
       - MAILJET_KEY
       - MAILJET_SECRET
-      - BACKEND_SERVER
-      - ADMIN_SERVER
-      - FRONTEND_SERVER
-      - MEDIA_SERVER
-      - SOCKET_SERVER
-      - COOKIE_DOMAIN
-      - ACCOUNT_SERVER
-      - ADMIN_EMAIL
-      - SITE_NAME
-      - FREE_PLAN
-      - PRO_PLAN
-      - FREE_PLAN_PRICE
-      - PRO_PLAN_PRICE
+      - REACT_APP_BACKEND_SERVER
+      - REACT_APP_ADMIN_SERVER
+      - REACT_APP_ACCOUNT_SERVER
+      - REACT_APP_FRONTEND_SERVER
+      - REACT_APP_SITE_NAME
+      - REACT_APP_ADMIN_EMAIL
+      - REACT_APP_COOKIE_DOMAIN
     depends_on:
       - mongo
     networks:
@@ -150,22 +146,16 @@ services:
   frontend:
     build:
       context: ./frontend
+      args:
+        - REACT_APP_BACKEND_SERVER
+        - REACT_APP_FRONTEND_SERVER
+        - REACT_APP_SITE_NAME
+        - NODE_ENV
     image: "frontend:${TAG}-${STAGE}"
     environment:
-      - MONGO_NODE_DRIVER_HOST=mongo
-      - BACKEND_SERVER
-      - ADMIN_SERVER
-      - FRONTEND_SERVER
-      - MEDIA_SERVER
-      - SOCKET_SERVER
-      - COOKIE_DOMAIN
-      - ACCOUNT_SERVER
-      - ADMIN_EMAIL
-      - SITE_NAME
-      - FREE_PLAN
-      - PRO_PLAN
-      - FREE_PLAN_ARCHIVE
-      - PRO_PLAN_ARCHIVE
+        - REACT_APP_BACKEND_SERVER
+        - REACT_APP_FRONTEND_SERVER
+        - REACT_APP_SITE_NAME
     depends_on:
       - mongo
     networks:
