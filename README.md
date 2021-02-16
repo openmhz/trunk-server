@@ -26,8 +26,10 @@ There are a lot of different components that make up the system. All of the serv
  - **mongo**: all of the metadata around calls is stored here, along with the user and system information.
  - **nginx**: proxies all of the calls to the correct server and handles the HTTPS certs.
 
-## Operations
+## Easy Install
+I put together an [Ansible Script](https://github.com/openmhz/trunk-server-install) to help make it easier to setup an OpenMHz server. You still need to get yourself a Droplet from Digital Ocean, a Domain Name and some storage. The scripts helps download and build everything.
 
+## Operations
 You can run things in 2 different modes, **test** and **prod**. The big difference is that **prod** expects all of the calls to be https and gets cranky when they are not. I have gotten **test** to run fine on my laptop, so that is probably a good starting point.
 
 ### DNS Entries
