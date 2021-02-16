@@ -16,8 +16,8 @@ services:
       - "5602:5602"
     restart: always
     volumes:
-      - ${DATA}/log/syslog:/var/log/syslog
-      - ${DATA}/log/nginx:/var/log/nginx
+      - ${PWD}/data/log/syslog:/var/log/syslog
+      - ${PWD}/data/log/nginx:/var/log/nginx
     depends_on:
       - backend
       - frontend
@@ -39,7 +39,7 @@ services:
       - PRO_PLAN_ARCHIVE
     image: "mongo:${TAG}-${STAGE}"
     volumes:
-      - ${DATA}/mongo:/data/db
+      - ${PWD}/data/mongo:/data/db
     networks:
       - node
     restart: always
@@ -65,7 +65,6 @@ services:
       - S3_BUCKET
       - S3_PROFILE
     volumes:
-      - "${MEDIA}:/home/app/trunk-server-backend/media"
       - "~/.aws:/home/app/.aws"
     depends_on:
       - mongo
