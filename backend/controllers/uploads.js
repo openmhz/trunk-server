@@ -222,13 +222,14 @@ process.nextTick(function() {
             };
 
 
-            var options = {partSize: 10 * 1024 * 1024, queueSize: 1};
+            //var options = {partSize: 10 * 1024 * 1024, queueSize: 1};
             /*var upload = new wasabiS3.ManagedUpload({
               leavePartsOnError: true,
               partSize: 10 * 1024 * 1024, queueSize: 1,
               params: wasabiParams
             });*/
-            wasabiS3.upload(wasabiParams, options, function(err, data) {
+            //wasabiS3.upload(wasabiParams, options, function(err, data) {
+            wasabiS3.upload(wasabiParams, function(err, data) {
               wasabiSrc.destroy();
               fs.unlink(req.file.path, (err) => {
                 if (err) {
