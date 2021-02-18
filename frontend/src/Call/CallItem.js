@@ -99,7 +99,11 @@ render() {
   }
 
   if (this.props.activeCall) {
-    rowSelected={positive: true}
+    rowSelected={positive: true,
+      color: "blue",
+       key: "blue",
+        inverted: true
+      } 
   }
   var talkgroup;
   if ((typeof this.props.talkgroups  == 'undefined') || (typeof this.props.talkgroups[call.talkgroupNum] == 'undefined')) {

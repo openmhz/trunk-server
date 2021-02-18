@@ -55,6 +55,7 @@ services:
     pid: "host"
     environment:
       - MONGO_NODE_DRIVER_HOST=mongo
+      - NODE_ENV
       - REACT_APP_BACKEND_SERVER
       - REACT_APP_ADMIN_SERVER
       - REACT_APP_FRONTEND_SERVER
@@ -98,6 +99,7 @@ services:
       - REACT_APP_FRONTEND_SERVER
       - REACT_APP_SITE_NAME
       - MONGO_NODE_DRIVER_HOST=mongo
+      - NODE_ENV
     depends_on:
       - mongo
     networks:
@@ -132,6 +134,7 @@ services:
       - REACT_APP_SITE_NAME
       - REACT_APP_ADMIN_EMAIL
       - REACT_APP_COOKIE_DOMAIN
+      - NODE_ENV
     depends_on:
       - mongo
     networks:

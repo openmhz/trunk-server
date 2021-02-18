@@ -1,5 +1,5 @@
 import React from "react";
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import MediaPlayer from "./MediaPlayer";
 import FilterModal from "./FilterModalContainer";
 import GroupModal from "./GroupModalContainer";
@@ -16,7 +16,7 @@ import {
   Icon,
   Sidebar
 } from "semantic-ui-react";
-import {Waypoint} from 'react-waypoint';
+import { Waypoint } from 'react-waypoint';
 import "./CallPlayer.css";
 //import setupSocket from '../socket/SetupSocket.js'
 import queryString from '../query-string';
@@ -47,6 +47,7 @@ class CallPlayer extends React.Component {
     this.handleCalendarToggle = this.handleCalendarToggle.bind(this);
     this.handleCalendarClose = this.handleCalendarClose.bind(this);
     this.handleLiveToggle = this.handleLiveToggle.bind(this);
+    this.handlePlayPause = this.handlePlayPause.bind(this);
     this.getFilter = this.getFilter.bind(this);
     this.socket = window.socket;
     this.setupSocket = this.setupSocket.bind(this);
@@ -74,6 +75,9 @@ class CallPlayer extends React.Component {
   switchAutoPlay = () => this.setState({
     autoPlay: !this.state.autoPlay
   })
+  handlePlayPause = (playing) => this.setState({
+    isPlaying: playing
+  })
   handlePusherClick = () => {
     const { sidebarOpened } = this.state
 
@@ -90,13 +94,13 @@ class CallPlayer extends React.Component {
     supportVisible: !this.state.supportVisible
   })
 
-  handleContextRef = contextRef => this.setState({contextRef})
+  handleContextRef = contextRef => this.setState({ contextRef })
   changeUrl = url => this.props.callActions.changeUrl(url)
 
   loadNewerCalls() {
     if (!this.props.callsIsWaiting) {
       console.log("Loading Newer Calls");
-      this.props.callActions.fetchNewerCalls( this.props.newestCallTime.getTime());
+      this.props.callActions.fetchNewerCalls(this.props.newestCallTime.getTime());
     } else {
       console.log("Calls still loading - can't load newer calls");
     }
@@ -105,7 +109,7 @@ class CallPlayer extends React.Component {
   loadOlderCalls() {
     if (!this.props.callsIsWaiting) {
       console.log("Loading Older Calls");
-      this.props.callActions.fetchOlderCalls( this.props.oldestCallTime.getTime());
+      this.props.callActions.fetchOlderCalls(this.props.oldestCallTime.getTime());
     } else {
       console.log("Calls still loading - can't load older calls");
     }
@@ -116,20 +120,20 @@ class CallPlayer extends React.Component {
   })
 
   getFilter() {
-    var filter = {type: 'all', code: "", filterStarred: false};
-    switch(this.props.filterType) {
+    var filter = { type: 'all', code: "", filterStarred: false };
+    switch (this.props.filterType) {
       case 1:
         filter.type = "group";
         filter.code = this.props.filterGroupId;
-      break;
+        break;
       case 2:
         filter.type = "talkgroup";
         filter.code = this.props.filterTalkgroups;
-      break;
+        break;
       default:
       case 0:
         filter.type = "all";
-        filter.code = ""        
+        filter.code = ""
     }
     filter.filterStarred = this.props.filterStarred;
     return filter;
@@ -142,13 +146,13 @@ class CallPlayer extends React.Component {
     this.socket.on('new message', this.addCall);
     this.socket.on('reconnect', (attempts) => {
       console.log("Socket Reconnected after attempts: " + attempts); // true
-      if (this.props.live)  {
+      if (this.props.live) {
         var filter = this.getFilter();
         this.startSocket(this.props.shortName, filter.type, filter.code, filter.filterStarred);
       }
     })
   }
-  startSocket(shortName, filterType="", filterCode="", filterStarred=false) {
+  startSocket(shortName, filterType = "", filterCode = "", filterStarred = false) {
     this.socket.emit("start", {
       filterCode: filterCode,
       filterType: filterType,
@@ -157,14 +161,14 @@ class CallPlayer extends React.Component {
       shortName: shortName
     });
   }
-  stopSocket(){
+  stopSocket() {
     this.socket.emit("stop");
   }
   handleLiveToggle() {
     if (!this.props.live) {
       this.props.callActions.setDateFilter(false);
       this.props.callActions.setLive(false);
-      this.setState({ callUrl: "", callId: false});
+      this.setState({ callUrl: "", callId: false });
       this.props.callActions.fetchCalls();
       var filter = this.getFilter();
       this.startSocket(this.props.shortName, filter.type, filter.code, filter.filterStarred);
@@ -175,26 +179,26 @@ class CallPlayer extends React.Component {
     var search = "?"
     switch (props.filterType) {
 
-        case 1:
-            search = search + `filter-type=group&filter-code=${props.filterGroupId}`;
-            break;
-        case 2:
-            search = search + `filter-type=talkgroup&filter-code=${props.filterTalkgroups}`;
-            break;
-        default:
-        case 0:
-          break;
-            
+      case 1:
+        search = search + `filter-type=group&filter-code=${props.filterGroupId}`;
+        break;
+      case 2:
+        search = search + `filter-type=talkgroup&filter-code=${props.filterTalkgroups}`;
+        break;
+      default:
+      case 0:
+        break;
+
     }
     if (props.filterDate) {
-      if (search.length!==1) {
+      if (search.length !== 1) {
         search = search + '&';
       }
       search = search + `time=${props.filterDate}`;
     }
 
     if (props.filterStarred) {
-      if (search.length!==1) {
+      if (search.length !== 1) {
         search = search + '&';
       }
       search = search + `starred=true`;
@@ -214,7 +218,7 @@ class CallPlayer extends React.Component {
       this.props.callActions.setLive(false);
       this.props.callActions.fetchCalls();
 
-      this.setState({ callUrl: "", callId: false});
+      this.setState({ callUrl: "", callId: false });
       this.stopSocket();
       //this.socket.close();
 
@@ -225,7 +229,7 @@ class CallPlayer extends React.Component {
     this.setState({
       groupVisible: !this.state.groupVisible
     });
-      this.props.callActions.fetchCalls();
+    this.props.callActions.fetchCalls();
   }
 
   handleSupportClose() {
@@ -239,7 +243,7 @@ class CallPlayer extends React.Component {
       filterVisible: !this.state.filterVisible
     });
     if (didUpdate) {
-      this.setState({callUrl: "", callId: false});
+      this.setState({ callUrl: "", callId: false });
       this.props.callActions.fetchCalls();
     }
   }
@@ -252,17 +256,16 @@ class CallPlayer extends React.Component {
       const nextCall = this.props.callsById[nextCallId];
       var callUrl = nextCall.url;
 
-      this.setState({callUrl: callUrl, callId: nextCallId, sourceIndex: 0, isPlaying: true}, () => { audio.playSource(callUrl)}); //scrollToComponent(this.currentCallRef.current);
-     if (this.currentCallRef.current) {
-      this.currentCallRef.current.scrollIntoView({
+      this.setState({ callUrl: callUrl, callId: nextCallId, sourceIndex: 0, isPlaying: true }, () => { audio.playSource(callUrl) }); //scrollToComponent(this.currentCallRef.current);
+      if (this.currentCallRef.current) {
+        this.currentCallRef.current.scrollIntoView({
           behavior: "smooth",
-  
           block: "center",
-          });
-        }
-      this.props.callActions.fetchCallInfo( nextCallId);
+        });
+      }
+      this.props.callActions.fetchCallInfo(nextCallId);
     } else {
-      this.setState({isPlaying: false});
+      this.setState({ isPlaying: false });
     }
   }
 
@@ -274,8 +277,8 @@ class CallPlayer extends React.Component {
       callId: data.call._id,
       sourceIndex: 0,
       isPlaying: true
-    }, () => { audio.playSource(callUrl);}); //scrollToComponent(this.currentCallRef.current);
-    this.props.callActions.fetchCallInfo( data.call._id);
+    }, () => { audio.playSource(callUrl); }); //scrollToComponent(this.currentCallRef.current);
+    this.props.callActions.fetchCallInfo(data.call._id);
   }
 
   addCall(data) {
@@ -286,7 +289,13 @@ class CallPlayer extends React.Component {
         this.props.callActions.addCall(message);
         const newCall = this.props.callsById[this.props.callsAllIds[0]];
         if (!this.state.isPlaying && this.state.autoPlay) {
-          this.playCall({call: newCall});
+          this.playCall({ call: newCall });
+          if (this.currentCallRef.current) {
+            this.currentCallRef.current.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          }
         }
         break
       default:
@@ -313,8 +322,8 @@ class CallPlayer extends React.Component {
     // is there a star filter?
     if (uri.hasOwnProperty('starred')) {
       const starred = uri['starred'];
-      filter.filterStarred = starred === 'true'? true : false; 
-      this.setState({urlOptions: true});
+      filter.filterStarred = starred === 'true' ? true : false;
+      this.setState({ urlOptions: true });
     }
 
     // is there a time based filter?
@@ -322,12 +331,13 @@ class CallPlayer extends React.Component {
       const date = new Date(parseInt(uri['time']));
       filter.filterDate = date.getTime();
       filter.live = false;
-      this.setState({urlOptions: true});
+      this.setState({ urlOptions: true });
     }
 
     // is this just for one call?
     if (uri.hasOwnProperty('call-id')) {
       const _id = uri['call-id'];
+      const currentCall = this.props.callsById[this.state.callId];
       filter.live = false;
       this.setState({
         callId: _id,
@@ -335,31 +345,38 @@ class CallPlayer extends React.Component {
         urlOptions: true,
         autoPlay: false
       });
-      this.props.callActions.fetchCallInfo( _id);
+      this.props.callActions.fetchCallInfo(_id);
+      
+      if (this.currentCallRef.current) {
+        this.currentCallRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+            });
+          }
     }
 
 
-    var filterType="all";
-    var filterCode="";
+    var filterType = "all";
+    var filterCode = "";
 
     // is there a Filter set?
     if ((uri.hasOwnProperty('filter-code')) && (uri.hasOwnProperty('filter-type'))) {
-      this.setState({urlOptions: true});
+      this.setState({ urlOptions: true });
 
       // The Filter is a group
       if (uri['filter-type'] === "group") {
         filter.filterType = 1;
         filter.filterGroupId = uri["filter-code"];
-        filterType="group";
+        filterType = "group";
         filterCode = uri["filter-code"];
       }
 
       // The Filter is talkgroups
       if (uri['filter-type'] === 'talkgroup') {
         const tg = uri["filter-code"].split(',').map(Number);
-        filter.filterType=2;
-        filter.filterTalkgroups=tg;
-        filterType="talkgroup";
+        filter.filterType = 2;
+        filter.filterTalkgroups = tg;
+        filterType = "talkgroup";
         filterCode = tg;
       }
     }
@@ -380,13 +397,13 @@ class CallPlayer extends React.Component {
     while (i--) {
       if (a1[i] !== a2[i])
         return false;
-      }
+    }
     return true
   }
 
   componentWillUpdate(nextProps) {
     if (!this.props.groups && nextProps.groups) {
-      if (!this.state.urlOptions && (nextProps.groups.length > 0 )) {
+      if (!this.state.urlOptions && (nextProps.groups.length > 0)) {
         this.setState({
           groupVisible: true
         });
@@ -399,30 +416,30 @@ class CallPlayer extends React.Component {
       var filterCode = '';
       switch (nextProps.filterType) {
 
-          case 1:
-              typeString = 'group';
-              filterCode = nextProps.filterGroupId;
-              break;
-          case 2:
-              typeString = 'talkgroup';
-              filterCode = nextProps.filterTalkgroups;
-              break;
-          default:
-          case 0:
-              typeString = "all";
-              filterCode = '';
-              break;
+        case 1:
+          typeString = 'group';
+          filterCode = nextProps.filterGroupId;
+          break;
+        case 2:
+          typeString = 'talkgroup';
+          filterCode = nextProps.filterTalkgroups;
+          break;
+        default:
+        case 0:
+          typeString = "all";
+          filterCode = '';
+          break;
       }
 
       this.updateUri(nextProps);
       if (this.props.live) {
         this.startSocket(this.props.shortName, typeString, filterCode, nextProps.filterStarred);
-        }
+      }
     }
-    
+
     const callsChanged = nextProps.callsAllIds[0] !== this.props.callsAllIds[0];
     if (callsChanged) {
-      const {contextRef} = this.state;
+      const { contextRef } = this.state;
       this.scrollPos = contextRef.scrollTop;
       this.prevHeight = contextRef.clientHeight;
       this.autoScroll = true;
@@ -430,31 +447,25 @@ class CallPlayer extends React.Component {
 
     if (this.state.callId && !this.state.callUrl) {
       const call = this.props.callsById[this.state.callId];
-        if (call) {
-            this.setState({callUrl: call.url });
+      if (call) {
+        this.setState({ callUrl: call.url });
       }
     }
   }
-  
+
   componentDidUpdate(prevProps, prevState) {
-    const {contextRef} = this.state
+    const { contextRef } = this.state
     //console.log( contextRef.clientHeight - this.prevHeight );
     if (this.autoScroll) {
       this.autoScroll = false;
       window.scrollBy(0, contextRef.clientHeight - this.prevHeight);
     }
-    if (this.state.callId != prevState.callId) {
-      /*this.currentCallRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-        });*/
-    }
-   }
+  }
 
   //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
   //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
   render() {
-    const {contextRef} = this.state
+    const { contextRef } = this.state
     const { sidebarOpened } = this.state
     var archiveLabel = "";
     if (this.props.filterDate) {
@@ -473,7 +484,7 @@ class CallPlayer extends React.Component {
         callInfoHeader = this.props.talkgroups[currentCall.talkgroupNum].description;
       }
       const callDate = new Date(currentCall.time);
-      callLink = "/system/" + this.props.shortName + "?call-id=" + currentCall._id + "&time=" + (callDate.getTime()+1);
+      callLink = "/system/" + this.props.shortName + "?call-id=" + currentCall._id + "&time=" + (callDate.getTime() + 1);
       callDownload = currentCall.url;
     }
     var archive = process.env.REACT_APP_ARCHIVE_DAYS
@@ -483,7 +494,7 @@ class CallPlayer extends React.Component {
       case 1:
         filterLabel = "Group"
         break;
-      
+
       case 2:
         filterLabel = "Talkgroups"
         break;
@@ -497,87 +508,87 @@ class CallPlayer extends React.Component {
       ))
     }*/
     return (
-       <div ref={this.handleContextRef}>
-      <FilterModal shortName={this.props.shortName} open={this.state.filterVisible} onClose={this.handleFilterClose}/>
-      <CalendarModal open={this.state.calendarVisible} onClose={this.handleCalendarClose} archive={archive} key={this.props.shortName}/>
-      <GroupModal shortName={this.props.shortName} open={this.state.groupVisible} onClose={this.handleGroupClose}/>
-      <SupportModal open={this.state.supportVisible} onClose={this.handleSupportClose}/>
+      <div ref={this.handleContextRef}>
+        <FilterModal shortName={this.props.shortName} open={this.state.filterVisible} onClose={this.handleFilterClose} />
+        <CalendarModal open={this.state.calendarVisible} onClose={this.handleCalendarClose} archive={archive} key={this.props.shortName} />
+        <GroupModal shortName={this.props.shortName} open={this.state.groupVisible} onClose={this.handleGroupClose} />
+        <SupportModal open={this.state.supportVisible} onClose={this.handleSupportClose} />
         <Sidebar as={Menu} animation='overlay' inverted vertical visible={sidebarOpened}
-        onClick={this.handlePusherClick} duration={50} width='thin'>
+          onClick={this.handlePusherClick} duration={50} width='thin'>
           <Menu.Item onClick={this.handlePusherClick} >
-            <span> </span><Icon name="close" inverted={true} link={true} size='small'/></Menu.Item>
+            <span> </span><Icon name="close" inverted={true} link={true} size='small' /></Menu.Item>
           <Link to="/"><Menu.Item link>Home</Menu.Item></Link>
           <Link to="/systems"><Menu.Item link>Systems</Menu.Item></Link>
           <Link to="/about"><Menu.Item link>About</Menu.Item></Link>
         </Sidebar>
-      <Menu fixed="top">
-        <Menu.Item onClick={this.handleSidebarToggle}>
-          <Icon name='sidebar' />
-        </Menu.Item>
-        <Menu.Item name='filter-btn' onClick={this.handleFilterToggle}>
-          <Icon name="filter"/>
-          <span className="desktop-only">Filter</span>
-          <Label horizontal={true} color="grey" className="desktop-only">{filterLabel}</Label>
-        </Menu.Item>
-        <Container className="desktop-only" textAlign='center' style={{fontSize:'1.5rem', paddingLeft: '1em', paddingTop: '.5em'}}>
-        {this.props.system &&this.props.system.name}
+        <Menu fixed="top">
+          <Menu.Item onClick={this.handleSidebarToggle}>
+            <Icon name='sidebar' />
+          </Menu.Item>
+          <Menu.Item name='filter-btn' onClick={this.handleFilterToggle}>
+            <Icon name="filter" />
+            <span className="desktop-only">Filter</span>
+            <Label horizontal={true} color="grey" className="desktop-only">{filterLabel}</Label>
+          </Menu.Item>
+          <Container className="desktop-only" textAlign='center' style={{ fontSize: '1.5rem', paddingLeft: '1em', paddingTop: '.5em' }}>
+            {this.props.system && this.props.system.name}
+          </Container>
+          <Menu.Menu position="right">
+            <Menu.Item name='archive-btn' onClick={this.handleCalendarToggle} active={!this.props.live}>
+              <Icon name="calendar" />
+              <span className="desktop-only">
+                {
+                  archiveLabel
+                    ? archiveLabel
+                    : "Archive"
+                }
+              </span>
+            </Menu.Item>
+            <Menu.Item name='live-btn' onClick={this.handleLiveToggle} active={this.props.live}>
+              <Icon name="unmute" />
+              <span className="desktop-only">Live</span>
+            </Menu.Item>
+          </Menu.Menu>
+        </Menu>
+
+
+
+
+        <Container className="main">
+          <Sidebar.Pushable>
+            <Sidebar.Pusher
+              onClick={this.handlePusherClick}
+              style={{ minHeight: '100vh' }}
+            >
+              <Waypoint onEnter={this.loadNewerCalls} />
+              <ListCalls callsAllIds={this.props.callsAllIds} currentCallRef={this.currentCallRef} callsById={this.props.callsById} activeCallId={this.state.callId} talkgroups={this.props.talkgroups} playCall={this.playCall} />
+            </Sidebar.Pusher>
+          </Sidebar.Pushable>
+          <Waypoint onEnter={this.loadOlderCalls} />
+          <Rail position='right' className="desktop-only" dimmed={sidebarOpened ? "true" : "false"} >
+            <Sticky context={contextRef} offset={60}>
+              <CallInfo call={currentCall} header={callInfoHeader} />
+            </Sticky>
+          </Rail>
         </Container>
-        <Menu.Menu position="right">
-          <Menu.Item name='archive-btn' onClick={this.handleCalendarToggle} active={!this.props.live}>
-            <Icon name="calendar"/>
-            <span className="desktop-only">
-              {
-                archiveLabel
-                  ? archiveLabel
-                  : "Archive"
-              }
-            </span>
-          </Menu.Item>
-          <Menu.Item name='live-btn' onClick={this.handleLiveToggle} active={this.props.live}>
-            <Icon name="unmute"/>
-            <span className="desktop-only">Live</span>
-          </Menu.Item>
-        </Menu.Menu>
-      </Menu>
 
+        <Menu fixed="bottom" compact inverted >
+          <Menu.Item active={this.state.autoPlay} onClick={() => this.switchAutoPlay()}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
+          <MediaPlayer ref={this.audioRef} call={currentCall} onEnded={this.callEnded} onPlayPause={this.handlePlayPause}/>
+          <Menu.Menu position="right" className="desktop-only">
+            <Menu.Item onClick={this.handleSupportToggle}><Icon name="coffee" />Support OpenMHz</Menu.Item>
+            <Menu.Item><a href={callDownload}><Icon name="download" />Download</a></Menu.Item>
+            <Menu.Item><a href={callLink}><Icon name="at" />Link</a></Menu.Item>
+          </Menu.Menu>
+        </Menu>
 
-
-
-      <Container className="main">
-        <Sidebar.Pushable>
-        <Sidebar.Pusher
-          onClick={this.handlePusherClick}
-          style={{ minHeight: '100vh' }}
-        >
-        <Waypoint onEnter={this.loadNewerCalls}/>
-        <ListCalls callsAllIds={this.props.callsAllIds} currentCallRef={this.currentCallRef} callsById={this.props.callsById} activeCallId={this.state.callId} talkgroups={this.props.talkgroups} playCall={this.playCall} />
-      </Sidebar.Pusher>
-      </Sidebar.Pushable>
-        <Waypoint onEnter={this.loadOlderCalls}/>
-        <Rail position='right' className="desktop-only"  dimmed={sidebarOpened ? "true" : "false"} >
-          <Sticky context={contextRef} offset={60}>
-            <CallInfo call={currentCall} header={callInfoHeader} />
-          </Sticky>
-        </Rail>
-      </Container>
-
-      <Menu fixed="bottom" compact inverted >
-        <Menu.Item active={this.state.autoPlay} onClick={() => this.switchAutoPlay()}><Icon name="level up"/><span className="desktop-only">Autoplay</span></Menu.Item>
-        <MediaPlayer ref={this.audioRef} call={currentCall} onEnded={this.callEnded}/>
-        <Menu.Menu position="right" className="desktop-only">
-          <Menu.Item onClick={this.handleSupportToggle}><Icon name="coffee"/>Support OpenMHz</Menu.Item>
-          <Menu.Item><a href={callDownload}><Icon name="download"/>Download</a></Menu.Item>
-          <Menu.Item><a href={callLink}><Icon name="at"/>Link</a></Menu.Item>
-        </Menu.Menu>
-      </Menu>
-
-    </div>
+      </div>
 
 
 
 
 
-  );
+    );
   }
 }
 

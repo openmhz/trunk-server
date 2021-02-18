@@ -111,6 +111,9 @@ You can then browser to:
 - openmhz.test
 - admin.openmhz.test
 
+*Interesting Note*: Safari 13+ does not like the **.test** TLD and doesn't seem to want to store cookies from the TLD. It seems to work fine in production when you are using a real TLD. I guess use Chrome for local testing or a different TLD for testing, like local. 
+https://stackoverflow.com/questions/62023857/sharing-cookies-across-test-sub-domains-in-safari-13-not-possible
+
 ### Debugging React Apps using Hot Reloading
 If you are trying to make changes to any of react frontends, it is a huge pain to have to compile to site and rebuild the container each time you make a change. Instead, simply run the react app in development mode. This will work for the frontends for the:
 - admin frontend

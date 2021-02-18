@@ -23,8 +23,8 @@ class MediaPlayer extends React.Component {
       isPlaying: false
     }
   }
-  handlePause = () => { this.setState({isPlaying: false}); }
-  handlePlay = () => { this.setState({isPlaying: true}); }
+  handlePause = () => { this.setState({isPlaying: false}); this.props.onPlayPause(false); }
+  handlePlay = () => { this.setState({isPlaying: true}); this.props.onPlayPause(true); }
   playPause = () => {const audio = this.audioRef.current.audioEl.current; if (this.state.isPlaying) {audio.pause();} else {audio.play();}}
   playSource(callUrl) {
     const audio = this.audioRef.current.audioEl.current;
