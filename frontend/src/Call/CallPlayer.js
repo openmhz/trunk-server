@@ -63,6 +63,7 @@ class CallPlayer extends React.Component {
       playTime: 0,
       sourceIndex: 0,
       callScroll: false,
+      callSelect: false,
       urlOptions: false,
       isPlaying: false,
       sidebarOpened: false,
@@ -100,14 +101,14 @@ class CallPlayer extends React.Component {
 
   loadNewerCalls() {
 
-      console.log("Loading Newer Calls");
-      this.props.callActions.fetchNewerCalls(this.props.newestCallTime.getTime());
+    console.log("Loading Newer Calls");
+    this.props.callActions.fetchNewerCalls(this.props.newestCallTime.getTime());
   }
 
   loadOlderCalls() {
 
-      console.log("Loading Older Calls");
-      this.props.callActions.fetchOlderCalls(this.props.oldestCallTime.getTime());
+    console.log("Loading Older Calls");
+    this.props.callActions.fetchOlderCalls(this.props.oldestCallTime.getTime());
 
   }
 
@@ -171,7 +172,7 @@ class CallPlayer extends React.Component {
     }
   }
 
-  updateUri(props) {
+  updateUri(props, state) {
     var search = "?"
     switch (props.filterType) {
 
@@ -185,6 +186,9 @@ class CallPlayer extends React.Component {
       case 0:
         break;
 
+    }
+    if (state.callId) {
+      search = search + `call-id=${state.callId}`
     }
     if (props.filterDate) {
       if (search.length !== 1) {
@@ -341,11 +345,12 @@ class CallPlayer extends React.Component {
         sourceIndex: 0,
         urlOptions: true,
         autoPlay: false,
-        callScroll: true
+        callScroll: true,
+        callSelect: true
       });
       this.props.callActions.fetchCallInfo(_id);
       this.props.callActions.setCallTime(date);
-      
+
 
     }
 
@@ -398,7 +403,7 @@ class CallPlayer extends React.Component {
     return true
   }
 
-  componentWillUpdate(nextProps) {
+  componentWillUpdate(nextProps, nextState) {
     if (!this.props.groups && nextProps.groups) {
       if (!this.state.urlOptions && (nextProps.groups.length > 0)) {
         this.setState({
@@ -428,7 +433,7 @@ class CallPlayer extends React.Component {
           break;
       }
 
-      this.updateUri(nextProps);
+      this.updateUri(nextProps, nextState);
       if (this.props.live) {
         this.startSocket(this.props.shortName, typeString, filterCode, nextProps.filterStarred);
       }
@@ -441,6 +446,10 @@ class CallPlayer extends React.Component {
       this.prevHeight = contextRef.clientHeight;
       this.autoScroll = true;
     }
+    /* // if you do this, you also need to update time in the URI to be the call time...
+    if (this.state.callId != nextState.callId) {
+      this.updateUri(nextProps, nextState);
+    }*/
 
     if (this.state.callId && !this.state.callUrl) {
       const call = this.props.callsById[this.state.callId];
@@ -459,16 +468,33 @@ class CallPlayer extends React.Component {
     }
 
     // scroll to a call once the calls have loaded
-    if (this.state.callScroll && (this.props.callsAllIds.length > prevProps.callsAllIds.length)){
-      this.setState({callScroll: false});
-      if (this.currentCallRef.current) {
-        this.currentCallRef.current.scrollIntoView({
+    if (this.state.callScroll && (this.props.callsAllIds.length > prevProps.callsAllIds.length)) {
+      const call = this.props.callsById[this.state.callId];
+      if (call) {
+        this.setState({ callScroll: false });
+        if (this.currentCallRef.current) {
+          this.currentCallRef.current.scrollIntoView({
             behavior: "auto",
             block: "center",
-            });
-          }
-          this.scrollPos = contextRef.scrollTop;
-          this.prevHeight = contextRef.clientHeight;
+          });
+        }
+        this.scrollPos = contextRef.scrollTop;
+        this.prevHeight = contextRef.clientHeight;
+      }
+    }
+
+    if (this.state.callSelect) {
+      const call = this.props.callsById[this.state.callId];
+      if (call) {
+        const audio = this.audioRef.current;
+        var callUrl = call.url;
+        this.setState({
+          callUrl: callUrl,
+          sourceIndex: 0,
+          isPlaying: true,
+          callSelect: false
+        }, () => { audio.playSource(callUrl); }); //scrollToComponent(this.currentCallRef.current);
+      }
     }
   }
 
@@ -571,7 +597,7 @@ class CallPlayer extends React.Component {
               style={{ minHeight: '100vh' }}
             >
               <Visibility onTopVisible={this.loadNewerCalls} onBottomVisible={this.loadOlderCalls} once={false}>
-              <ListCalls callsAllIds={this.props.callsAllIds} currentCallRef={this.currentCallRef} callsById={this.props.callsById} activeCallId={this.state.callId} talkgroups={this.props.talkgroups} playCall={this.playCall} />
+                <ListCalls callsAllIds={this.props.callsAllIds} currentCallRef={this.currentCallRef} callsById={this.props.callsById} activeCallId={this.state.callId} talkgroups={this.props.talkgroups} playCall={this.playCall} />
               </Visibility>
             </Sidebar.Pusher>
           </Sidebar.Pushable>
@@ -584,7 +610,7 @@ class CallPlayer extends React.Component {
 
         <Menu fixed="bottom" compact inverted >
           <Menu.Item active={this.state.autoPlay} onClick={() => this.switchAutoPlay()}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
-          <MediaPlayer ref={this.audioRef} call={currentCall} onEnded={this.callEnded} onPlayPause={this.handlePlayPause}/>
+          <MediaPlayer ref={this.audioRef} call={currentCall} onEnded={this.callEnded} onPlayPause={this.handlePlayPause} />
           <Menu.Menu position="right" className="desktop-only">
             <Menu.Item onClick={this.handleSupportToggle}><Icon name="coffee" />Support OpenMHz</Menu.Item>
             <Menu.Item><a href={callDownload}><Icon name="download" />Download</a></Menu.Item>
