@@ -18,6 +18,7 @@ import {
   SET_FILTER,
   SET_CURRENT_CALL_ID,
   SET_LIVE,
+  SET_CALL_TIME,
   ADD_STAR_SUCCESS
 } from "./call-constants";
 
@@ -95,6 +96,8 @@ const call = (
     case SET_CURRENT_CALL_ID:
       return Object.assign({}, state, {currentCallId: action.data});
       
+    case SET_CALL_TIME:
+      return Object.assign({}, state, {newestCallTime: action.data, oldestCallTime: action.data });
     case SET_FILTER:
     {
       var filter={};

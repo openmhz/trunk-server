@@ -59,6 +59,10 @@ function fetchCallError(data) {
   data };
 }
 
+// The data field should be a JS date object
+export function setCallTime(data) {
+  return {type: types.SET_CALL_TIME, data};
+}
 
 export function changeUrl(url) {
   return dispatch => {
@@ -144,7 +148,7 @@ function buildCallUrl(state, date, direction) {
     return url;
 }
 
-export function fetchNewerCalls( timestamp) {
+export function fetchNewerCalls(timestamp) {
   return (dispatch, getState) => {
     const state = getState();
     if (shouldFetchCalls(state)) {

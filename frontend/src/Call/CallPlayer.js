@@ -14,9 +14,9 @@ import {
   Sticky,
   Menu,
   Icon,
-  Sidebar
+  Sidebar,
+  Visibility
 } from "semantic-ui-react";
-import { Waypoint } from 'react-waypoint';
 import "./CallPlayer.css";
 //import setupSocket from '../socket/SetupSocket.js'
 import queryString from '../query-string';
@@ -62,6 +62,7 @@ class CallPlayer extends React.Component {
       callId: false,
       playTime: 0,
       sourceIndex: 0,
+      callScroll: false,
       urlOptions: false,
       isPlaying: false,
       sidebarOpened: false,
@@ -98,21 +99,16 @@ class CallPlayer extends React.Component {
   changeUrl = url => this.props.callActions.changeUrl(url)
 
   loadNewerCalls() {
-    if (!this.props.callsIsWaiting) {
+
       console.log("Loading Newer Calls");
       this.props.callActions.fetchNewerCalls(this.props.newestCallTime.getTime());
-    } else {
-      console.log("Calls still loading - can't load newer calls");
-    }
   }
 
   loadOlderCalls() {
-    if (!this.props.callsIsWaiting) {
+
       console.log("Loading Older Calls");
       this.props.callActions.fetchOlderCalls(this.props.oldestCallTime.getTime());
-    } else {
-      console.log("Calls still loading - can't load older calls");
-    }
+
   }
 
   handleCalendarToggle = () => this.setState({
@@ -337,22 +333,20 @@ class CallPlayer extends React.Component {
     // is this just for one call?
     if (uri.hasOwnProperty('call-id')) {
       const _id = uri['call-id'];
-      const currentCall = this.props.callsById[this.state.callId];
+      const date = new Date(parseInt(uri['time']));
+
       filter.live = false;
       this.setState({
         callId: _id,
         sourceIndex: 0,
         urlOptions: true,
-        autoPlay: false
+        autoPlay: false,
+        callScroll: true
       });
       this.props.callActions.fetchCallInfo(_id);
+      this.props.callActions.setCallTime(date);
       
-      if (this.currentCallRef.current) {
-        this.currentCallRef.current.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-            });
-          }
+
     }
 
 
@@ -382,6 +376,9 @@ class CallPlayer extends React.Component {
     }
 
     this.props.callActions.setFilter(filter);
+
+    // When a time/date is provided in the URL, it will be added to the filter
+    // When fetchCalls is called it will selected calls that are older
     this.props.callActions.fetchCalls();
     this.props.talkgroupActions.fetchTalkgroups(this.props.shortName);
     this.props.groupActions.fetchGroups(this.props.shortName);
@@ -459,6 +456,19 @@ class CallPlayer extends React.Component {
     if (this.autoScroll) {
       this.autoScroll = false;
       window.scrollBy(0, contextRef.clientHeight - this.prevHeight);
+    }
+
+    // scroll to a call once the calls have loaded
+    if (this.state.callScroll && (this.props.callsAllIds.length > prevProps.callsAllIds.length)){
+      this.setState({callScroll: false});
+      if (this.currentCallRef.current) {
+        this.currentCallRef.current.scrollIntoView({
+            behavior: "auto",
+            block: "center",
+            });
+          }
+          this.scrollPos = contextRef.scrollTop;
+          this.prevHeight = contextRef.clientHeight;
     }
   }
 
@@ -560,11 +570,11 @@ class CallPlayer extends React.Component {
               onClick={this.handlePusherClick}
               style={{ minHeight: '100vh' }}
             >
-              <Waypoint onEnter={this.loadNewerCalls} />
+              <Visibility onTopVisible={this.loadNewerCalls} onBottomVisible={this.loadOlderCalls} once={false}>
               <ListCalls callsAllIds={this.props.callsAllIds} currentCallRef={this.currentCallRef} callsById={this.props.callsById} activeCallId={this.state.callId} talkgroups={this.props.talkgroups} playCall={this.playCall} />
+              </Visibility>
             </Sidebar.Pusher>
           </Sidebar.Pushable>
-          <Waypoint onEnter={this.loadOlderCalls} />
           <Rail position='right' className="desktop-only" dimmed={sidebarOpened ? "true" : "false"} >
             <Sticky context={contextRef} offset={60}>
               <CallInfo call={currentCall} header={callInfoHeader} />

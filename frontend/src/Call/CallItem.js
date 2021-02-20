@@ -102,7 +102,7 @@ render() {
     rowSelected={positive: true,
       color: "blue",
        key: "blue",
-        inverted: true
+        inverted: "true"
       } 
   }
   var talkgroup;
