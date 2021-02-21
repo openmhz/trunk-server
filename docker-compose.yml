@@ -156,6 +156,7 @@ services:
         - NODE_ENV
     image: "frontend:${TAG}-${STAGE}"
     environment:
+        - MONGO_NODE_DRIVER_HOST=mongo
         - REACT_APP_BACKEND_SERVER
         - REACT_APP_FRONTEND_SERVER
         - REACT_APP_SITE_NAME

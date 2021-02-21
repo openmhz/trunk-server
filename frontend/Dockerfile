@@ -15,7 +15,10 @@ RUN npm run build
 # production environment
 FROM node:13.12.0-alpine
 RUN mkdir -p /app/public
+COPY ./package.json /tmp
+RUN cd /tmp && npm install
+RUN cp -a /tmp/node_modules /app
 WORKDIR /app
-RUN npm install -g serve
+COPY server /app
 COPY --from=build /app/build /app/public
-CMD serve -s public -l 3000
+CMD ["node", "index.js"]
