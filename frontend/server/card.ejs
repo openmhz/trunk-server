@@ -1,30 +1,57 @@
-
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-        <title>wavesurfer.js | Media Element Example</title>
-        <script src="https://unpkg.com/wavesurfer.js"></script>
-        <script src="/card.js"></script>
-    </head>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>OpenMHz</title>
+    <script src="https://unpkg.com/wavesurfer.js"></script>
+    <script>
+      // Create an instance
+      let wavesurfer;
+      var call_url="<%- url%>";
+      // Init & load audio file
+      document.addEventListener("DOMContentLoaded", function () {
+        // Init
+        wavesurfer = WaveSurfer.create({
+          container: document.querySelector("#waveform"),
+          waveColor: "#A8DBA8",
+          progressColor: "#3B8686",
+          backend: "MediaElement",
+          mediaControls: true,
+        });
 
-    <body >
+        wavesurfer.once("ready", function () {
+          console.log("Using wavesurfer.js " + WaveSurfer.VERSION);
+        });
 
-        <div id="demo">
-            <div id="waveform">
-                <!-- Here be the waveform -->
-            </div>
+        wavesurfer.on("error", function (e) {
+          console.warn(e);
+        });
 
-            <div class="controls">
-                <button class="btn btn-primary" data-action="play">
-                    <i class="glyphicon glyphicon-play"></i>
-                    Play
-                    /
-                    <i class="glyphicon glyphicon-pause"></i>
-                    Pause
-                </button>
-            </div>
-        </div>
-    </body>
+        // Load audio from URL
+        wavesurfer.load(call_url);
+
+        // toggle play button
+        document
+          .querySelector('[data-action="play"]')
+          .addEventListener("click", wavesurfer.playPause.bind(wavesurfer));
+      });
+    </script>
+  </head>
+
+  <body>
+    <div id="demo">
+      <div id="waveform">
+        <!-- Here be the waveform -->
+      </div>
+
+      <div class="controls">
+        <button class="btn btn-primary" data-action="play">
+          <i class="glyphicon glyphicon-play"></i>
+          Play /
+          <i class="glyphicon glyphicon-pause"></i>
+          Pause
+        </button>
+      </div>
+    </div>
+  </body>
 </html>
-    

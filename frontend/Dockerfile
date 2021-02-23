@@ -21,4 +21,5 @@ RUN cp -a /tmp/node_modules /app
 WORKDIR /app
 COPY server /app
 COPY --from=build /app/build /app/public
+RUN sed 's/<meta name="temp" conent="replace"\/>/<%- TWITTER_META%>/g' /app/public/index.html > /app/index.ejs
 CMD ["node", "index.js"]

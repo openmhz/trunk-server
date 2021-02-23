@@ -61,6 +61,7 @@ function getCard(req, res, next) {
           var time = new Date(item.time);
           var timeString = time.toLocaleTimeString("en-US");
           var dateString = time.toDateString();
+          //console.log(item)
           res.render('card.ejs', {
             item: item,
             url: item.url,
@@ -115,12 +116,53 @@ exports.get_card = function(req, res) {
 */
 
 function getCalls(req, res, next) {
-  for (const key in req.query) {
-    console.log(key, req.query[key])
-  }
+
   if (req.query && req.query["call-id"]) {
-    const callId = req.query["call-id"];
-    res.render("index.ejs", { PUBLIC_URL: "/", REACT_APP_SITE_NAME: process.env["REACT_APP_SITE_NAME"], REACT_APP_BACKEND_SERVER: process.env["REACT_APP_BACKEND_SERVER"], CALL_ID: callId, CALL_URL: "https://s3.us-west-1.wasabisys.com/openmhz-west/media/dcfd-1039-1613917169.m4a" })
+
+    var objectId = req.query["call-id"];
+    try {
+      var o_id = ObjectID.createFromHexString(objectId);
+    } catch (err) {
+      next()
+      return;
+    }
+  
+    db.get().collection('calls', function (err, transCollection) {
+      transCollection.findOne({
+        '_id': o_id
+      },
+        function (err, item) {
+          if (item) {
+            var time = new Date(item.time);
+            var timeString = time.toLocaleTimeString("en-US");
+            var dateString = time.toDateString();
+            //console.log(item)
+
+            const callId = req.query["call-id"];
+            const callUrl = "https://s3.us-west-1.wasabisys.com/openmhz-west/media/dcfd-1039-1613917169.m4a"
+            const twitterMeta = `
+            <meta name="twitter:card" content="player"/>
+            <meta name="twitter:site" content="@openmhz"/>
+            <!--if channel
+              meta(name="twitter:title" content="#{channel.alpha} #{time} #{date}")
+              meta(name="twitter:description" content="This is a call from talkgroup #{channel.desc}")-->
+            <meta name="twitter:image" content="https://openmhz.com/img/player.png"/>
+            <meta name="twitter:player" content="${process.env['REACT_APP_FRONTEND_SERVER']}/cards/${callId}"/>
+            <meta name="twitter:player:stream" content="${item.url}"/>
+            <meta name="twitter:player:stream:content_type" content="audio/mp4"/>
+            <meta name="twitter:player:width" content="422"/>
+            <meta name="twitter:player:height" content="114"/>`
+            res.render("index.ejs", {  TWITTER_META: twitterMeta })
+          } else {
+            console.warn("Error - /card/:id Could not find Item " + err);
+            res.send(404, 'Sorry, we cannot find that!');
+          }
+        });
+    });
+  
+
+
+
   } else {
     next()
   }
@@ -129,7 +171,7 @@ function getCalls(req, res, next) {
 // -------------------------------------------
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/systems/:shortName", getCalls)
+app.get("/system/:shortName", getCalls)
 app.get("/cards/:id", getCard)
 
 app.get("*", (req, res, next) => {
