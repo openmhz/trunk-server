@@ -146,7 +146,7 @@ function getCalls(req, res, next) {
 
             <meta name="twitter:title" content="Call at ${timeString} ${dateString} "/>
             <meta name="twitter:description" content="This is a call from talkgroup" />
-            <meta name="twitter:image" content="https://openmhz.com/favicon-32x32.png"/>
+            <meta name="twitter:image" content="https://openmhz.com/radio-400x400.jpg"/>
             <meta name="twitter:player" content="${process.env['REACT_APP_FRONTEND_SERVER']}/cards/${callId}"/>
             <meta name="twitter:player:stream" content="${item.url}"/>
             <meta name="twitter:player:stream:content_type" content="audio/mp4"/>
