@@ -150,8 +150,8 @@ function getCalls(req, res, next) {
             <meta name="twitter:player" content="${process.env['REACT_APP_FRONTEND_SERVER']}/cards/${callId}"/>
             <meta name="twitter:player:stream" content="${item.url}"/>
             <meta name="twitter:player:stream:content_type" content="audio/mp4"/>
-            <meta name="twitter:player:width" content="422"/>
-            <meta name="twitter:player:height" content="114"/>`
+            <meta name="twitter:player:width" content="425"/>
+            <meta name="twitter:player:height" content="165"/>`
             res.render("index.ejs", {  TWITTER_META: twitterMeta })
           } else {
             console.warn("Error - /card/:id Could not find Item " + err);
