@@ -143,10 +143,10 @@ function getCalls(req, res, next) {
             const twitterMeta = `
             <meta name="twitter:card" content="player"/>
             <meta name="twitter:site" content="@openmhz"/>
-            <!--if channel
-              meta(name="twitter:title" content="#{channel.alpha} #{time} #{date}")
-              meta(name="twitter:description" content="This is a call from talkgroup #{channel.desc}")-->
-            <meta name="twitter:image" content="https://openmhz.com/img/player.png"/>
+
+            <meta name="twitter:title" content="Call at ${timeString} ${dateString} "/>
+            <meta name="twitter:description" content="This is a call from talkgroup" />
+            <meta name="twitter:image" content="https://openmhz.com/favicon-32x32.png"/>
             <meta name="twitter:player" content="${process.env['REACT_APP_FRONTEND_SERVER']}/cards/${callId}"/>
             <meta name="twitter:player:stream" content="${item.url}"/>
             <meta name="twitter:player:stream:content_type" content="audio/mp4"/>
