@@ -1,11 +1,13 @@
 import React from "react";
 import {
   Header,
+  Button,
   Divider,
   List,
   Segment,
   Statistic,
-  Icon
+  Icon,
+  Menu
 } from "semantic-ui-react";
 
 // ----------------------------------------------------
@@ -19,6 +21,8 @@ class CallInfo extends React.Component {
     var callDate = "-";
     var callTime = "-";
     var talkgroupNum = "-";
+    var callDownload = "";
+    var callTweet = "";
     if (this.props.call) {
       const currentCall = this.props.call;
       var time = new Date(currentCall.time);
@@ -33,12 +37,15 @@ class CallInfo extends React.Component {
         [{source.pos}]</List.Item>);
       callLength = currentCall.len;
       talkgroupNum = currentCall.talkgroupNum;
+      callDownload = currentCall.url;
+      callTweet = "https://twitter.com/intent/tweet?url="+encodeURIComponent(document.location.origin+this.props.link)+"&via="+encodeURIComponent("OpenMHz");
     }
 
 
 
     return (
-      <Segment padded>
+      <div>
+      <Segment padded attached>
         <Header as='h1'>{this.props.header}</Header>
         <List bulleted horizontal link>
           {srcList}
@@ -74,7 +81,12 @@ class CallInfo extends React.Component {
           </List.Item>
         </List>
       </Segment>
-
+          <Menu attached='bottom'>
+          <a href={callTweet}><Menu.Item name="tweet" ><Icon name='twitter' />Tweet</Menu.Item></a>
+          <a href={callDownload}><Menu.Item name="download"><Icon name="download" />Download</Menu.Item></a>
+          <a href={this.props.link}><Menu.Item name="link"><Icon name="at" />Link</Menu.Item></a>
+        </Menu>
+        </div>
     );
     }
   }

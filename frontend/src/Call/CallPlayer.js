@@ -603,7 +603,7 @@ class CallPlayer extends React.Component {
           </Sidebar.Pushable>
           <Rail position='right' className="desktop-only" dimmed={sidebarOpened ? "true" : "false"} >
             <Sticky context={contextRef} offset={60}>
-              <CallInfo call={currentCall} header={callInfoHeader} />
+              <CallInfo call={currentCall} header={callInfoHeader} link={callLink}/>
             </Sticky>
           </Rail>
         </Container>
