@@ -115,7 +115,7 @@ exports.get_card = function(req, res) {
 }
 */
 
-function getCalls(req, res, next) {
+async function getCalls(req, res, next) {
 
   if (req.query && req.query["call-id"]) {
 
@@ -126,26 +126,34 @@ function getCalls(req, res, next) {
       next()
       return;
     }
+
   
     db.get().collection('calls', function (err, transCollection) {
       transCollection.findOne({
         '_id': o_id
       },
-        function (err, item) {
+        async function (err, item) {
           if (item) {
             var time = new Date(item.time);
             var timeString = time.toLocaleTimeString("en-US");
             var dateString = time.toDateString();
             //console.log(item)
+            const tg_coll = db.get().collection('talkgroups');
+            const tg =  await tg_coll.findOne({ "num": item.talkgroupNum, 'shortName': req.params.shortName.toLowerCase()})
+            var title = item.len + " second transmission"
 
+            if (tg) {
+              console.log(tg)
+              title = tg.description;
+            }
             const callId = req.query["call-id"];
             const callUrl = "https://s3.us-west-1.wasabisys.com/openmhz-west/media/dcfd-1039-1613917169.m4a"
             const twitterMeta = `
             <meta name="twitter:card" content="player"/>
             <meta name="twitter:site" content="@openmhz"/>
 
-            <meta name="twitter:title" content="Call at ${timeString} ${dateString} "/>
-            <meta name="twitter:description" content="This is a call from talkgroup" />
+            <meta name="twitter:title" content="${title}"/>
+            <meta name="twitter:description" content="${timeString} ${dateString}" />
             <meta name="twitter:image" content="https://openmhz.com/radio-400x400.jpg"/>
             <meta name="twitter:player" content="${process.env['REACT_APP_FRONTEND_SERVER']}/cards/${callId}"/>
             <meta name="twitter:player:stream" content="${item.url}"/>
