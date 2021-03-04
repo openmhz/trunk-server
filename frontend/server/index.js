@@ -59,8 +59,8 @@ function getCard(req, res, next) {
       function (err, item) {
         if (item) {
           var time = new Date(item.time);
-          var timeString = time.toLocaleTimeString("en-US");
-          var dateString = time.toDateString();
+          var timeString = time.toLocaleTimeString('en-US', {timeZone: "America/New_York"});
+          var dateString = time.toLocaleDateString('en-US', {timeZone: "America/New_York"});
           //console.log(item)
           res.render('card.ejs', {
             item: item,

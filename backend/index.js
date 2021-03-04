@@ -179,8 +179,8 @@ app.post('/:shortName/upload', upload.single('call'),  uploads.upload, async fun
   if ((req.call.shortName=="dcfd") && (req.call.talkgroupNum==101)) {
     var call_time = new Date(req.call.time);
     var call_link = "https://openmhz.com/system/dcfd?call-id=" + req.call._id + "&time=" + call_time.getTime();
-    
-    var call_time_label = call_time.toLocaleDateString() + " " + call_time.toLocaleTimeString()
+
+    var call_time_label = call_time.toLocaleDateString('en-US', {timeZone: "America/New_York"}) + " " + call_time.toLocaleTimeString('en-US', {timeZone: "America/New_York"})
     var status = req.call.len +" sec transmission\n" + call_time_label + "\n" + call_link;
     const response = await client.post('statuses/update', {
       status: status,
