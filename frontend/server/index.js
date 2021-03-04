@@ -135,8 +135,8 @@ async function getCalls(req, res, next) {
         async function (err, item) {
           if (item) {
             var time = new Date(item.time);
-            var timeString = time.toLocaleTimeString("en-US");
-            var dateString = time.toDateString();
+            var timeString = time.toLocaleTimeString('en-US', {timeZone: "America/New_York"});
+            var dateString = time.toDateString('en-US', {timeZone: "America/New_York"});
             //console.log(item)
             const tg_coll = db.get().collection('talkgroups');
             const tg =  await tg_coll.findOne({ "num": item.talkgroupNum, 'shortName': req.params.shortName.toLowerCase()})
