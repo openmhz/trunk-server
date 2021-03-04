@@ -1,7 +1,6 @@
 /* Initializing PassportJS */
 const User = require("../models/user");
 const local = require("./passport-strategies/local");
-const twitter = require("./passport-strategies/twitter");
 
 module.exports = function (app, passport) {
   // Configure Passport authenticated session persistence.

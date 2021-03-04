@@ -176,7 +176,7 @@ app.post('/:shortName/star/:id', calls.add_star, function(req,res) {
 /*------    UPLOADS   ---------- upload.single('call'),  uploads.upload,*/
 app.post('/:shortName/upload', upload.single('call'),  uploads.upload, async function(req,res) {
   notify_clients(req.call);
-  if ((req.call.shortName=="dcfd") && (req.call.talkgroupNum==101)) {
+  if ((req.call.shortName=="dcfd") && (req.call.talkgroupNum==101) ) {
     var call_time = new Date(req.call.time);
     var call_link = "https://openmhz.com/system/dcfd?call-id=" + req.call._id + "&time=" + call_time.getTime();
 
