@@ -32,6 +32,7 @@ const server = require('http').createServer(app);
 
 const io = require('socket.io')(server, {});
 
+var Twitter = require('twitter-lite');
 
 
 io.origins('*:*');
@@ -49,6 +50,23 @@ io.on('connection', function(socket){
     //console.log('user disconnected');
   });
 });
+
+
+const client = new Twitter({
+  subdomain: "api", // "api" is the default (change for other subdomains)
+  version: "1.1", // version "1.1" is the default (change for other subdomains)
+  consumer_key: process.env.TWITTER_CONSUMER_KEY, // from Twitter.
+  consumer_secret: process.env.TWITTER_CONSUMER_SECRET, // from Twitter.
+  access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY, // from your User (oauth_token)
+  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET // from your User (oauth_token_secret)
+});
+
+client
+  .get("account/verify_credentials")
+  .then(results => {
+    console.log("results", results);
+  })
+  .catch(console.error);
 
 function getRole(req) {
   if (req.params.shortName && req.user) {
@@ -156,8 +174,19 @@ app.post('/:shortName/star/:id', calls.add_star, function(req,res) {
 
 
 /*------    UPLOADS   ---------- upload.single('call'),  uploads.upload,*/
-app.post('/:shortName/upload', upload.single('call'),  uploads.upload, function(req,res) {
+app.post('/:shortName/upload', upload.single('call'),  uploads.upload, async function(req,res) {
   notify_clients(req.call);
+  if ((req.call.shortName=="dcfd") && (req.call.talkgroupNum==101)) {
+    var call_time = new Date(req.call.time);
+    var call_link = "https://openmhz.com/system/dcfd?call-id=" + req.call._id + "&time=" + call_time.getTime();
+    
+    var call_time_label = call_time.toLocaleDateString() + " " + call_time.toLocaleTimeString()
+    var status = req.call.len +" sec transmission\n" + call_time_label + "\n" + call_link;
+    const response = await client.post('statuses/update', {
+      status: status,
+    });
+    //console.log("Tweet Response: " + response);
+  }
 });
 
 /*------    SYSTEMS   ----------*/
