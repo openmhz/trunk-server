@@ -188,6 +188,9 @@ class CallPlayer extends React.Component {
 
     }
     if (state.callId) {
+      if (search.length !== 1) {
+        search = search + '&';
+      }
       search = search + `call-id=${state.callId}`
     }
     if (props.filterDate) {
