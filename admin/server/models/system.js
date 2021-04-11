@@ -11,6 +11,7 @@ var systemSchema = mongoose.Schema({
   state: String,
   description: String,
   showScreenName: Boolean,
+  ignoreUnknownTalkgroup : Boolean,
   userId:  mongoose.Schema.Types.ObjectId,
   key: String
 });

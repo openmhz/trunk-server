@@ -14,6 +14,7 @@ var systemSchema = mongoose.Schema({
   showScreenName: Boolean,
   callAvg: Number,
   callCount: Number,
+  ignoreUnknownTalkgroup : Boolean,
   active: {type: Boolean, default: false},
   planType: {type: Number, default: 0},
   userId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User'},

@@ -20,7 +20,7 @@
     "get-folder-size": "^1.0.0",
     "mkdirp": "^0.5.1",
     "mongodb": "2.2.36",
-    "mongoose": "5.3.12",
+    "mongoose": "5.12.3",
     "multer": "1.3.0",
     "node-ffprobe": "github:ListenerApproved/node-ffprobe",
     "node-schedule": "1.2.4",
