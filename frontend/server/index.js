@@ -143,7 +143,7 @@ async function getCalls(req, res, next) {
             var title = item.len + " second transmission"
 
             if (tg) {
-              console.log(tg)
+              //console.log(tg)
               title = tg.description;
             }
             const callId = req.query["call-id"];

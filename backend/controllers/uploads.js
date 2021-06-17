@@ -101,13 +101,13 @@ process.nextTick(function() {
         
 
         if (item.ignoreUnknownTalkgroup == true) {
-          console.log("ignore unknown talkgroup ");
+          //console.log("ignore unknown talkgroup ");
           //await Talkgroup.findOne({ answer: 42 }).select({ _id: 1 }).lean().then(doc => !!doc)
           talkgroupExists = await Talkgroup.exists({
             'shortName': shortName,
             'num': talkgroupNum
           });
-          console.log("In talkgroup: " + talkgroupExists);
+          //console.log("In talkgroup: " + talkgroupExists);
           //talkgroupExists = await Talkgroup.findOne({ 'shortName': shortName,  'num': talkgroupNum }).select({ _id: 1 }).lean().then(doc => !!doc).exec();
           if (!talkgroupExists) {
             try {
