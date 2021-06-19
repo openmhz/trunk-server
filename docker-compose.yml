@@ -164,6 +164,7 @@ services:
         - REACT_APP_BACKEND_SERVER
         - REACT_APP_FRONTEND_SERVER
         - REACT_APP_SITE_NAME
+        - GOOGLE_ANALYTICS
     depends_on:
       - mongo
     networks:
