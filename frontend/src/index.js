@@ -21,7 +21,7 @@ import ListSystemsContainer from "./System/ListSystemsContainer"
 // Call
 import CallPlayerContainer from "./Call/CallPlayerContainer"
 
-ReactGA.initialize(process.env.GOOGLE_ANALYTICS);
+ReactGA.initialize(process.env.REACT_GOOGLE_ANALYTICS);
 
 const store = configureStore(/* provide initial state if any */)
 
