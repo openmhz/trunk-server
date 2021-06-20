@@ -157,6 +157,7 @@ services:
         - REACT_APP_BACKEND_SERVER
         - REACT_APP_FRONTEND_SERVER
         - REACT_APP_SITE_NAME
+        - REACT_APP_GOOGLE_ANALYTICS
         - NODE_ENV
     image: "frontend:${TAG}-${STAGE}"
     environment:
