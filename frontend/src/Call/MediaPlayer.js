@@ -91,7 +91,7 @@ class MediaPlayer extends React.Component {
           ref={this.audioRef}
           onPause={this.handlePause}
           onPlay={this.handlePlay}
-          listenInterval={500}
+          listenInterval={100}
           onListen={this.updatePlayProgress}
           onEnded={this.props.onEnded}
           autoPlay
