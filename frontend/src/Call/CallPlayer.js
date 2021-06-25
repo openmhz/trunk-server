@@ -61,7 +61,6 @@ class CallPlayer extends React.Component {
       autoPlay: true,
       callId: false,
       playTime: 0,
-      sourceIndex: 0,
       callScroll: false,
       callSelect: false,
       urlOptions: false,
@@ -259,7 +258,7 @@ class CallPlayer extends React.Component {
       const nextCall = this.props.callsById[nextCallId];
       var callUrl = nextCall.url;
 
-      this.setState({ callUrl: callUrl, callId: nextCallId, sourceIndex: 0, isPlaying: true }, () => { audio.playSource(callUrl) }); //scrollToComponent(this.currentCallRef.current);
+      this.setState({ callUrl: callUrl, callId: nextCallId, isPlaying: true }, () => { audio.playSource(callUrl) }); //scrollToComponent(this.currentCallRef.current);
       if (this.currentCallRef.current) {
         this.currentCallRef.current.scrollIntoView({
           behavior: "smooth",
@@ -278,7 +277,6 @@ class CallPlayer extends React.Component {
     this.setState({
       callUrl: callUrl,
       callId: data.call._id,
-      sourceIndex: 0,
       isPlaying: true
     }, () => { audio.playSource(callUrl); }); //scrollToComponent(this.currentCallRef.current);
     this.props.callActions.fetchCallInfo(data.call._id);
@@ -345,7 +343,6 @@ class CallPlayer extends React.Component {
       filter.live = false;
       this.setState({
         callId: _id,
-        sourceIndex: 0,
         urlOptions: true,
         autoPlay: false,
         callScroll: true,
@@ -493,7 +490,6 @@ class CallPlayer extends React.Component {
         var callUrl = call.url;
         this.setState({
           callUrl: callUrl,
-          sourceIndex: 0,
           isPlaying: true,
           callSelect: false
         }, () => { audio.playSource(callUrl); }); //scrollToComponent(this.currentCallRef.current);
