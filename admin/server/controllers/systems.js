@@ -269,7 +269,6 @@ exports.uniqueShortName = async function (req, res, next) {
 
 exports.updateSystem = async function (req, res, next) {
 
-  console.log(res.locals)
   res.locals.system.name = res.locals.name;
   res.locals.system.city = res.locals.city;
   res.locals.system.state = res.locals.state;
