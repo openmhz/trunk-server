@@ -21,6 +21,8 @@ import ListSystemsContainer from "./System/ListSystemsContainer"
 // Call
 import CallPlayerContainer from "./Call/CallPlayerContainer"
 
+import AboutComponent from "./About/AboutComponent"
+
 ReactGA.initialize(process.env.REACT_APP_GOOGLE_ANALYTICS);
 
 const store = configureStore(/* provide initial state if any */)
@@ -33,6 +35,7 @@ ReactDOM.render(
           <Route exact path="/" component={withTracker(MainContainer)} />
           <Route exact path="/systems" component={withTracker(ListSystemsContainer)} />
           <Route exact path="/system/:shortName" component={withTracker(CallPlayerContainer)} />
+          <Route exact path="/about" component={withTracker(AboutComponent)} />
           <Route render={() => (<div>Miss</div>)} />
         </Switch>
       </>
