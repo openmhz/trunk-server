@@ -168,9 +168,7 @@ app.get('/:shortName/calls/newer', calls.get_newer_calls);
 app.get('/:shortName/calls/older', calls.get_older_calls);
 app.get('/:shortName/calls/:time/older', calls.get_iphone_calls);
 app.get('/:shortName/calls', calls.get_calls);
-app.post('/:shortName/star/:id', calls.add_star, function (req, res) {
-  notify_clients(req.call);
-});
+app.post('/:shortName/star/:id', calls.add_star);
 
 
 /*------    UPLOADS   ---------- upload.single('call'),  uploads.upload,*/

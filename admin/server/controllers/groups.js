@@ -235,14 +235,7 @@ exports.upsertGroup = function(req, res, next) {
         var message = "";
         var groupName = req.body.groupName.replace(/[^\w\s]/g, "");
         var talkgroups = JSON.parse(req.body.talkgroups);
-        console.log(
-          "Talkgroups: " +
-            talkgroups +
-            " for group: " +
-            groupName +
-            " array: " +
-            Array.isArray(talkgroups)
-        );
+
         if (!talkgroups.length || !Array.isArray(talkgroups)) {
           message = "Talkgroups need to be selected, group can not be empty ";
         }
