@@ -12,7 +12,7 @@
     "connect-mongo": "3.2.0",
     "connected-react-router": "6.8.0",
     "date-fns": "2.16.1",
-    "ejs": "3.1.6",
+    "ejs": "3.1.7",
     "mongoose": "5.11.17",
     "react": "^17.0.1",
     "react-audio-player": "0.14.0",
