@@ -52,6 +52,9 @@ io.on('connection', function (socket) {
 });
 
 
+// This section of code enable a Twitter client to tweet out messages when a new call comes in
+
+/*
 const client = new Twitter({
   subdomain: "api", // "api" is the default (change for other subdomains)
   version: "1.1", // version "1.1" is the default (change for other subdomains)
@@ -67,6 +70,7 @@ client
     console.log("Connected to Twitter");
   })
   .catch(console.error);
+*/
 
 function getRole(req) {
   if (req.params.shortName && req.user) {
@@ -174,6 +178,10 @@ app.post('/:shortName/star/:id', calls.add_star);
 /*------    UPLOADS   ---------- upload.single('call'),  uploads.upload,*/
 app.post('/:shortName/upload', upload.single('call'), uploads.upload, async function (req, res) {
   notify_clients(req.call);
+
+  // This section is for sending out tweets when new calls come in
+
+  /*
   if ((req.call.shortName == "dcfd") && (req.call.talkgroupNum == 101)) {
     var call_time = new Date(req.call.time);
     var call_link = "https://openmhz.com/system/dcfd?call-id=" + req.call._id + "&time=" + call_time.getTime();
@@ -184,7 +192,7 @@ app.post('/:shortName/upload', upload.single('call'), uploads.upload, async func
       status: status,
     });
     //console.log("Tweet Response: " + response);
-  }
+  }*/
 });
 
 /*------    SYSTEMS   ----------*/
