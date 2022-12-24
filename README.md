@@ -99,9 +99,9 @@ On MacOS, make the changes in: */etc/hosts*
 # when the system is booting.  Do not change this entry.
 ##
 127.0.0.1       localhost
-127.0.0.1       openmhz.test api.openmhz.test admin.openmhz.test media.openmhz.test
+127.0.0.1       openmhz.test account.openmhz.test api.openmhz.test admin.openmhz.test media.openmhz.test
 ````
-Then load these values into local DNS: `dscacheutil –flushcache`
+Then load these values into local DNS: `sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder`
 
 
   - In root dir, run: `./docker-test.sh build`
@@ -144,6 +144,27 @@ From the Host OS run:
 ```bash
 docker exec -i -t $(docker ps -a | grep mongo | awk '{print $1}') /bin/bash
 ```
+Then launch the `mongo` CLI tool and find any users you have created
+```bash
+mongo
+use scanner
+db.users.find()
+```
+
+Now swap out the ObjectId for the user, and then run this command. It will make it so you don't need to confirm the email.
+
+```bash
+db.users.updateOne(
+   { "_id" : ObjectId("63a620d0a63b087b005f6726") },
+   {
+     $set: { "confirmEmail" : true },
+     $currentDate: { lastModified: true }
+   }
+)
+```
+
+
+
 
 There are a few scripts included with the container:
 - **clean.js** This script removes all Calls that are over 30 days old
