@@ -40,10 +40,8 @@ class CallPlayer extends React.Component {
     this.addCall = this.addCall.bind(this);
     this.handlePusherClick = this.handlePusherClick.bind(this);
     this.handleSidebarToggle = this.handleSidebarToggle.bind(this);
-    this.handleSupportToggle = this.handleSupportToggle.bind(this);
     this.handleFilterClose = this.handleFilterClose.bind(this);
     this.handleGroupClose = this.handleGroupClose.bind(this);
-    this.handleSupportClose = this.handleSupportClose.bind(this);
     this.handleCalendarToggle = this.handleCalendarToggle.bind(this);
     this.handleCalendarClose = this.handleCalendarClose.bind(this);
     this.handleLiveToggle = this.handleLiveToggle.bind(this);
@@ -68,8 +66,7 @@ class CallPlayer extends React.Component {
       sidebarOpened: false,
       filterVisible: false,
       groupVisible: false,
-      calendarVisible: false,
-      supportVisible: false
+      calendarVisible: false
     }
   }
 
@@ -89,10 +86,6 @@ class CallPlayer extends React.Component {
 
   handleFilterToggle = () => this.setState({
     filterVisible: !this.state.filterVisible
-  })
-
-  handleSupportToggle = () => this.setState({
-    supportVisible: !this.state.supportVisible
   })
 
   handleContextRef = contextRef => this.setState({ contextRef })
@@ -232,12 +225,6 @@ class CallPlayer extends React.Component {
       groupVisible: !this.state.groupVisible
     });
     this.props.callActions.fetchCalls();
-  }
-
-  handleSupportClose() {
-    this.setState({
-      supportVisible: !this.state.supportVisible
-    });
   }
 
   handleFilterClose(didUpdate) {
@@ -547,7 +534,7 @@ class CallPlayer extends React.Component {
         <FilterModal shortName={this.props.shortName} open={this.state.filterVisible} onClose={this.handleFilterClose} />
         <CalendarModal open={this.state.calendarVisible} onClose={this.handleCalendarClose} archive={archive} key={this.props.shortName} />
         <GroupModal shortName={this.props.shortName} open={this.state.groupVisible} onClose={this.handleGroupClose} />
-        <SupportModal open={this.state.supportVisible} onClose={this.handleSupportClose} />
+        
         <Sidebar as={Menu} animation='overlay' inverted vertical visible={sidebarOpened}
           onClick={this.handlePusherClick} duration={50} width='thin'>
           <Menu.Item onClick={this.handlePusherClick} >
@@ -611,7 +598,7 @@ class CallPlayer extends React.Component {
           <Menu.Item active={this.state.autoPlay} onClick={() => this.switchAutoPlay()}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
           <MediaPlayer ref={this.audioRef} call={currentCall} onEnded={this.callEnded} onPlayPause={this.handlePlayPause} />
           <Menu.Menu position="right" className="desktop-only">
-            <Menu.Item onClick={this.handleSupportToggle}><Icon name="coffee" />Support OpenMHz</Menu.Item>
+            <Menu.Item><SupportModal/></Menu.Item>
             <Menu.Item><a href={callDownload}><Icon name="download" />Download</a></Menu.Item>
             <Menu.Item><a href={callLink}><Icon name="at" />Link</a></Menu.Item>
           </Menu.Menu>
