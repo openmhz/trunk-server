@@ -20,7 +20,7 @@ import {
 import "./CallPlayer.css";
 //import setupSocket from '../socket/SetupSocket.js'
 import queryString from '../query-string';
-
+import {Groups} from "./call-data"
 
 
 
@@ -374,6 +374,8 @@ class CallPlayer extends React.Component {
     this.props.callActions.fetchCalls();
     this.props.talkgroupActions.fetchTalkgroups(this.props.shortName);
     this.props.groupActions.fetchGroups(this.props.shortName);
+  
+
     this.props.systemActions.fetchSystems();
     this.setupSocket();
 
@@ -542,6 +544,7 @@ class CallPlayer extends React.Component {
           <Link to="/"><Menu.Item link>Home</Menu.Item></Link>
           <Link to="/systems"><Menu.Item link>Systems</Menu.Item></Link>
           <Link to="/about"><Menu.Item link>About</Menu.Item></Link>
+          <Menu.Item link><Groups shortName={this.props.shortName}/></Menu.Item>
         </Sidebar>
         <Menu fixed="top">
           <Menu.Item onClick={this.handleSidebarToggle}>
