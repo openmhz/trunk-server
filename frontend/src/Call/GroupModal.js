@@ -8,32 +8,42 @@ import {
 import "./FilterModal.css";
 
 
-function GroupModal(props)  {
+class GroupModal extends Component {
+  constructor(props) {
+    super(props)
+    this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleDone = this.handleDone.bind(this);
+    this.handleClose = this.handleClose.bind(this);
 
-const [open, setOpen] = useState(false);
-const [selectedGroup, setSelectedGroup] = useState(false);
+    this.state = {
+      open: false,
+      selectedGroup: false
+    }
+}
 
-const handleInputChange = (e, { name, value }) => this.setState({ [name]: value });
-const handleClose = () => this.props.onClose(false);
 
-const handleDone = () => {
+handleInputChange = (e, { name, value }) => this.setState({ [name]: value });
+handleClose = () => this.props.onClose(false);
+
+handleDone(event) {
+
       if (this.state.selectedGroup) {
         this.props.callActions.setGroupFilter(this.state.selectedGroup);
         this.props.onClose(true);
       } else {
         this.props.onClose(false);
       }
-}
-/*
+
+}  
 componentDidUpdate(prevProps) {
 
   const filterChanged = (prevProps.selectedGroup !== this.props.selectedGroup);
   if (filterChanged) {
     this.setState({ selectedGroup: this.props.selectedGroup});
   }
-}*/
+}
 
-  //render() {
+  render() {
 
 
     var groupList = [];
@@ -70,6 +80,6 @@ componentDidUpdate(prevProps) {
 
     )
   }
-//}
+}
 
 export default GroupModal;
