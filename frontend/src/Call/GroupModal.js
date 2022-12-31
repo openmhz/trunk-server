@@ -24,15 +24,16 @@ const handleDone = () => {
         this.props.onClose(false);
       }
 }
+/*
 componentDidUpdate(prevProps) {
 
   const filterChanged = (prevProps.selectedGroup !== this.props.selectedGroup);
   if (filterChanged) {
     this.setState({ selectedGroup: this.props.selectedGroup});
   }
-}
+}*/
 
-  render() {
+  //render() {
 
 
     var groupList = [];
@@ -69,6 +70,6 @@ componentDidUpdate(prevProps) {
 
     )
   }
-}
+//}
 
 export default GroupModal;
