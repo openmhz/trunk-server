@@ -6,11 +6,13 @@ import systemReducer from "../System/system-reducer"
 import talkgroupReducer from "../Talkgroups/talkgroup-reducer"
 import groupReducer from "../Group/group-reducer"
 import callReducer from "../Call/call-reducer"
+import { apiSlice } from '../features/api/apiSlice'
 
 export default (history) => combineReducers({
   router: connectRouter(history),
   system: systemReducer,
   talkgroup: talkgroupReducer,
 	group: groupReducer,
-	call: callReducer
+	call: callReducer,
+  [apiSlice.reducerPath]: apiSlice.reducer
 })
