@@ -27,10 +27,9 @@ export const apiSlice = createApi({
         }),
         getCalls: builder.query({
             // The URL for the request is '/fakeApi/posts'
-            query: ({shortName, filterType, filterCode}) => ({
+            query: (shortName) => ({
                 url: `/${shortName}/calls`,
-                method: "GET",
-                params: { filterType, filterCode },
+                method: "GET" //, params: { filterType, filterCode },
               })
         })
     })
