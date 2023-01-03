@@ -31,7 +31,7 @@ export const Groups = (args) => {
 
   export const Calls = (args) => {
 
-    const { data, isError, isLoading, isSuccess,error } = useGetCallsQuery(args.shortName);
+    const { data, isError, isLoading, isSuccess,error } = useGetCallsQuery({shortName: args.shortName});
 
     let content
   

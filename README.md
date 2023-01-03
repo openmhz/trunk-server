@@ -131,6 +131,10 @@ yarn start
 
 This should build the frontend and open a browser. In order to have all the cookies work correctly, you have to use the same domain name. Make sure you have setup the local domains as described above. Then goto the base domain, for me that is openmhz.test, at port 3000 `openmhz.test:3000`
 
+## Upgrading a "Frontend" server
+
+https://create-react-app.dev/docs/updating-to-new-releases/
+
 
 ## Managing MongoDB
 
