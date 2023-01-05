@@ -1,8 +1,8 @@
 import React from "react";
 import { Link } from 'react-router-dom';
 import MediaPlayer from "./MediaPlayer";
-import FilterModal from "./FilterModalContainer";
-import GroupModal from "./GroupModalContainer";
+import FilterModal from "./FilterModal";
+import GroupModal from "./GroupModal";
 import SupportModal from "./SupportModal";
 import CalendarModal from "./CalendarModalContainer";
 import CallInfo from "./CallInfo";
@@ -198,11 +198,11 @@ class CallPlayer extends React.Component {
       }
       search = search + `starred=true`;
     }
-
+/*
     this.props.history.push({
       pathname: this.props.history.location.pathname,
       search: search
-    });
+    });*/
   }
 
   handleCalendarClose(didUpdate) {

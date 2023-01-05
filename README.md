@@ -139,7 +139,7 @@ https://create-react-app.dev/docs/updating-to-new-releases/
 ## Managing MongoDB
 
 MongoDB is used in the backend to store data. It is pretty fast, flexible and has worked well enough for me.
-All of the files that MongoDB uses to store the DB are in the */data* directory, which gets mapped into the contianer. 
+All of the files that MongoDB uses to store the DB are in the */data* directory, which gets mapped into the container. 
 Mapping this directory makes sure that the data persists each time you run the mongo container.
 
 ### Working with the MongoDB Container

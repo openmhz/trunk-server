@@ -6,6 +6,7 @@ import { applyMiddleware, compose, createStore } from 'redux'
 import { routerMiddleware } from 'connected-react-router'
 import createRootReducer from './reducers'
 import { apiSlice } from '../features/api/apiSlice'
+import {callPlayerSlice} from "../features/callPlayer/callPlayerSlice"
 
 import thunk from 'redux-thunk';
 
@@ -20,7 +21,7 @@ export default function configureStore(preloadedState) {
       applyMiddleware(
         routerMiddleware(history), // for dispatching history actions
         thunk,
-        apiSlice.middleware
+        apiSlice.middleware,
         // ... other middlewares ...
       ),
     ),
