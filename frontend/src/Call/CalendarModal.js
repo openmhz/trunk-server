@@ -1,70 +1,64 @@
-import React, { Component } from "react";
+import React, { Component, useState } from "react";
 import {
   Modal,
   Button,
   Icon
 } from "semantic-ui-react";
 import "./CalendarModal.css";
+import { setDateFilter } from "../features/callPlayer/callPlayerSlice";
 import DatePicker from 'react-datepicker';
-import {  subDays } from 'date-fns'
+import { useDispatch } from 'react-redux'
+import { setDate, subDays } from 'date-fns'
 import 'react-datepicker/dist/react-datepicker.css';
 
-class CalendarModal extends Component {
-  constructor(props) {
-    super(props)
-    this.handleDateChange = this.handleDateChange.bind(this);
-    this.handleDone = this.handleDone.bind(this);
-    this.handleClose = this.handleClose.bind(this);
+function CalendarModal(props) {
 
-    this.state = {
-      open: false,
-      startDate: new Date()
-    }
-}
+  const [open, setOpen] = useState(false);
+  const [startDate, setStartDate] = useState(new Date());
+  const dispatch = useDispatch()
+  const onClose = props.onClose;
 
-handleDateChange = (date) => {
-    this.setState({
-      startDate: date
-    });
+  const handleDateChange = (date) => {
+    setStartDate(date);
   }
 
-handleClose = () => this.props.onClose(false);
-handleDone(event) {
-  this.props.callActions.setDateFilter(this.state.startDate.getTime());
-  this.props.onClose(true);
-}
-
-
-  render() {
-    
-    return (
-
-      <Modal open={this.props.open} onClose={this.handleClose} centered={false} size="tiny">
-        <Modal.Header>Select a Date & Time</Modal.Header>
-        <Modal.Content >
-          <Modal.Description>
-            <DatePicker
-                selected={this.state.startDate}
-                onChange={this.handleDateChange}
-                maxDate={new Date()}
-                minDate={subDays(new Date(), process.env.REACT_APP_ARCHIVE_DAYS)}
-                showTimeSelect
-                timeFormat="HH:mm"
-                timeIntervals={15}
-                dateFormat="LLL"
-                inline
-            />
-          </Modal.Description>
-        </Modal.Content>
-        <Modal.Actions>
-          <Button onClick={this.handleDone} >
-            <Icon name='checkmark' /> Done
-          </Button>
-        </Modal.Actions>
-      </Modal>
-
-    )
+  const handleClose = () => this.props.onClose(false);
+  const handleDone = (onClose) => {
+    dispatch(setDateFilter(startDate.getTime()));
+    onClose(true);
   }
+
+
+
+
+  return (
+
+    <Modal open={props.open} onClose={handleClose} centered={false} size="tiny">
+      <Modal.Header>Select a Date & Time</Modal.Header>
+      <Modal.Content >
+        <Modal.Description>
+          <DatePicker
+            selected={startDate}
+            onChange={handleDateChange}
+            maxDate={new Date()}
+            minDate={subDays(new Date(), process.env.REACT_APP_ARCHIVE_DAYS)}
+            showTimeSelect
+            timeFormat="HH:mm"
+            timeIntervals={15}
+            dateFormat="LLL"
+            inline
+          />
+        </Modal.Description>
+      </Modal.Content>
+      <Modal.Actions>
+        <Button onClick={()=>handleDone(onClose)} >
+          <Icon name='checkmark' /> Done
+        </Button>
+      </Modal.Actions>
+    </Modal>
+
+  )
 }
+
 
 export default CalendarModal;
