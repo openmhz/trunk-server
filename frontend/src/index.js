@@ -17,7 +17,7 @@ import MainContainer from "./Main/MainContainer"
 import ListSystemsContainer from "./System/ListSystemsContainer"
 
 // Call
-import CallPlayerContainer from "./Call/CallPlayerContainer"
+import CallPlayer from "./Call/CallPlayer"
 
 import AboutComponent from "./About/AboutComponent"
 
@@ -31,7 +31,7 @@ root.render(
         <Routes>
           <Route exact path="/" element={<MainContainer/>} />
           <Route exact path="/systems" element={<ListSystemsContainer/>} />
-          <Route exact path="/system/:shortName" element={<CallPlayerContainer/>} />
+          <Route exact path="/system/:shortName" element={<CallPlayer/>} />
           <Route exact path="/about" element={<AboutComponent/>} />
 
         </Routes>
