@@ -23,6 +23,7 @@ import AboutComponent from "./About/AboutComponent"
 
 
 const store = configureStore(/* provide initial state if any */)
+
 const container = document.getElementById('root');
 const root = createRoot(container);
 root.render(

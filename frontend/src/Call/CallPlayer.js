@@ -11,7 +11,7 @@ import ListCalls from "./ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
 import { setLive } from "../features/callPlayer/callPlayerSlice";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
-import { selectAllCalls, useGetCallsQuery } from "../features/calls/callsSlice";
+import { selectAllCalls, useGetCallsQuery, callsAdapter } from "../features/calls/callsSlice";
 import {
   Container,
   Label,
@@ -38,8 +38,9 @@ function CallPlayer (props) {
     const { shortName } = useParams();
     const { data:groupsData, isSuccess:isGroupsSuccess } = useGetGroupsQuery(shortName);
     const { data:callsData, isSuccess:isCallsSuccess } = useGetCallsQuery({shortName});
+    //console.log(callsData);
     const { data:talkgroupsData, isSuccess:isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
-    //const allCalls = selectAllCalls(shortName)
+    const allCalls  = callsData?callsData.ids.map( id => callsData.entities[id] ):[]
     const [requestMessage, setRequestMessage] = useState("");
     const [callUrl, setCallUrl] = useState("");
     const [autoPlay, setAutoPlay] = useState(true);
@@ -72,6 +73,7 @@ function CallPlayer (props) {
  const handlePusherClick = () => {
     if (sidebarOpened) setSidebarOpened(false);
   }
+
 
   const handleSidebarToggle = () => setSidebarOpened(!sidebarOpened);
   const handleFilterToggle = () => setFilterVisible(!filterVisible);
@@ -592,7 +594,7 @@ const getFilter = () => {
               style={{ minHeight: '100vh' }}
             >
               <Visibility onTopVisible={loadNewerCalls} onBottomVisible={loadOlderCalls} once={false}>
-               {/*  <ListCalls callsAllIds={callsAllIds} currentCallRef={false} callsById={callsById} activeCallId={callId} talkgroups={talkgroupsData} playCall={playCall} /> */}
+               <ListCalls callsAllIds={callsData.ids} currentCallRef={false} callsById={callsData.entities} activeCallId={callId} talkgroups={talkgroupsData} playCall={playCall} /> 
               </Visibility>
             </Sidebar.Pusher>
           </Sidebar.Pushable>
