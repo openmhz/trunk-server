@@ -8,7 +8,7 @@ import groupReducer from "../Group/group-reducer"
 import callReducer from "../Call/call-reducer"
 import {apiSlice} from "../features/api/apiSlice"
 import callPlayerSlice from "../features/callPlayer/callPlayerSlice"
-
+import callsSlice, { callsReducer } from "../features/calls/callsSlice"
 
 export default (history) => combineReducers({
   router: connectRouter(history),
@@ -17,6 +17,7 @@ export default (history) => combineReducers({
 	group: groupReducer,
   callPlayer: callPlayerSlice,
 	call: callReducer,
+  calls: callsReducer,
   [apiSlice.reducerPath]: apiSlice.reducer,
 
 })

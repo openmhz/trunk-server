@@ -10,6 +10,7 @@ import CallInfo from "./CallInfo";
 import ListCalls from "./ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
 import { setLive } from "../features/callPlayer/callPlayerSlice";
+import { getCalls} from "../features/calls/callsSlice";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
 import { selectAllCalls, useGetCallsQuery, callsAdapter } from "../features/calls/callsSlice";
 import {
@@ -37,10 +38,12 @@ function CallPlayer (props) {
 
     const { shortName } = useParams();
     const { data:groupsData, isSuccess:isGroupsSuccess } = useGetGroupsQuery(shortName);
-    const { data:callsData, isSuccess:isCallsSuccess } = useGetCallsQuery({shortName});
+    //const { data:callsData, isSuccess:isCallsSuccess } = useGetCallsQuery({shortName});
+    const {loading, data: callsData} = useSelector((state) => state.calls);
+    
     //console.log(callsData);
     const { data:talkgroupsData, isSuccess:isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
-    const allCalls  = callsData?callsData.ids.map( id => callsData.entities[id] ):[]
+    //const allCalls  = callsData?callsData.ids.map( id => callsData.entities[id] ):[]
     const [requestMessage, setRequestMessage] = useState("");
     const [callUrl, setCallUrl] = useState("");
     const [autoPlay, setAutoPlay] = useState(true);
@@ -383,6 +386,7 @@ const getFilter = () => {
       this.startSocket(shortName, filterType, filterCode, filter.filterStarred);
     }*/
     dispatch(setShortName(shortName));
+    dispatch(getCalls({shortName}));
     return () => {
       //this.endSocket();
     };
@@ -594,8 +598,8 @@ const getFilter = () => {
               style={{ minHeight: '100vh' }}
             >
               <Visibility onTopVisible={loadNewerCalls} onBottomVisible={loadOlderCalls} once={false}>
-               <ListCalls callsAllIds={callsData.ids} currentCallRef={false} callsById={callsData.entities} activeCallId={callId} talkgroups={talkgroupsData} playCall={playCall} /> 
-              </Visibility>
+              <ListCalls callsData={callsData} currentCallRef={false} activeCallId={callId} talkgroups={talkgroupsData} playCall={playCall} />
+             </Visibility>
             </Sidebar.Pusher>
           </Sidebar.Pushable>
           <Rail position='right' className="desktop-only" dimmed={sidebarOpened ? "true" : "false"} >
