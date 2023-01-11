@@ -74,10 +74,11 @@ const initialState = {
      }).join('&')
    }
 
-  function buildCallUrl(shortName,filterType=0,filterGroupId=false, filterTalkgroups=false,filterDate=false, date=false, direction=false,filterStarred=false) {
+  function buildCallUrl(getState, direction=false, date=false) {
       var params = {};
       var url = "";
   
+      const {shortName,filterType,filterGroupId, filterTalkgroups, filterStarred, filterDate} = getState().callPlayer; 
   
       if ((typeof direction === 'string') && (typeof date === 'number')) {
           url = url + '/' + direction;
@@ -126,13 +127,37 @@ const initialState = {
 
 export const getCalls = createAsyncThunk(
   'calls/getCalls',
-  async({shortName,filterType=0,filterGroupId=false, filterTalkgroups=false, filterStarred=false }) => {
-    const url = buildCallUrl(shortName, filterType, filterGroupId,filterTalkgroups, filterStarred);
+  async({},{getState, requestId}) => {
+    const state = getState()
+    const {loading,oldestCallTime, newestCallTime} = getState().call;
+    const url = buildCallUrl(getState);
     const res = await fetch(url).then(
       (data) => data.json()
     )
     return res;
   })
+
+  export const getOlderCalls = createAsyncThunk(
+    'calls/getOlderCalls',
+    async({},{getState, requestId} ) => {
+      const {loading,oldestCallTime, newestCallTime} = getState().call;
+      const url = buildCallUrl(getState,"older",oldestCallTime.getTime());
+      const res = await fetch(url).then(
+        (data) => data.json()
+      )
+      return res;
+    })
+
+    export const getNewerCalls = createAsyncThunk(
+      'calls/getNewerCalls',
+      async({},{getState, requestId} ) => {
+        const {loading,oldestCallTime, newestCallTime} = getState().call;
+        const url = buildCallUrl(getState,"newer",newestCallTime.getTime());
+        const res = await fetch(url).then(
+          (data) => data.json()
+        )
+        return res;
+      })
 
 export const callsSlice = createSlice({
   name: 'calls',
@@ -142,15 +167,57 @@ export const callsSlice = createSlice({
     [getCalls.pending]: (state) => {
       state.loading = true;
     },
+    [getCalls.rejected]: (state) => {
+      state.loading = false;
+    },
     [getCalls.fulfilled]: (state, {payload}) => {
       state.loading = false;
       state.data = callsAdapter.setAll(state.data, payload.calls)
-      state.newestCallTime = new Date(payload.calls[0].time)
-      state.oldestCallTime = new Date(payloads.calls[payloads.calls.length-1].time)
+      if (state.data && (state.data.ids.length > 0)) {
+        const first = state.data.ids[0]
+        const firstTime = state.data.entities[first].time;
+        const last = state.data.ids[state.data.ids[0].length-1];
+        const lastTime = state.data.entities[last].time;
+        state.newestCallTime = new Date(firstTime)
+        state.oldestCallTime = new Date(lastTime)
+      }
     },
-    [getCalls.rejected]: (state) => {
+    [getOlderCalls.pending]: (state) => {
+      state.loading = true;
+    },
+    [getOlderCalls.rejected]: (state) => {
       state.loading = false;
-    }
+    }, 
+    [getOlderCalls.fulfilled]: (state, {payload}) => {
+      state.loading = false;
+      state.data = callsAdapter.addMany(state.data, payload.calls)
+      if (state.data && (state.data.ids.length > 0)) {
+        const first = state.data.ids[0]
+        const firstTime = state.data.entities[first].time;
+        const last = state.data.ids[state.data.ids[0].length-1];
+        const lastTime = state.data.entities[last].time;
+        state.newestCallTime = new Date(firstTime)
+        state.oldestCallTime = new Date(lastTime)
+      }
+    },
+    [getNewerCalls.pending]: (state) => {
+      state.loading = true;
+    },
+    [getNewerCalls.rejected]: (state) => {
+      state.loading = false;
+    }, 
+    [getNewerCalls.fulfilled]: (state, {payload}) => {
+      state.loading = false;
+      state.data = callsAdapter.addMany(state.data, payload.calls)
+      if (state.data && (state.data.ids.length > 0)) {
+        const first = state.data.ids[0]
+        const firstTime = state.data.entities[first].time;
+        const last = state.data.ids[state.data.ids[0].length-1];
+        const lastTime = state.data.entities[last].time;
+        state.newestCallTime = new Date(firstTime)
+        state.oldestCallTime = new Date(lastTime)
+      }
+    },
   }
 })
 

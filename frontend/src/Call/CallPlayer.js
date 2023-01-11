@@ -9,8 +9,8 @@ import CalendarModal from "./CalendarModalContainer";
 import CallInfo from "./CallInfo";
 import ListCalls from "./ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
-import { setLive } from "../features/callPlayer/callPlayerSlice";
-import { getCalls} from "../features/calls/callsSlice";
+import { setLive, setShortName } from "../features/callPlayer/callPlayerSlice";
+import { getCalls, getOlderCalls} from "../features/calls/callsSlice";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
 import { selectAllCalls, useGetCallsQuery, callsAdapter } from "../features/calls/callsSlice";
 import {
@@ -21,13 +21,13 @@ import {
   Menu,
   Icon,
   Sidebar,
-  Visibility
+  Visibility,
+  Button
 } from "semantic-ui-react";
 import "./CallPlayer.css";
 //import setupSocket from '../socket/SetupSocket.js'
 import queryString from '../query-string';
 
-import { setShortName } from "./call-actions";
 
 
 
@@ -90,9 +90,6 @@ function CallPlayer (props) {
   const loadNewerCalls = () => {
 
   }
-  const loadOlderCalls = () => {
-
-  }
 
   const playCall = (data) => {
 
@@ -109,13 +106,13 @@ function CallPlayer (props) {
     console.log("Loading Newer Calls");
     callActions.fetchNewerCalls(newestCallTime.getTime());
   }
-
-  loadOlderCalls() {
+*/
+  const loadOlderCalls = (getOlderCalls) => {
 
     console.log("Loading Older Calls");
-    callActions.fetchOlderCalls(oldestCallTime.getTime());
+    dispatch(getOlderCalls());
 
-  }*/
+  }
 
 
 const getFilter = () => {
@@ -385,13 +382,17 @@ const getFilter = () => {
     if (filter.live) {
       this.startSocket(shortName, filterType, filterCode, filter.filterStarred);
     }*/
+    console.log("Setting short name to: " + shortName)
     dispatch(setShortName(shortName));
-    dispatch(getCalls({shortName}));
+
     return () => {
       //this.endSocket();
     };
   }, []);
 
+  useEffect(() => {
+    dispatch(getCalls({shortName}));
+  }, [shortName,filterGroupId,filterTalkgroups,filterType,filterStarred])
 
 
 
@@ -599,6 +600,10 @@ const getFilter = () => {
             >
               <Visibility onTopVisible={loadNewerCalls} onBottomVisible={loadOlderCalls} once={false}>
               <ListCalls callsData={callsData} currentCallRef={false} activeCallId={callId} talkgroups={talkgroupsData} playCall={playCall} />
+              <Button onClick={()=> dispatch(getOlderCalls())}>Load More!</Button> 
+              <div>
+              <Button>padding</Button>
+              </div>
              </Visibility>
             </Sidebar.Pusher>
           </Sidebar.Pushable>
