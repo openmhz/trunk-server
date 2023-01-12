@@ -9,10 +9,10 @@ import CalendarModal from "./CalendarModalContainer";
 import CallInfo from "./CallInfo";
 import ListCalls from "./ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
-import { setLive, setShortName } from "../features/callPlayer/callPlayerSlice";
-import { getCalls, getOlderCalls} from "../features/calls/callsSlice";
+import { setLive, setShortName, setFilter } from "../features/callPlayer/callPlayerSlice";
+import { getCalls, getOlderCalls, getNewerCalls} from "../features/calls/callsSlice";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
-import { selectAllCalls, useGetCallsQuery, callsAdapter } from "../features/calls/callsSlice";
+import { useInView } from 'react-intersection-observer';
 import {
   Container,
   Label,
@@ -21,7 +21,6 @@ import {
   Menu,
   Icon,
   Sidebar,
-  Visibility,
   Button
 } from "semantic-ui-react";
 import "./CallPlayer.css";
@@ -37,14 +36,21 @@ import queryString from '../query-string';
 function CallPlayer (props) {
 
     const { shortName } = useParams();
+    const { ref: loadOlderRef, inView: loadOlderInView, entry: loadOlderEntry } = useInView({
+      /* Optional options */
+      threshold: 0.5
+    });
+    const { ref: loadNewerRef, inView: loadNewerInView, entry: loadNewerEntry } = useInView({
+      /* Optional options */
+      threshold: 0.5
+    });
     const { data:groupsData, isSuccess:isGroupsSuccess } = useGetGroupsQuery(shortName);
     //const { data:callsData, isSuccess:isCallsSuccess } = useGetCallsQuery({shortName});
-    const {loading, data: callsData} = useSelector((state) => state.calls);
+    const {loading: callsLoading, data: callsData} = useSelector((state) => state.calls);
     
     //console.log(callsData);
     const { data:talkgroupsData, isSuccess:isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
     //const allCalls  = callsData?callsData.ids.map( id => callsData.entities[id] ):[]
-    const [requestMessage, setRequestMessage] = useState("");
     const [callUrl, setCallUrl] = useState("");
     const [autoPlay, setAutoPlay] = useState(true);
     const [callId, setCallId] = useState(false);
@@ -67,7 +73,6 @@ function CallPlayer (props) {
     const filterStarred = useSelector((state) => state.callPlayer.filterStarred);
     const filterDate = useSelector((state) => state.callPlayer.filterDate);
     const live = useSelector((state) => state.callPlayer.live);
-
     const uri = queryString.parse(useLocation().search);
 
   const switchAutoPlay = () => setAutoPlay(!autoPlay);
@@ -107,10 +112,11 @@ function CallPlayer (props) {
     callActions.fetchNewerCalls(newestCallTime.getTime());
   }
 */
+
   const loadOlderCalls = (getOlderCalls) => {
 
     console.log("Loading Older Calls");
-    dispatch(getOlderCalls());
+    dispatch(getOlderCalls({}));
 
   }
 
@@ -232,7 +238,6 @@ const getFilter = () => {
 
   const handleGroupClose = (didUpdate) => {
     setGroupVisible(!groupVisible);
-    //callActions.fetchCalls();
   }
 
   const handleFilterClose = (didUpdate) => {
@@ -241,7 +246,6 @@ const getFilter = () => {
     if (didUpdate) {
       setCallUrl("");
       setCallId(false);
-      //callActions.fetchCalls();
     }
   }
 /*
@@ -299,7 +303,7 @@ const getFilter = () => {
     }
   }*/
 
-  const setStateFromUri = () => {
+  const setStateFromUri = async () => {
     var filter = {
       filterDate: false,
       filterType: 0,  // this is "all"
@@ -367,8 +371,22 @@ const getFilter = () => {
       }
     }
 
-    //callActions.setFilter(filter);
+    await dispatch(setFilter(filter));
   }
+
+  useEffect(() => {
+    if (loadNewerInView && callsData && (callsData.ids.length > 0)) {
+      dispatch(getNewerCalls({}));
+    }
+  }, [loadNewerInView]);
+
+
+  useEffect(() => {
+    if (loadOlderInView && callsData && (callsData.ids.length > 0)) {
+      dispatch(getOlderCalls({}));
+    }
+  }, [loadOlderInView]);
+
 
   useEffect(() => {
     // When a time/date is provided in the URL, it will be added to the filter
@@ -382,6 +400,7 @@ const getFilter = () => {
     if (filter.live) {
       this.startSocket(shortName, filterType, filterCode, filter.filterStarred);
     }*/
+    setStateFromUri();
     console.log("Setting short name to: " + shortName)
     dispatch(setShortName(shortName));
 
@@ -391,7 +410,8 @@ const getFilter = () => {
   }, []);
 
   useEffect(() => {
-    dispatch(getCalls({shortName}));
+    dispatch(getCalls({}));
+    //dispatch(getOlderCalls());
   }, [shortName,filterGroupId,filterTalkgroups,filterType,filterStarred])
 
 
@@ -598,13 +618,11 @@ const getFilter = () => {
               onClick={handlePusherClick}
               style={{ minHeight: '100vh' }}
             >
-              <Visibility onTopVisible={loadNewerCalls} onBottomVisible={loadOlderCalls} once={false}>
+              <div ref={loadNewerRef} />
               <ListCalls callsData={callsData} currentCallRef={false} activeCallId={callId} talkgroups={talkgroupsData} playCall={playCall} />
-              <Button onClick={()=> dispatch(getOlderCalls())}>Load More!</Button> 
-              <div>
-              <Button>padding</Button>
-              </div>
-             </Visibility>
+              <div ref={loadOlderRef} style={{height: 50}}/>
+
+             
             </Sidebar.Pusher>
           </Sidebar.Pushable>
           <Rail position='right' className="desktop-only" dimmed={sidebarOpened ? "true" : "false"} >

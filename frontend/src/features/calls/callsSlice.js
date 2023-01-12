@@ -58,7 +58,7 @@ const now = new Date();
 
 export const callsAdapter = createEntityAdapter({
   selectId: (call) => call._id,
-  sortComparer: (a, b) => a.time.localeCompare(b.time),
+  sortComparer: (a, b) => b.time.localeCompare(a.time),
 })
 
 const initialState = {
@@ -129,7 +129,7 @@ export const getCalls = createAsyncThunk(
   'calls/getCalls',
   async({},{getState, requestId}) => {
     const state = getState()
-    const {loading,oldestCallTime, newestCallTime} = getState().call;
+    const {loading,oldestCallTime, newestCallTime} = getState().calls;
     const url = buildCallUrl(getState);
     const res = await fetch(url).then(
       (data) => data.json()
@@ -140,7 +140,7 @@ export const getCalls = createAsyncThunk(
   export const getOlderCalls = createAsyncThunk(
     'calls/getOlderCalls',
     async({},{getState, requestId} ) => {
-      const {loading,oldestCallTime, newestCallTime} = getState().call;
+      const {loading,oldestCallTime, newestCallTime} = getState().calls;
       const url = buildCallUrl(getState,"older",oldestCallTime.getTime());
       const res = await fetch(url).then(
         (data) => data.json()
@@ -151,7 +151,7 @@ export const getCalls = createAsyncThunk(
     export const getNewerCalls = createAsyncThunk(
       'calls/getNewerCalls',
       async({},{getState, requestId} ) => {
-        const {loading,oldestCallTime, newestCallTime} = getState().call;
+        const {loading,oldestCallTime, newestCallTime} = getState().calls;
         const url = buildCallUrl(getState,"newer",newestCallTime.getTime());
         const res = await fetch(url).then(
           (data) => data.json()
