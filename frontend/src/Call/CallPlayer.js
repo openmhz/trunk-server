@@ -310,7 +310,8 @@ const getFilter = () => {
       filterTalkgroups: [],
       filterGroupId: false,
       filterStarred: false,
-      live: true
+      live: true,
+      shortName: shortName
     };
 
     // is there a star filter?
@@ -401,8 +402,8 @@ const getFilter = () => {
       this.startSocket(shortName, filterType, filterCode, filter.filterStarred);
     }*/
     setStateFromUri();
-    console.log("Setting short name to: " + shortName)
-    dispatch(setShortName(shortName));
+    //console.log("Setting short name to: " + shortName)
+    //dispatch(setShortName(shortName));
 
     return () => {
       //this.endSocket();

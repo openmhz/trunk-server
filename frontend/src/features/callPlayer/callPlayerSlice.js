@@ -35,6 +35,7 @@ export const callPlayerSlice = createSlice({
       state.filterTalkgroups = !action.payload.filterTalkgroups ? [] : action.payload.filterTalkgroups;
       state.filterGroupId = !action.payload.filterGroupId ? false : action.payload.filterGroupId;
       state.filterDate = !action.payload.filterDate ? 0 : action.payload.filterDate;
+      state.shortName = !action.payload.shortName ? state.shortName : action.payload.shortName;
     },
     setLive: (state,action) => {
       state.live = action.payload;
