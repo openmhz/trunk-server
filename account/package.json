@@ -42,7 +42,7 @@
   "dependencies": {
     "bcrypt": "5.0.0",
     "connect-mongo": "3.2.0",
-    "express": "4.17.1",
+    "express": "4.17.3",
     "express-session": "1.17.1",
     "mongoose": "5.11.10",
     "node-mailjet": "3.3.1",
