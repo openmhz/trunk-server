@@ -26,10 +26,11 @@ import {
 import "./CallPlayer.css";
 //import setupSocket from '../socket/SetupSocket.js'
 import queryString from '../query-string';
+import io from 'socket.io-client';
+import { setDateFilter } from "./call-actions";
 
 
-
-
+const socket = io(process.env.REACT_APP_BACKEND_SERVER );
 
 
 // ----------------------------------------------------
@@ -63,7 +64,10 @@ function CallPlayer (props) {
     const [filterVisible, setFilterVisible] = useState(false);
     const [groupVisible, setGroupVisible] = useState(false);
     const [calendarVisible, setCalendarVisible] = useState(false);
-    
+    const [isConnected, setIsConnected] = useState(socket.connected);
+
+
+
     const dispatch = useDispatch();
     
 
@@ -86,10 +90,7 @@ function CallPlayer (props) {
   const handleSidebarToggle = () => setSidebarOpened(!sidebarOpened);
   const handleFilterToggle = () => setFilterVisible(!filterVisible);
   const handleCalendarToggle = () => setCalendarVisible(!calendarVisible);
-  const handleLiveToggle = () => {
-    dispatch(setLive(!live));
-  }
-  
+
   const audioRef = false;
 
   const loadNewerCalls = () => {
@@ -121,7 +122,7 @@ function CallPlayer (props) {
   }
 
 
-const getFilter = () => {
+const getFilterDescription = () => {
   
     var filter = { type: 'all', code: "", filterStarred: false };
 
@@ -141,45 +142,86 @@ const getFilter = () => {
     }
     filter.filterStarred = filterStarred
     return filter;
+}
+
+
+  const addCall = (data) =>{
+    const message = JSON.parse(data)
+    switch (message.type) {
+      case 'calls':
+        /*const refs = this.refs.current;
+        callActions.addCall(message);
+        const newCall = callsById[callsAllIds[0]];
+        if (!isPlaying && autoPlay) {
+          this.playCall({ call: newCall });
+          if (this.currentCallRef.current) {
+            this.currentCallRef.current.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          }
+        }*/
+        console.log("Got: " + message);
+        break
+      default:
+        break
+    }
   }
-  /*
-  const endSocket = () => {
-    this.socket.removeAllListeners("new message");
-    this.socket.removeAllListeners("reconnect");
-  }
-  setupSocket() {
-    this.socket.on('new message', this.addCall);
-    this.socket.on('reconnect', (attempts) => {
+
+  useEffect(() => {
+    socket.on('connect', () => {
+      setIsConnected(true);
+    });
+
+    socket.on('disconnect', () => {
+      setIsConnected(false);
+    });
+
+    socket.on('reconnect', (attempts) => {
       console.log("Socket Reconnected after attempts: " + attempts); // true
+
       if (live) {
-        var filter = this.getFilter();
-        this.startSocket(shortName, filter.type, filter.code, filter.filterStarred);
+        this.startSocket();
       }
     })
-  }
-  startSocket(shortName, filterType = "", filterCode = "", filterStarred = false) {
-    this.socket.emit("start", {
-      filterCode: filterCode,
-      filterType: filterType,
+
+    socket.on("new message", addCall);
+
+    return () => {
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('pong');
+    };
+  }, []);
+
+  const startSocket = () => {
+    const filter = getFilterDescription();
+    socket.emit("start", {
+      filterCode: filter.Code,
+      filterType: filter.Type,
       filterName: "OpenMHz",
-      filterStarred: filterStarred,
+      filterStarred: filter.Starred,
       shortName: shortName
     });
   }
-  stopSocket() {
-    this.socket.emit("stop");
+  const stopSocket = () => {
+    socket.emit("stop");
   }
-  handleLiveToggle() {
+  const handleLiveToggle = () => {
     if (!live) {
-      callActions.setDateFilter(false);
-      callActions.setLive(false);
-      this.setState({ callUrl: "", callId: false });
-      callActions.fetchCalls();
-      var filter = this.getFilter();
-      this.startSocket(shortName, filter.type, filter.code, filter.filterStarred);
+      dispatch(setDateFilter(false));
+      dispatch(setLive(true));
+      setCallUrl("");
+      setCallId(false);
+
+      dispatch(getCalls({}));
+      
+      this.startSocket();
     }
   }
-*/
+
+
+
 /*
   updateUri(props, state) {
     var search = "?"
@@ -396,11 +438,9 @@ const getFilter = () => {
     //talkgroupActions.fetchTalkgroups(shortName);
     //groupActions.fetchGroups(shortName);
     //systemActions.fetchSystems();
-    /*this.setupSocket();
 
-    if (filter.live) {
-      this.startSocket(shortName, filterType, filterCode, filter.filterStarred);
-    }*/
+
+   
     setStateFromUri();
     //console.log("Setting short name to: " + shortName)
     //dispatch(setShortName(shortName));
@@ -411,9 +451,14 @@ const getFilter = () => {
   }, []);
 
   useEffect(() => {
+     /*
+    this.updateUri(nextProps, nextState);*/
     dispatch(getCalls({}));
+    if (live) {
+      startSocket();
+    }
     //dispatch(getOlderCalls());
-  }, [shortName,filterGroupId,filterTalkgroups,filterType,filterStarred])
+  }, [shortName,filterGroupId,filterTalkgroups,filterType,filterDate,filterStarred])
 
 
 
@@ -431,33 +476,6 @@ const getFilter = () => {
       setGroupVisible(true);
     }
    },[groupsData] )
-
-   useEffect( () => {
-    /*var typeString = 'all';
-    var filterCode = '';
-    switch (nextProps.filterType) {
-
-      case 1:
-        typeString = 'group';
-        filterCode = nextProps.filterGroupId;
-        break;
-      case 2:
-        typeString = 'talkgroup';
-        filterCode = nextProps.filterTalkgroups;
-        break;
-      default:
-      case 0:
-        typeString = "all";
-        filterCode = '';
-        break;
-    }
-
-    this.updateUri(nextProps, nextState);
-    if (live) {
-      this.startSocket(shortName, typeString, filterCode, nextProps.filterStarred);
-    }*/
-   }, [filterType,filterTalkgroups,filterGroupId,filterStarred,filterDate])
-
 
    /*
   componentWillUpdate(nextProps, nextState) {

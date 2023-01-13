@@ -30,12 +30,17 @@ var app = express();
 
 const server = require('http').createServer(app);
 
-const io = require('socket.io')(server, {});
+const io = require('socket.io')(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  }
+});
 
 var Twitter = require('twitter-lite');
 
 
-io.origins('*:*');
+//io.origins('*:*');
 /*
 io.origins((origin, callback) => {
   //if (origin !== 'https://foo.example.com') {
