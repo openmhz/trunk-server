@@ -13,7 +13,8 @@ class SystemForm extends Component {
   constructor(props) {
     super(props);
     this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleCheckboxChange = this.handleCheckboxChange.bind(this);
+    this.handleScreenNameCheckboxChange = this.handleScreenNameCheckboxChange.bind(this);
+    this.handleTalkgroupCheckboxChange = this.handleTalkgroupCheckboxChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.checkInputs = this.checkInputs.bind(this);
     this.render = this.render.bind(this);
@@ -30,6 +31,7 @@ class SystemForm extends Component {
       county: "",
       country: "",
       showScreenName: false,
+      ignoreUnknownTalkgroup: false,
       nameError: false,
       shortNameError: false,
       descriptionError: false,
@@ -51,6 +53,7 @@ class SystemForm extends Component {
       this.state.county = this.props.system.county;
       this.state.country = this.props.system.country;
       this.state.showScreenName = this.props.system.showScreenName;
+      this.state.ignoreUnknownTalkgroup = this.props.system.ignoreUnknownTalkgroup;
     }
   }
   // If we directly to an updating url, the system fetch will come back after the constructer, so we need to catch this and update the values
@@ -66,6 +69,7 @@ class SystemForm extends Component {
         county: this.props.system.county,
         country: this.props.system.country,
         showScreenName: this.props.system.showScreenName,
+        ignoreUnknownTalkgroup: this.props.system.ignoreUnknownTalkgroup,
       });
     }
   }
@@ -148,10 +152,13 @@ class SystemForm extends Component {
   }
 
   handleInputChange = (e, { name, value }) => this.setState({ [name]: value });
-  handleCheckboxChange() {
+  handleScreenNameCheckboxChange() {
     this.setState({ showScreenName: !this.state.showScreenName });
   }
 
+  handleTalkgroupCheckboxChange() {
+    this.setState({ ignoreUnknownTalkgroup: !this.state.ignoreUnknownTalkgroup });
+  }
   handleSubmit(event) {
     event.preventDefault();
     let inputError = this.checkInputs();
@@ -166,7 +173,8 @@ class SystemForm extends Component {
         state,
         county,
         country,
-        showScreenName
+        showScreenName,
+        ignoreUnknownTalkgroup
       }) => ({
         name,
         shortName,
@@ -176,7 +184,8 @@ class SystemForm extends Component {
         state,
         county,
         country,
-        showScreenName
+        showScreenName,
+        ignoreUnknownTalkgroup
       }))(this.state);
       this.props.onSubmit(system);
     }
@@ -294,13 +303,16 @@ class SystemForm extends Component {
           </Form.Group>
           <Divider horizontal />
           <Form.Field>
-
-            <p>Your Screen Name: {this.props.screenName}</p>
             <Checkbox
-              onChange={this.handleCheckboxChange}
+              onChange={this.handleScreenNameCheckboxChange}
               checked={this.state.showScreenName}
-              label="Show in System Listing" />
-
+              label="Display Screen Name in System Listing" />
+          </Form.Field>
+          <Form.Field>
+            <Checkbox
+              onChange={this.handleTalkgroupCheckboxChange}
+              checked={this.state.ignoreUnknownTalkgroup}
+              label="Ignore Unknown Talkgroups" />
           </Form.Field>
           <Divider horizontal />
           <Form.TextArea
@@ -386,19 +398,19 @@ class SystemForm extends Component {
                 />
               </Form.Field>
             ) : (
-                <Form.Field>
-                  <Form.Dropdown
-                    name="state"
-                    onChange={this.handleInputChange}
-                    error={this.state.stateError}
-                    value={this.state.state}
-                    options={stateOptions}
-                    scrolling 
-                    label="State"
-                    placeholder="Select State..."
-                  />
-                </Form.Field>
-              )}
+              <Form.Field>
+                <Form.Dropdown
+                  name="state"
+                  onChange={this.handleInputChange}
+                  error={this.state.stateError}
+                  value={this.state.state}
+                  options={stateOptions}
+                  scrolling
+                  label="State"
+                  placeholder="Select State..."
+                />
+              </Form.Field>
+            )}
 
           </Form.Group>
 

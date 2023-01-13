@@ -71,7 +71,8 @@ const system = (
         key: action.data.key,
         userId: action.data.userId,
         id: action.data.id,
-        showScreenName: action.data.showScreenName
+        showScreenName: action.data.showScreenName,
+        ignoreUnknownTalkgroup : action.data.ignoreUnknownTalkgroup 
     });
       return Object.assign({}, state, { isWaiting: false,
       items:  newItems});

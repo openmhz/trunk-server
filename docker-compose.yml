@@ -65,6 +65,10 @@ services:
       - S3_ENDPOINT
       - S3_BUCKET
       - S3_PROFILE
+      - TWITTER_CONSUMER_KEY
+      - TWITTER_CONSUMER_SECRET
+      - TWITTER_ACCESS_TOKEN_KEY
+      - TWITTER_ACCESS_TOKEN_SECRET
     volumes:
       - "~/.aws:/home/app/.aws"
     depends_on:
@@ -153,6 +157,7 @@ services:
         - REACT_APP_BACKEND_SERVER
         - REACT_APP_FRONTEND_SERVER
         - REACT_APP_SITE_NAME
+        - REACT_APP_GOOGLE_ANALYTICS
         - NODE_ENV
     image: "frontend:${TAG}-${STAGE}"
     environment:
@@ -160,6 +165,7 @@ services:
         - REACT_APP_BACKEND_SERVER
         - REACT_APP_FRONTEND_SERVER
         - REACT_APP_SITE_NAME
+        - REACT_APP_GOOGLE_ANALYTICS
     depends_on:
       - mongo
     networks:

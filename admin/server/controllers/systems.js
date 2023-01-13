@@ -50,7 +50,8 @@ exports.listSystems = function (req, res, next) {
               country,
               userId,
               key,
-              showScreenName
+              showScreenName,
+              ignoreUnknownTalkgroup 
             }) => ({
               name,
               shortName,
@@ -62,7 +63,8 @@ exports.listSystems = function (req, res, next) {
               country,
               userId,
               key,
-              showScreenName
+              showScreenName,
+              ignoreUnknownTalkgroup 
             }))(obj);
             if (obj.showScreenName) {
               rObj.screenName = req.user.screenName;
@@ -203,11 +205,7 @@ exports.ownSystem = async function (req, res, next) {
       console.error("System: " + system.userId + " User: " + req.user._id);
       return;
     }
-
-    res.locals.test = "Yoho!"
     res.locals.system = system;
-    console.log(system);
-    console.log(res.locals);
     next();
 
   } catch (err) {
@@ -271,7 +269,6 @@ exports.uniqueShortName = async function (req, res, next) {
 
 exports.updateSystem = async function (req, res, next) {
 
-  console.log(res.locals)
   res.locals.system.name = res.locals.name;
   res.locals.system.city = res.locals.city;
   res.locals.system.state = res.locals.state;
@@ -280,6 +277,7 @@ exports.updateSystem = async function (req, res, next) {
   res.locals.system.description = res.locals.description;
   res.locals.system.systemType = res.locals.systemType;
   res.locals.system.showScreenName = res.locals.showScreenName;
+  res.locals.system.ignoreUnknownTalkgroup = res.locals.ignoreUnknownTalkgroup;
 
   res.locals.system.save(function (err) {
     if (err) {
@@ -300,7 +298,8 @@ exports.updateSystem = async function (req, res, next) {
         country,
         userId,
         key,
-        showScreenName
+        showScreenName,
+        ignoreUnknownTalkgroup 
       }) => ({
         name,
         shortName,
@@ -312,7 +311,8 @@ exports.updateSystem = async function (req, res, next) {
         country,
         userId,
         key,
-        showScreenName
+        showScreenName,
+        ignoreUnknownTalkgroup 
       }))(res.locals.system);
       returnSys.id = res.locals.system._id;
       res.json({
@@ -329,7 +329,7 @@ exports.updateSystem = async function (req, res, next) {
 exports.validateSystem = async function (req, res, next) {
   try {
     res.locals.showScreenName = req.body.showScreenName;
-
+    res.locals.ignoreUnknownTalkgroup = req.body.ignoreUnknownTalkgroup ;
     if (!req.body.name || (req.body.name.length < 2)) {
       console.error("ERROR: Validate System - req.body.name");
       res.json({
@@ -456,7 +456,8 @@ exports.createSystem = async function (req, res, next) {
     state,
     county,
     country,
-    showScreenName
+    showScreenName,
+    ignoreUnknownTalkgroup 
   }) => ({
     name,
     shortName,
@@ -466,7 +467,8 @@ exports.createSystem = async function (req, res, next) {
     state,
     county,
     country,
-    showScreenName
+    showScreenName,
+    ignoreUnknownTalkgroup 
   }))(res.locals);
   system.key = key;
   system.userId = mongoose.Types.ObjectId(req.user._id);
@@ -490,6 +492,7 @@ exports.createSystem = async function (req, res, next) {
       country,
       userId,
       showScreenName,
+      ignoreUnknownTalkgroup ,
       key
     }) => ({
       name,
@@ -502,6 +505,7 @@ exports.createSystem = async function (req, res, next) {
       country,
       userId,
       showScreenName,
+      ignoreUnknownTalkgroup ,
       key
     }))(newSys);
     returnSys.id = newSys._id;

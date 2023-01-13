@@ -40,10 +40,8 @@ class CallPlayer extends React.Component {
     this.addCall = this.addCall.bind(this);
     this.handlePusherClick = this.handlePusherClick.bind(this);
     this.handleSidebarToggle = this.handleSidebarToggle.bind(this);
-    this.handleSupportToggle = this.handleSupportToggle.bind(this);
     this.handleFilterClose = this.handleFilterClose.bind(this);
     this.handleGroupClose = this.handleGroupClose.bind(this);
-    this.handleSupportClose = this.handleSupportClose.bind(this);
     this.handleCalendarToggle = this.handleCalendarToggle.bind(this);
     this.handleCalendarClose = this.handleCalendarClose.bind(this);
     this.handleLiveToggle = this.handleLiveToggle.bind(this);
@@ -61,7 +59,6 @@ class CallPlayer extends React.Component {
       autoPlay: true,
       callId: false,
       playTime: 0,
-      sourceIndex: 0,
       callScroll: false,
       callSelect: false,
       urlOptions: false,
@@ -69,8 +66,7 @@ class CallPlayer extends React.Component {
       sidebarOpened: false,
       filterVisible: false,
       groupVisible: false,
-      calendarVisible: false,
-      supportVisible: false
+      calendarVisible: false
     }
   }
 
@@ -90,10 +86,6 @@ class CallPlayer extends React.Component {
 
   handleFilterToggle = () => this.setState({
     filterVisible: !this.state.filterVisible
-  })
-
-  handleSupportToggle = () => this.setState({
-    supportVisible: !this.state.supportVisible
   })
 
   handleContextRef = contextRef => this.setState({ contextRef })
@@ -188,6 +180,9 @@ class CallPlayer extends React.Component {
 
     }
     if (state.callId) {
+      if (search.length !== 1) {
+        search = search + '&';
+      }
       search = search + `call-id=${state.callId}`
     }
     if (props.filterDate) {
@@ -232,12 +227,6 @@ class CallPlayer extends React.Component {
     this.props.callActions.fetchCalls();
   }
 
-  handleSupportClose() {
-    this.setState({
-      supportVisible: !this.state.supportVisible
-    });
-  }
-
   handleFilterClose(didUpdate) {
     this.setState({
       filterVisible: !this.state.filterVisible
@@ -256,7 +245,7 @@ class CallPlayer extends React.Component {
       const nextCall = this.props.callsById[nextCallId];
       var callUrl = nextCall.url;
 
-      this.setState({ callUrl: callUrl, callId: nextCallId, sourceIndex: 0, isPlaying: true }, () => { audio.playSource(callUrl) }); //scrollToComponent(this.currentCallRef.current);
+      this.setState({ callUrl: callUrl, callId: nextCallId, isPlaying: true }, () => { audio.playSource(callUrl) }); //scrollToComponent(this.currentCallRef.current);
       if (this.currentCallRef.current) {
         this.currentCallRef.current.scrollIntoView({
           behavior: "smooth",
@@ -275,7 +264,6 @@ class CallPlayer extends React.Component {
     this.setState({
       callUrl: callUrl,
       callId: data.call._id,
-      sourceIndex: 0,
       isPlaying: true
     }, () => { audio.playSource(callUrl); }); //scrollToComponent(this.currentCallRef.current);
     this.props.callActions.fetchCallInfo(data.call._id);
@@ -342,7 +330,6 @@ class CallPlayer extends React.Component {
       filter.live = false;
       this.setState({
         callId: _id,
-        sourceIndex: 0,
         urlOptions: true,
         autoPlay: false,
         callScroll: true,
@@ -490,7 +477,6 @@ class CallPlayer extends React.Component {
         var callUrl = call.url;
         this.setState({
           callUrl: callUrl,
-          sourceIndex: 0,
           isPlaying: true,
           callSelect: false
         }, () => { audio.playSource(callUrl); }); //scrollToComponent(this.currentCallRef.current);
@@ -548,7 +534,7 @@ class CallPlayer extends React.Component {
         <FilterModal shortName={this.props.shortName} open={this.state.filterVisible} onClose={this.handleFilterClose} />
         <CalendarModal open={this.state.calendarVisible} onClose={this.handleCalendarClose} archive={archive} key={this.props.shortName} />
         <GroupModal shortName={this.props.shortName} open={this.state.groupVisible} onClose={this.handleGroupClose} />
-        <SupportModal open={this.state.supportVisible} onClose={this.handleSupportClose} />
+        
         <Sidebar as={Menu} animation='overlay' inverted vertical visible={sidebarOpened}
           onClick={this.handlePusherClick} duration={50} width='thin'>
           <Menu.Item onClick={this.handlePusherClick} >
@@ -612,7 +598,7 @@ class CallPlayer extends React.Component {
           <Menu.Item active={this.state.autoPlay} onClick={() => this.switchAutoPlay()}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
           <MediaPlayer ref={this.audioRef} call={currentCall} onEnded={this.callEnded} onPlayPause={this.handlePlayPause} />
           <Menu.Menu position="right" className="desktop-only">
-            <Menu.Item onClick={this.handleSupportToggle}><Icon name="coffee" />Support OpenMHz</Menu.Item>
+            <Menu.Item><SupportModal/></Menu.Item>
             <Menu.Item><a href={callDownload}><Icon name="download" />Download</a></Menu.Item>
             <Menu.Item><a href={callLink}><Icon name="at" />Link</a></Menu.Item>
           </Menu.Menu>

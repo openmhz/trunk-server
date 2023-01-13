@@ -64,9 +64,11 @@ process.nextTick(function() {
       var shortName = req.params.shortName.toLowerCase();
       var apiKey = req.body.api_key;
 
+
+
       System.findOne({
         'shortName': shortName
-      }, async function(err, item) {
+      },["key", "ignoreUnknownTalkgroup"], async function(err, item) {
 
         if (err) {
           console.warn("[" + req.params.shortName + "] Error /:shortName/upload - Error: " + err);
@@ -96,8 +98,31 @@ process.nextTick(function() {
         }
         var startTime = req.body.start_time;
         var emergency = parseInt(req.body.emergency);
+        
 
-
+        if (item.ignoreUnknownTalkgroup == true) {
+          //console.log("ignore unknown talkgroup ");
+          //await Talkgroup.findOne({ answer: 42 }).select({ _id: 1 }).lean().then(doc => !!doc)
+          talkgroupExists = await Talkgroup.exists({
+            'shortName': shortName,
+            'num': talkgroupNum
+          });
+          //console.log("In talkgroup: " + talkgroupExists);
+          //talkgroupExists = await Talkgroup.findOne({ 'shortName': shortName,  'num': talkgroupNum }).select({ _id: 1 }).lean().then(doc => !!doc).exec();
+          if (!talkgroupExists) {
+            try {
+              fs.unlinkSync(req.file.path)
+              //file removed
+            } catch(err) {
+              console.log("[" + call.shortName + "] error deleting: " + req.file.path);
+            }
+           
+              res.status(500);
+              res.send("Talkgroup does not exist, skipping.\n");
+              return;
+            
+          }
+        }
         // Add in an API Key check
 
         try {
@@ -107,7 +132,6 @@ process.nextTick(function() {
           // Mongoose does not allow 'errors' to be used in the Schema for call. need to rename to error.
           var badFreqList = JSON.parse(req.body.freq_list);
           var freqList = badFreqList.map(obj =>{
-
               obj.error = obj.errors;
               delete obj.errors;
              return obj;
