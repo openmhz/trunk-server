@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import CallItem from "./CallItem";
 import {
   Icon,
@@ -8,12 +8,22 @@ import {
 import "./CallPlayer.css";
 
 // ----------------------------------------------------
-class ListCalls extends React.Component {
+const ListCalls = (props) => {
+    const activeCallRef  = useRef();
 
   //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
   //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
-  render() {
-    const callsData = this.props.callsData;
+
+    useEffect(() => {
+      if (activeCallRef.current) {
+        activeCallRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+    }
+  });
+
+    const callsData = props.callsData;
     return (
 
         <Table id="calls" unstackable  >
@@ -29,11 +39,11 @@ class ListCalls extends React.Component {
           <Table.Body>
             
             {
-              this.props.callsData.ids.map((callId, index) => {
-              if (callId === this.props.activeCallId) {
-                return (<Ref innerRef={this.props.currentCallRef} key={index} ><CallItem activeCall={true}  call={this.props.callsData.entities[callId]} talkgroups={this.props.talkgroups} key={index} onClick={this.props.playCall}/></Ref>)
+              props.callsData.ids.map((callId, index) => {
+              if (callId === props.activeCallId) {
+                return (<Ref innerRef={activeCallRef} key={index} ><CallItem activeCall={true}  call={props.callsData.entities[callId]} talkgroups={props.talkgroups} key={index} onClick={props.playCall}/></Ref>)
               } else {
-                return <CallItem activeCall={false} call={this.props.callsData.entities[callId]} talkgroups={this.props.talkgroups} key={index} onClick={this.props.playCall}/>
+                return <CallItem activeCall={false} call={props.callsData.entities[callId]} talkgroups={props.talkgroups} key={index} onClick={props.playCall}/>
               }
             })
            
@@ -45,7 +55,7 @@ class ListCalls extends React.Component {
         
 
   );
-  }
+  
 }
 
 export default ListCalls;

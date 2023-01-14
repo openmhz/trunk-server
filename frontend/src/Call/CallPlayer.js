@@ -1,6 +1,6 @@
-import React, {  useEffect, useState } from "react";
-import { Link, useLocation} from 'react-router-dom';
-import { useParams } from "react-router-dom";
+import React, {  useEffect, useState, useRef } from "react";
+import { Link, useLocation, useParams, useNavigate} from 'react-router-dom';
+
 import MediaPlayer from "./MediaPlayer";
 import FilterModal from "./FilterModal";
 import GroupModal from "./GroupModal";
@@ -54,10 +54,11 @@ function CallPlayer (props) {
     //const allCalls  = callsData?callsData.ids.map( id => callsData.entities[id] ):[]
 
     const [autoPlay, setAutoPlay] = useState(true);
-
+    const [addCallScroll, setAddCallScroll] = useState(false);
     const [currentCall, setCurrentCall] = useState(false);
+    const [prevScrollHeight, setPrevScrollHeight] = useState(0);
     const [playTime, setPlayTime] = useState(0);
-    const [callScroll, setCallScroll] = useState(false);
+    const [selectLoadCall, setSelectLoadCall] = useState(false);
     const [callSelect, setCallSelect] = useState(false);
     const [urlOptions, setUrlOptions] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -66,11 +67,11 @@ function CallPlayer (props) {
     const [groupVisible, setGroupVisible] = useState(false);
     const [calendarVisible, setCalendarVisible] = useState(false);
     const [isConnected, setIsConnected] = useState(socket.connected);
+    const [loadCallId, setLoadCallId] = useState(false);
 
-
-
+    const navigate = useNavigate();
     const dispatch = useDispatch();
-    
+    const positionRef = useRef();
 
     const filterType = useSelector((state) => state.callPlayer.filterType);
     const filterGroupId = useSelector((state) => state.callPlayer.filterGroupId);
@@ -79,6 +80,7 @@ function CallPlayer (props) {
     const filterDate = useSelector((state) => state.callPlayer.filterDate);
     const live = useSelector((state) => state.callPlayer.live);
     const uri = queryString.parse(useLocation().search);
+    const pathname = useLocation().pathname;
 
     let currentCallId = false;
     let currentCallMedia = false;
@@ -102,16 +104,9 @@ function CallPlayer (props) {
   const handleFilterToggle = () => setFilterVisible(!filterVisible);
   const handleCalendarToggle = () => setCalendarVisible(!calendarVisible);
 
-
-
-  const loadNewerCalls = () => {
-
-  }
-
   const playCall = (data) => {
       setCurrentCall(data.call);
       setIsPlaying(true);
-      //callActions.fetchCallInfo(data.call._id);
     }
   
 
@@ -124,15 +119,6 @@ function CallPlayer (props) {
 
       setCurrentCall(nextCall);
       setIsPlaying(true);
-      /*
-      this.setState({ callUrl: callUrl, callId: nextCallId, isPlaying: true }, () => { audio.playSource(callUrl) }); //scrollToComponent(this.currentCallRef.current);
-      if (this.currentCallRef.current) {
-        this.currentCallRef.current.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-      callActions.fetchCallInfo(nextCallId);*/
     } else {
       setIsPlaying(false);
     }
@@ -142,20 +128,8 @@ function CallPlayer (props) {
   }
   /*const changeUrl = url => callActions.changeUrl(url)
 
-  handleContextRef = contextRef => this.setState({ contextRef })
-  loadNewerCalls() {
 
-    console.log("Loading Newer Calls");
-    callActions.fetchNewerCalls(newestCallTime.getTime());
-  }
 */
-
-  const loadOlderCalls = (getOlderCalls) => {
-
-    console.log("Loading Older Calls");
-    dispatch(getOlderCalls({}));
-
-  }
 
 
 const getFilterDescription = () => {
@@ -185,6 +159,9 @@ const getFilterDescription = () => {
     const message = JSON.parse(data)
     switch (message.type) {
       case 'calls':
+        const ref = positionRef;
+        setPrevScrollHeight(positionRef.clientHeight);
+        setAddCallScroll(true);
         /*const refs = this.refs.current;
         callActions.addCall(message);
         const newCall = callsById[callsAllIds[0]];
@@ -257,48 +234,45 @@ const getFilterDescription = () => {
 
 
 
-/*
-  updateUri(props, state) {
+
+const updateUri = () => {
     var search = "?"
-    switch (props.filterType) {
+    switch (filterType) {
 
       case 1:
-        search = search + `filter-type=group&filter-code=${props.filterGroupId}`;
+        search = search + `filter-type=group&filter-code=${filterGroupId}`;
         break;
       case 2:
-        search = search + `filter-type=talkgroup&filter-code=${props.filterTalkgroups}`;
+        search = search + `filter-type=talkgroup&filter-code=${filterTalkgroups}`;
         break;
       default:
       case 0:
         break;
 
     }
-    if (state.callId) {
+    if (loadCallId) {
       if (search.length !== 1) {
         search = search + '&';
       }
-      search = search + `call-id=${state.callId}`
+      search = search + `call-id=${loadCallId}`
     }
-    if (props.filterDate) {
+    if (filterDate) {
       if (search.length !== 1) {
         search = search + '&';
       }
-      search = search + `time=${props.filterDate}`;
+      search = search + `time=${filterDate}`;
     }
 
-    if (props.filterStarred) {
+    if (filterStarred) {
       if (search.length !== 1) {
         search = search + '&';
       }
       search = search + `starred=true`;
     }
+    navigate(pathname + search, {replace:true});
 
-    history.push({
-      pathname: history.location.pathname,
-      search: search
-    });
   }
-*/
+
 
   const handleCalendarClose = (didUpdate) => {
     setCalendarVisible(!calendarVisible);
@@ -306,8 +280,7 @@ const getFilterDescription = () => {
     if (didUpdate) {
       dispatchEvent(setLive(false));
       setCurrentCall(false);
-      //callActions.fetchCalls();
-      //this.stopSocket();
+      stopSocket();
       //this.socket.close();
     }
   }
@@ -323,60 +296,7 @@ const getFilterDescription = () => {
       setCurrentCall(false);
     }
   }
-/*
-  callEnded(data) {
-    const audio = this.audioRef.current;
-    const currentIndex = callsAllIds.findIndex(callId => callId === callId);
-    if (autoPlay && (currentIndex > 0)) {
-      const nextCallId = callsAllIds[currentIndex - 1];
-      const nextCall = callsById[nextCallId];
-      var callUrl = nextCall.url;
 
-      this.setState({ callUrl: callUrl, callId: nextCallId, isPlaying: true }, () => { audio.playSource(callUrl) }); //scrollToComponent(this.currentCallRef.current);
-      if (this.currentCallRef.current) {
-        this.currentCallRef.current.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-      callActions.fetchCallInfo(nextCallId);
-    } else {
-      this.setState({ isPlaying: false });
-    }
-  }
-
-  playCall(data) {
-    const audio = this.audioRef.current;
-    var callUrl = data.call.url;
-    this.setState({
-      callUrl: callUrl,
-      callId: data.call._id,
-      isPlaying: true
-    }, () => { audio.playSource(callUrl); }); //scrollToComponent(this.currentCallRef.current);
-    callActions.fetchCallInfo(data.call._id);
-  }
-
-  addCall(data) {
-    const message = JSON.parse(data)
-    switch (message.type) {
-      case 'calls':
-        const refs = this.refs.current;
-        callActions.addCall(message);
-        const newCall = callsById[callsAllIds[0]];
-        if (!isPlaying && autoPlay) {
-          this.playCall({ call: newCall });
-          if (this.currentCallRef.current) {
-            this.currentCallRef.current.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-          }
-        }
-        break
-      default:
-        break
-    }
-  }*/
 
   const setStateFromUri = async () => {
     var filter = {
@@ -393,6 +313,7 @@ const getFilterDescription = () => {
     if (uri.hasOwnProperty('starred')) {
       const starred = uri['starred'];
       filter.filterStarred = starred === 'true' ? true : false;
+      
       this.setState({ urlOptions: true });
     }
 
@@ -408,8 +329,9 @@ const getFilterDescription = () => {
     if (uri.hasOwnProperty('call-id')) {
       const _id = uri['call-id'];
       const date = new Date(parseInt(uri['time']));
-
-      filter.live = false;
+      setLoadCallId(_id);
+      setSelectLoadCall(true);
+      setAutoPlay(false);
       this.setState({
         callId: _id,
         urlOptions: true,
@@ -463,6 +385,21 @@ const getFilterDescription = () => {
     }
   }, [loadOlderInView]);
 
+  useEffect(() => {
+    if (addCallScroll) {
+      const ref = positionRef;
+      window.scrollBy(0, positionRef.clientHeight - prevScrollHeight);
+      setAddCallScroll(false);
+    }
+    if (selectLoadCall && loadCallId && callsData) {
+
+      const call = callsData.entities[loadCallId];
+      if (call) {
+        setSelectLoadCall(false);
+        setCurrentCall(call);
+      }
+    }
+  },[callsData])
 
   useEffect(() => {
     // When a time/date is provided in the URL, it will be added to the filter
@@ -484,8 +421,7 @@ const getFilterDescription = () => {
   }, []);
 
   useEffect(() => {
-     /*
-    this.updateUri(nextProps, nextState);*/
+    updateUri();
     dispatch(getCalls({}));
     if (live) {
       startSocket();
@@ -620,7 +556,7 @@ const getFilterDescription = () => {
 
 
     return (
-      <div >
+      <div ref={positionRef}>
         <FilterModal shortName={shortName} open={filterVisible} onClose={handleFilterClose} />
         <CalendarModal open={calendarVisible} onClose={handleCalendarClose} archive={archive} key={shortName} />
         <GroupModal shortName={shortName} open={groupVisible} onClose={handleGroupClose} />
@@ -680,7 +616,7 @@ const getFilterDescription = () => {
             </Sidebar.Pusher>
           </Sidebar.Pushable>
           <Rail position='right' className="desktop-only" dimmed={sidebarOpened ? "true" : "false"} >
-            <Sticky  offset={60}>
+            <Sticky  offset={60} context={positionRef}>
               <CallInfo call={currentCall} header={callInfoHeader} link={callLink}/>
             </Sticky>
           </Rail>
