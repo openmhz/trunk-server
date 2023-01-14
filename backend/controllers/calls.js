@@ -21,6 +21,7 @@ function get_calls(query, numResults, res) {
         name: true,
         time: true,
         srcList: true,
+        freq: true,
         star: true,
         len: true,
         url: true
@@ -43,6 +44,7 @@ function get_calls(query, numResults, res) {
                         time: item.time,
                         srcList: item.srcList,
                         star: item.star,
+                        freq: item.freq,
                         len: Math.round(item.len)
                     };
                     calls.push(call);

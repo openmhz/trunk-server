@@ -52,9 +52,10 @@ function CallPlayer (props) {
     //console.log(callsData);
     const { data:talkgroupsData, isSuccess:isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
     //const allCalls  = callsData?callsData.ids.map( id => callsData.entities[id] ):[]
-    const [callUrl, setCallUrl] = useState("");
+
     const [autoPlay, setAutoPlay] = useState(true);
-    const [callId, setCallId] = useState(false);
+
+    const [currentCall, setCurrentCall] = useState(false);
     const [playTime, setPlayTime] = useState(0);
     const [callScroll, setCallScroll] = useState(false);
     const [callSelect, setCallSelect] = useState(false);
@@ -79,7 +80,17 @@ function CallPlayer (props) {
     const live = useSelector((state) => state.callPlayer.live);
     const uri = queryString.parse(useLocation().search);
 
-  const switchAutoPlay = () => setAutoPlay(!autoPlay);
+    let currentCallId = false;
+    let currentCallMedia = false;
+
+    if (currentCall) {
+      currentCallId = currentCall._id;
+      currentCallMedia = currentCall.url;
+    }
+
+
+
+
   const handlePlayPause = (playing) => setIsPlaying(playing);
  
  const handlePusherClick = () => {
@@ -91,18 +102,43 @@ function CallPlayer (props) {
   const handleFilterToggle = () => setFilterVisible(!filterVisible);
   const handleCalendarToggle = () => setCalendarVisible(!calendarVisible);
 
-  const audioRef = false;
+
 
   const loadNewerCalls = () => {
 
   }
 
   const playCall = (data) => {
-
-  }
+      setCurrentCall(data.call);
+      setIsPlaying(true);
+      //callActions.fetchCallInfo(data.call._id);
+    }
+  
 
   const callEnded = () => {
+    if (callsData) {
+    const currentIndex = callsData.ids.findIndex(callId => callId === currentCallId);
+    if (autoPlay && (currentIndex > 0)) {
+      const nextCallId = callsData.ids[currentIndex - 1];
+      const nextCall = callsData.entities[nextCallId];
 
+      setCurrentCall(nextCall);
+      setIsPlaying(true);
+      /*
+      this.setState({ callUrl: callUrl, callId: nextCallId, isPlaying: true }, () => { audio.playSource(callUrl) }); //scrollToComponent(this.currentCallRef.current);
+      if (this.currentCallRef.current) {
+        this.currentCallRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+      callActions.fetchCallInfo(nextCallId);*/
+    } else {
+      setIsPlaying(false);
+    }
+  } else {
+    console.log("Somehow called, callEnded() but callsData was false");
+  }
   }
   /*const changeUrl = url => callActions.changeUrl(url)
 
@@ -211,8 +247,7 @@ const getFilterDescription = () => {
     if (!live) {
       dispatch(setDateFilter(false));
       dispatch(setLive(true));
-      setCallUrl("");
-      setCallId(false);
+      setCurrentCall(false);
 
       dispatch(getCalls({}));
       
@@ -270,8 +305,7 @@ const getFilterDescription = () => {
 
     if (didUpdate) {
       dispatchEvent(setLive(false));
-      setCallId(false);
-      setCallUrl("");
+      setCurrentCall(false);
       //callActions.fetchCalls();
       //this.stopSocket();
       //this.socket.close();
@@ -286,8 +320,7 @@ const getFilterDescription = () => {
     setFilterVisible(!filterVisible);
 
     if (didUpdate) {
-      setCallUrl("");
-      setCallId(false);
+      setCurrentCall(false);
     }
   }
 /*
@@ -414,7 +447,7 @@ const getFilterDescription = () => {
       }
     }
 
-    await dispatch(setFilter(filter));
+    dispatch(setFilter(filter));
   }
 
   useEffect(() => {
@@ -549,7 +582,7 @@ const getFilterDescription = () => {
 
     var callInfoHeader = "Call Info";
 
-    const currentCall = false;//callsById[callId];
+  
 
 
     var callsAllIds = [];
@@ -584,6 +617,8 @@ const getFilterDescription = () => {
         <CallItem call={call} key={call.shortName}/>
       ))
     }*/
+
+
     return (
       <div >
         <FilterModal shortName={shortName} open={filterVisible} onClose={handleFilterClose} />
@@ -638,7 +673,7 @@ const getFilterDescription = () => {
               style={{ minHeight: '100vh' }}
             >
               <div ref={loadNewerRef} />
-              <ListCalls callsData={callsData} currentCallRef={false} activeCallId={callId} talkgroups={talkgroupsData} playCall={playCall} />
+              <ListCalls callsData={callsData} activeCallId={currentCallId} talkgroups={talkgroupsData} playCall={playCall} />
               <div ref={loadOlderRef} style={{height: 50}}/>
 
              
@@ -652,8 +687,8 @@ const getFilterDescription = () => {
         </Container>
 
         <Menu fixed="bottom" compact inverted >
-          <Menu.Item active={autoPlay} onClick={() => this.switchAutoPlay()}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
-          { /*<MediaPlayer ref={audioRef} call={currentCall} onEnded={callEnded} onPlayPause={handlePlayPause} /> */ }
+          <Menu.Item active={autoPlay} onClick={() => setAutoPlay(!autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
+          <MediaPlayer call={currentCall} onEnded={callEnded} onPlayPause={handlePlayPause} />
           <Menu.Menu position="right" className="desktop-only">
             <Menu.Item><SupportModal/></Menu.Item>
             <Menu.Item><a href={callDownload}><Icon name="download" />Download</a></Menu.Item>
