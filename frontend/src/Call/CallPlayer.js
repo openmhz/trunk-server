@@ -70,8 +70,8 @@ function CallPlayer(props) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const positionRef = useRef();
-  const isPlayingRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
-  isPlayingRef.current = isPlaying;
+  const shouldPlayAddCallRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
+  shouldPlayAddCallRef.current = (!isPlaying && autoPlay)?true:false;
 
   const filterType = useSelector((state) => state.callPlayer.filterType);
   const filterGroupId = useSelector((state) => state.callPlayer.filterGroupId);
@@ -156,11 +156,11 @@ function CallPlayer(props) {
     const message = JSON.parse(data)
     switch (message.type) {
       case 'calls':
-        const ref = positionRef;
-        setPrevScrollHeight(positionRef.clientHeight);
+        const ref = positionRef.current;
+        setPrevScrollHeight(positionRef.current.clientHeight);
         setAddCallScroll(true);
 
-        if (!isPlayingRef.current) {
+        if (shouldPlayAddCallRef.current) {
           setCurrentCall(message);
         }
 
@@ -342,8 +342,8 @@ function CallPlayer(props) {
 
   useEffect(() => {
     if (addCallScroll) {
-      const ref = positionRef;
-      window.scrollBy(0, positionRef.clientHeight - prevScrollHeight);
+      const ref = positionRef.current;
+      window.scrollBy(0, positionRef.current.clientHeight - prevScrollHeight);
       setAddCallScroll(false);
     }
     if (selectLoadCall && loadCallId && callsData) {
