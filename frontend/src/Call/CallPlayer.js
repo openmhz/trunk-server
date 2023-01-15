@@ -70,6 +70,8 @@ function CallPlayer(props) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const positionRef = useRef();
+  const isPlayingRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
+  isPlayingRef.current = isPlaying;
 
   const filterType = useSelector((state) => state.callPlayer.filterType);
   const filterGroupId = useSelector((state) => state.callPlayer.filterGroupId);
@@ -91,7 +93,9 @@ function CallPlayer(props) {
 
 
 
-  const handlePlayPause = (playing) => setIsPlaying(playing);
+  const handlePlayPause = (playing) => {
+    setIsPlaying(playing);
+  }
 
   const handlePusherClick = () => {
     if (sidebarOpened) setSidebarOpened(false);
@@ -155,19 +159,12 @@ function CallPlayer(props) {
         const ref = positionRef;
         setPrevScrollHeight(positionRef.clientHeight);
         setAddCallScroll(true);
-        dispatch(addCall(message))
-        /*const refs = this.refs.current;
-        callActions.addCall(message);
-        const newCall = callsById[callsAllIds[0]];
-        if (!isPlaying && autoPlay) {
-          this.playCall({ call: newCall });
-          if (this.currentCallRef.current) {
-            this.currentCallRef.current.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-          }
-        }*/
+
+        if (!isPlayingRef.current) {
+          setCurrentCall(message);
+        }
+
+        dispatch(addCall(message));
         console.log("Got: " + message);
         break
       default:
@@ -177,31 +174,18 @@ function CallPlayer(props) {
 
   const startSocket = () => {
     const filter = getFilterDescription();
+
     socket.emit("start", {
-      filterCode: filter.Code,
-      filterType: filter.Type,
+      filterCode: filter.code,
+      filterType: filter.type,
       filterName: "OpenMHz",
-      filterStarred: filter.Starred,
+      filterStarred: filter.starred,
       shortName: shortName
     });
   }
   const stopSocket = () => {
     socket.emit("stop");
   }
-  const handleLiveToggle = () => {
-    if (!live) {
-      dispatch(setDateFilter(false));
-      dispatch(setLive(true));
-      setCurrentCall(false);
-
-      dispatch(getCalls({}));
-
-      this.startSocket();
-    }
-  }
-
-
-
 
   const updateUri = () => {
     var search = "?"
@@ -241,6 +225,16 @@ function CallPlayer(props) {
 
   }
 
+  const handleLiveToggle = () => {
+    if (!live) {
+      dispatch(setDateFilter(false));
+      dispatch(setLive(true));
+      setCurrentCall(false);
+      dispatch(getCalls({}));
+
+      this.startSocket();
+    }
+  }
 
   const handleCalendarClose = (didUpdate) => {
     setCalendarVisible(!calendarVisible);
@@ -386,7 +380,7 @@ function CallPlayer(props) {
       }
     })
 
-    socket.on("new message", handleSocketMessage);
+    socket.on("new message", handleSocketMessage );
 
     return () => {
       socket.off('connect');
@@ -414,6 +408,7 @@ function CallPlayer(props) {
       setGroupVisible(true);
     }
   }, [groupsData])
+
 
 
   var archiveLabel = "";

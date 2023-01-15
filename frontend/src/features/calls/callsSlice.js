@@ -202,8 +202,8 @@ export const callsSlice = createSlice({
   initialState,
   reducers: {
 
-    addCall: (call) => {
-      state.data = callsAdapter.addOne(state.data, call)
+    addCall: (state, action) => {
+      state.data = callsAdapter.addOne(state.data, action.payload)
     },
   },
   extraReducers: {
@@ -269,5 +269,5 @@ export const callsSlice = createSlice({
     }
   }
 })
-
+export const { addCall } = callsSlice.actions
 export const callsReducer = callsSlice.reducer;

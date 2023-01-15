@@ -12,8 +12,6 @@ import {
 
 // ----------------------------------------------------
 function CallInfo(props) {
-
-
     let srcList = "";
     let callLength = "-";
     let callFreq = "-";
@@ -38,8 +36,6 @@ function CallInfo(props) {
       callDownload = currentCall.url;
       callTweet = "https://twitter.com/intent/tweet?url="+encodeURIComponent(document.location.origin+props.link)+"&via="+encodeURIComponent("OpenMHz");
     }
-
-
 
     return (
       <div>
@@ -86,7 +82,6 @@ function CallInfo(props) {
         </Menu>
         </div>
     );
-    
   }
 
   export default CallInfo;
