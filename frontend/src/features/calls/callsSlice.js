@@ -125,6 +125,44 @@ const initialState = {
       return url;
   }
 
+export const addStar = createAsyncThunk(
+  'calls/addStar',
+  async(callId,{getState, requestIdleCallback}) => {
+    const {shortName} = getState().callPlayer; 
+    const url = process.env.REACT_APP_BACKEND_SERVER + "/" + shortName.toLowerCase() + "/star/" + callId
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: "{}"
+    
+  }).then(
+    (data) => data.json()
+  )
+  return res;
+  }
+)
+
+export const removeStar = createAsyncThunk(
+  'calls/removeStar',
+  async(callId,{getState, requestIdleCallback}) => {
+    const {shortName} = getState().callPlayer; 
+    const url = process.env.REACT_APP_BACKEND_SERVER + "/" + shortName.toLowerCase() + "/removeStar/" + callId
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: "{}"
+    
+  }).then(
+    (data) => data.json()
+  )
+  return res;
+  }
+)
+
 export const getCalls = createAsyncThunk(
   'calls/getCalls',
   async({},{getState, requestId}) => {
@@ -162,7 +200,12 @@ export const getCalls = createAsyncThunk(
 export const callsSlice = createSlice({
   name: 'calls',
   initialState,
-  reducers: {},
+  reducers: {
+
+    addCall: (call) => {
+      state.data = callsAdapter.addOne(state.data, call)
+    },
+  },
   extraReducers: {
     [getCalls.pending]: (state) => {
       state.loading = true;
@@ -218,6 +261,12 @@ export const callsSlice = createSlice({
         state.oldestCallTime = new Date(lastTime)
       }
     },
+    [addStar.fulfilled]: (state, {payload}) => {
+      state.data.entities[payload.call._id] = payload.call;
+    },
+    [removeStar.fulfilled]: (state, {payload}) => {
+      state.data.entities[payload.call._id] = payload.call;
+    }
   }
 })
 

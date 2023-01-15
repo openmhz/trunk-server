@@ -241,7 +241,39 @@ function package_call(item) {
     return call;
 }
 
-
+exports.remove_star = function(req, res, next) {
+    var objectId = req.params.id;
+    try {
+        var o_id = ObjectID.createFromHexString(objectId);
+    } catch (err) {
+        console.warn("[" + req.params.shortName + "] Error - /:shortName/call/:id generating ObjectID " + err);
+        res.status(500);
+        res.send(JSON.stringify({
+            success: false,
+            message: err,
+            "_id": objectId
+        }));
+        return;
+    }
+    Call.findOneAndUpdate({ _id: objectId }, { $inc: { star: -1 } }, {new: true },function(err, item) {
+        if (err) {
+            res.status(500);
+            res.send(JSON.stringify({
+                success: false,
+                message: err,
+                "_id": objectId
+            }));
+       } else {
+            var call = package_call(item);
+            req.call = call;
+            res.send(JSON.stringify({
+                success: true,
+                call: call
+            }));
+            next();      
+       }
+    })
+}
 
 
 exports.add_star = function(req, res, next) {

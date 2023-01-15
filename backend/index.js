@@ -178,7 +178,7 @@ app.get('/:shortName/calls/older', calls.get_older_calls);
 app.get('/:shortName/calls/:time/older', calls.get_iphone_calls);
 app.get('/:shortName/calls', calls.get_calls);
 app.post('/:shortName/star/:id', calls.add_star);
-
+app.post('/:shortName/removeStar/:id', calls.remove_star);
 
 /*------    UPLOADS   ---------- upload.single('call'),  uploads.upload,*/
 app.post('/:shortName/upload', upload.single('call'), uploads.upload, async function (req, res) {
