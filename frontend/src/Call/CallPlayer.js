@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useState, useRef } from "react";
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 
 import MediaPlayer from "./MediaPlayer";
@@ -9,7 +9,7 @@ import CalendarModal from "./CalendarModalContainer";
 import CallInfo from "./CallInfo";
 import ListCalls from "./ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
-import { setLive, setShortName, setFilter } from "../features/callPlayer/callPlayerSlice";
+import { setLive, setShortName, setFilter,setDateFilter } from "../features/callPlayer/callPlayerSlice";
 import { getCalls, getOlderCalls, getNewerCalls, addCall } from "../features/calls/callsSlice";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
 import { useInView } from 'react-intersection-observer';
@@ -26,7 +26,7 @@ import {
 import "./CallPlayer.css";
 import queryString from '../query-string';
 import io from 'socket.io-client';
-import { setDateFilter } from "./call-actions";
+
 
 
 const socket = io(process.env.REACT_APP_BACKEND_SERVER);
@@ -45,19 +45,14 @@ function CallPlayer(props) {
     threshold: 0.5
   });
   const { data: groupsData, isSuccess: isGroupsSuccess } = useGetGroupsQuery(shortName);
-  //const { data:callsData, isSuccess:isCallsSuccess } = useGetCallsQuery({shortName});
   const { loading: callsLoading, data: callsData } = useSelector((state) => state.calls);
-
-  //console.log(callsData);
   const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
-  //const allCalls  = callsData?callsData.ids.map( id => callsData.entities[id] ):[]
+
 
   const [autoPlay, setAutoPlay] = useState(true);
   const [addCallScroll, setAddCallScroll] = useState(false);
   const [currentCall, setCurrentCall] = useState(false);
   const [prevScrollHeight, setPrevScrollHeight] = useState(0);
-  const [playTime, setPlayTime] = useState(0);
-  const [selectLoadCall, setSelectLoadCall] = useState(false);
   const [urlOptions, setUrlOptions] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [sidebarOpened, setSidebarOpened] = useState(false);
@@ -69,7 +64,8 @@ function CallPlayer(props) {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const positionRef = useRef();
+  const positionRef = useRef(); // lets us get the Y Scroll offset for the Call List
+  const pageYOffset = useRef(); // Store the current Scroll Offset in a way that guarantees the latest value is available when Call Data is updated
   const shouldPlayAddCallRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
   shouldPlayAddCallRef.current = (!isPlaying && autoPlay)?true:false;
 
@@ -83,11 +79,10 @@ function CallPlayer(props) {
   const pathname = useLocation().pathname;
 
   let currentCallId = false;
-  let currentCallMedia = false;
+
 
   if (currentCall) {
     currentCallId = currentCall._id;
-    currentCallMedia = currentCall.url;
   }
 
 
@@ -101,7 +96,9 @@ function CallPlayer(props) {
     if (sidebarOpened) setSidebarOpened(false);
   }
 
-
+  const handleAutoPlay = (currentAutoPlay) => {
+    setAutoPlay(!currentAutoPlay);
+  }
   const handleSidebarToggle = () => setSidebarOpened(!sidebarOpened);
   const handleFilterToggle = () => setFilterVisible(!filterVisible);
   const handleCalendarToggle = () => setCalendarVisible(!calendarVisible);
@@ -157,15 +154,17 @@ function CallPlayer(props) {
     switch (message.type) {
       case 'calls':
         const ref = positionRef.current;
+        pageYOffset.current = positionRef.current.clientHeight;
         setPrevScrollHeight(positionRef.current.clientHeight);
+        console.log("Prior to setAddCallScroll, addCallScroll was: " + addCallScroll);
         setAddCallScroll(true);
-
         if (shouldPlayAddCallRef.current) {
           setCurrentCall(message);
         }
-
+        console.log("Prior to addCall, addCallScroll was: " + addCallScroll);
         dispatch(addCall(message));
-        console.log("Got: " + message);
+
+        console.log("Got: " + message._id);
         break
       default:
         break
@@ -225,14 +224,14 @@ function CallPlayer(props) {
 
   }
 
-  const handleLiveToggle = () => {
+  const handleLiveToggle = (currentlyLive) => {
     if (!live) {
       dispatch(setDateFilter(false));
       dispatch(setLive(true));
       setCurrentCall(false);
       dispatch(getCalls({}));
 
-      this.startSocket();
+      startSocket();
     }
   }
 
@@ -240,10 +239,9 @@ function CallPlayer(props) {
     setCalendarVisible(!calendarVisible);
 
     if (didUpdate) {
-      dispatchEvent(setLive(false));
+      dispatch(setLive(false));
       setCurrentCall(false);
       stopSocket();
-      //this.socket.close();
     }
   }
 
@@ -291,7 +289,6 @@ function CallPlayer(props) {
       const _id = uri['call-id'];
       const date = new Date(parseInt(uri['time']));
       setLoadCallId(_id);
-      setSelectLoadCall(true);
       setAutoPlay(false);
       if (!urlOptions) setUrlOptions(true);
       //callActions.fetchCallInfo(_id);
@@ -341,21 +338,27 @@ function CallPlayer(props) {
   }, [loadOlderInView]);
 
   useEffect(() => {
-    if (addCallScroll) {
-      const ref = positionRef.current;
-      window.scrollBy(0, positionRef.current.clientHeight - prevScrollHeight);
-      setAddCallScroll(false);
-    }
-    if (selectLoadCall && loadCallId && callsData) {
-
+    if ( loadCallId && callsData) {
       const call = callsData.entities[loadCallId];
       if (call) {
-        setSelectLoadCall(false);
         setCurrentCall(call);
       }
     }
   }, [callsData])
 
+  useLayoutEffect( () => {
+    const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current);
+    if (scrollAmount > 0) {
+      console.log("useLayoutEffect for callsData - state prevScrollHeight: " + prevScrollHeight + " ref: " + pageYOffset.current + " current: " + positionRef.current.clientHeight + " Scroll Amount: " + scrollAmount)
+      window.scrollBy(0, scrollAmount);
+    }
+  }, [callsData])
+
+/*
+  useEffect(() => {
+
+  }, [callsData]);
+*/
   useEffect(() => {
     setStateFromUri();
     return () => {
@@ -510,7 +513,7 @@ function CallPlayer(props) {
             style={{ minHeight: '100vh' }}
           >
             <div ref={loadNewerRef} />
-            <ListCalls callsData={callsData} activeCallId={currentCallId} talkgroups={talkgroupsData} playCall={playCall} />
+            <ListCalls callsData={callsData} activeCallId={currentCallId} talkgroups={talkgroupsData?talkgroupsData.talkgroups:false} playCall={playCall} />
             <div ref={loadOlderRef} style={{ height: 50 }} />
 
 
@@ -524,7 +527,7 @@ function CallPlayer(props) {
       </Container>
 
       <Menu fixed="bottom" compact inverted >
-        <Menu.Item active={autoPlay} onClick={() => setAutoPlay(!autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
+        <Menu.Item active={autoPlay} onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
         <MediaPlayer call={currentCall} onEnded={callEnded} onPlayPause={handlePlayPause} />
         <Menu.Menu position="right" className="desktop-only">
           <Menu.Item><SupportModal /></Menu.Item>

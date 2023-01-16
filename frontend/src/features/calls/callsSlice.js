@@ -66,6 +66,7 @@ const initialState = {
     data: callsAdapter.getInitialState(),
     oldestCallTime: now,
     newestCallTime: now,
+    adjustCallScroll: false
   }
 
   function buildUrlParams(a) {
@@ -201,9 +202,9 @@ export const callsSlice = createSlice({
   name: 'calls',
   initialState,
   reducers: {
-
     addCall: (state, action) => {
       state.data = callsAdapter.addOne(state.data, action.payload)
+      state.adjustCallScroll = true;
     },
   },
   extraReducers: {
@@ -219,7 +220,7 @@ export const callsSlice = createSlice({
       if (state.data && (state.data.ids.length > 0)) {
         const first = state.data.ids[0]
         const firstTime = state.data.entities[first].time;
-        const last = state.data.ids[state.data.ids[0].length-1];
+        const last = state.data.ids[state.data.ids.length-1];
         const lastTime = state.data.entities[last].time;
         state.newestCallTime = new Date(firstTime)
         state.oldestCallTime = new Date(lastTime)
@@ -237,7 +238,7 @@ export const callsSlice = createSlice({
       if (state.data && (state.data.ids.length > 0)) {
         const first = state.data.ids[0]
         const firstTime = state.data.entities[first].time;
-        const last = state.data.ids[state.data.ids[0].length-1];
+        const last = state.data.ids[state.data.ids.length-1];
         const lastTime = state.data.entities[last].time;
         state.newestCallTime = new Date(firstTime)
         state.oldestCallTime = new Date(lastTime)
@@ -255,7 +256,7 @@ export const callsSlice = createSlice({
       if (state.data && (state.data.ids.length > 0)) {
         const first = state.data.ids[0]
         const firstTime = state.data.entities[first].time;
-        const last = state.data.ids[state.data.ids[0].length-1];
+        const last = state.data.ids[state.data.ids.length-1];
         const lastTime = state.data.entities[last].time;
         state.newestCallTime = new Date(firstTime)
         state.oldestCallTime = new Date(lastTime)
