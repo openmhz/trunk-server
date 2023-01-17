@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Link } from 'react-router-dom'
+import { Link, useNavigate  } from 'react-router-dom'
 import SystemCard from "./SystemCard";
 import {
   Container,
@@ -18,7 +18,7 @@ const ListSystems = (props) => {
 
   
   const {data:systems, isSuccess} = useGetSystemsQuery(); 
-
+  const navigate = useNavigate();
     return (
       <div>
         <Menu fixed="top">
@@ -30,7 +30,7 @@ const ListSystems = (props) => {
           <Card.Group itemsPerRow={4} stackable={true}>
 
           {isSuccess&&systems.systems.map((system) =>
-            system.active&&<SystemCard system={system} key={system.shortName} onClick={(e) => this.props.changeUrl("/system/" + system.shortName)}/>
+            system.active&&<SystemCard system={system} key={system.shortName} onClick={(e) => navigate("/system/" + system.shortName)}/>
             // <SystemCard system={system} key={system.shortName} onClick={(e) => this.props.changeUrl("/system/" + system.shortName)}/>
          )}
           </Card.Group>
