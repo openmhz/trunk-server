@@ -6,7 +6,6 @@ import { applyMiddleware, compose, createStore } from 'redux'
 import { routerMiddleware } from 'connected-react-router'
 import createRootReducer from './reducers'
 import { apiSlice } from '../features/api/apiSlice'
-import {callPlayerSlice} from "../features/callPlayer/callPlayerSlice"
 
 import thunk from 'redux-thunk';
 

@@ -10,7 +10,6 @@ import {
   Dropdown
 } from "semantic-ui-react";
 import "./FilterModal.css";
-import * as types from "./call-constants";
 
 function GroupModal (props) {
   const shortName = useSelector((state) => state.callPlayer.shortName);

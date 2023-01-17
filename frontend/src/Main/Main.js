@@ -1,5 +1,5 @@
 import React, { Component, useState, useEffect, useRef } from "react";
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import SystemCard from "../System/SystemCard";
 import "./Main.css";
 import { createMedia } from "@artsy/fresnel";
@@ -214,6 +214,7 @@ const Main = (props) => {
   const [visible, setVisible] = useState(true);
   const [duration, setDuration] = useState(500);
   const [currentSystem, setCurrentSystem] = useState(0);
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const {data:systems, isSuccess} = useGetSystemsQuery();   //= selectAllSystems();
   
@@ -276,13 +277,13 @@ const Main = (props) => {
         <Grid.Column  style={{ paddingBottom: '4em', paddingTop: '2em', maxWidth: 450  }}>
         { system && (<Transition visible={visible} animation='pulse' duration={500}>
 
-        <SystemCard keepShort={true} system={system} key={system.shortName} onClick={(e) => props.changeUrl("/system/" + system.shortName)}/>
+        <SystemCard keepShort={true} system={system} key={system.shortName} onClick={(e) => navigate("/system/" + system.shortName)}/>
 
       </Transition>)}
         </Grid.Column>
         <Grid.Column style={{ paddingBottom: '0em', paddingTop: '6em', maxWidth: 450  }}>
         <Link to="/systems">
-        <Button primary size='huge' id="listen" animated>
+        <Button primary size='huge' id="listen" animated onClick={(e) => navigate("/system/" + system.shortName)}>
           <Button.Content visible><Icon name='headphones' />
           <Icon name='right arrow' /></Button.Content>
           <Button.Content hidden>Listen</Button.Content>
