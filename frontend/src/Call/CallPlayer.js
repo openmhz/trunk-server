@@ -5,7 +5,7 @@ import MediaPlayer from "./MediaPlayer";
 import FilterModal from "./FilterModal";
 import GroupModal from "./GroupModal";
 import SupportModal from "./SupportModal";
-import CalendarModal from "./CalendarModalContainer";
+import CalendarModal from "./CalendarModal";
 import CallInfo from "./CallInfo";
 import ListCalls from "./ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
@@ -50,9 +50,7 @@ function CallPlayer(props) {
 
 
   const [autoPlay, setAutoPlay] = useState(true);
-  const [addCallScroll, setAddCallScroll] = useState(false);
   const [currentCall, setCurrentCall] = useState(false);
-  const [prevScrollHeight, setPrevScrollHeight] = useState(0);
   const [urlOptions, setUrlOptions] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [sidebarOpened, setSidebarOpened] = useState(false);
@@ -155,13 +153,10 @@ function CallPlayer(props) {
       case 'calls':
         const ref = positionRef.current;
         pageYOffset.current = positionRef.current.clientHeight;
-        setPrevScrollHeight(positionRef.current.clientHeight);
-        console.log("Prior to setAddCallScroll, addCallScroll was: " + addCallScroll);
-        setAddCallScroll(true);
+
         if (shouldPlayAddCallRef.current) {
           setCurrentCall(message);
         }
-        console.log("Prior to addCall, addCallScroll was: " + addCallScroll);
         dispatch(addCall(message));
 
         console.log("Got: " + message._id);
@@ -349,7 +344,7 @@ function CallPlayer(props) {
   useLayoutEffect( () => {
     const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current);
     if (scrollAmount > 0) {
-      console.log("useLayoutEffect for callsData - state prevScrollHeight: " + prevScrollHeight + " ref: " + pageYOffset.current + " current: " + positionRef.current.clientHeight + " Scroll Amount: " + scrollAmount)
+      console.log("useLayoutEffect for callsData -  ref: " + pageYOffset.current + " current: " + positionRef.current.clientHeight + " Scroll Amount: " + scrollAmount)
       window.scrollBy(0, scrollAmount);
     }
   }, [callsData])

@@ -11,10 +11,10 @@ import 'semantic-ui-css/semantic.min.css'
 //import withTracker from './withTracker';
 
 // Main
-import MainContainer from "./Main/MainContainer"
+import Main from "./Main/Main"
 
 // System
-import ListSystemsContainer from "./System/ListSystemsContainer"
+import ListSystems from "./System/ListSystems"
 
 // Call
 import CallPlayer from "./Call/CallPlayer"
@@ -30,8 +30,8 @@ root.render(
   <Provider store={store}>
   <BrowserRouter>
         <Routes>
-          <Route exact path="/" element={<MainContainer/>} />
-          <Route exact path="/systems" element={<ListSystemsContainer/>} />
+          <Route exact path="/" element={<Main/>} />
+          <Route exact path="/systems" element={<ListSystems/>} />
           <Route exact path="/system/:shortName" element={<CallPlayer/>} />
           <Route exact path="/about" element={<AboutComponent/>} />
 
