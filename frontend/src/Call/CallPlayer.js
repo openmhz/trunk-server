@@ -508,7 +508,7 @@ function CallPlayer(props) {
             style={{ minHeight: '100vh' }}
           >
             <div ref={loadNewerRef} />
-            <ListCalls callsData={callsData} activeCallId={currentCallId} talkgroups={talkgroupsData?talkgroupsData.talkgroups:false} playCall={playCall} />
+            <ListCalls callsData={callsData} activeCallId={isPlaying?currentCallId:false} talkgroups={talkgroupsData?talkgroupsData.talkgroups:false} playCall={playCall} />
             <div ref={loadOlderRef} style={{ height: 50 }} />
 
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 import CallItem from "./CallItem";
 import {
   Icon,
@@ -17,7 +17,6 @@ const ListCalls = (props) => {
     useEffect(() => {
       if (activeCallRef.current) {
         activeCallRef.current.scrollIntoView({
-          behavior: "smooth",
           block: "center",
         });
     }
