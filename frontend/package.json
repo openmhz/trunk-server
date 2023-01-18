@@ -13,17 +13,20 @@
     "date-fns": "2.29.3",
     "ejs": "3.1.8",
     "history": "^5.3.0",
+    "mongodb": "^4.13.0",
     "react": "^18.2.0",
     "react-audio-player": "0.17.0",
     "react-datepicker": "4.8.0",
     "react-dom": "^18.2.0",
     "react-ga": "^3.3.1",
+    "react-intersection-observer": "^9.4.1",
     "react-redux": "^8.0.5",
     "react-router-dom": "6.6.1",
     "react-scripts": "5.0.1",
     "redux-thunk": "2.4.2",
     "semantic-ui-css": "2.5.0",
-    "semantic-ui-react": "2.1.4"
+    "semantic-ui-react": "2.1.4",
+    "socket.io-client": "^4.5.4"
   },
   "scripts": {
     "start": "react-scripts start",

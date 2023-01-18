@@ -1,12 +1,18 @@
-import React from "react";
-import { Link } from 'react-router-dom';
+import React, { useEffect, useLayoutEffect, useState, useRef } from "react";
+import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
+
 import MediaPlayer from "./MediaPlayer";
-import FilterModal from "./FilterModalContainer";
-import GroupModal from "./GroupModalContainer";
+import FilterModal from "./FilterModal";
+import GroupModal from "./GroupModal";
 import SupportModal from "./SupportModal";
-import CalendarModal from "./CalendarModalContainer";
+import CalendarModal from "./CalendarModal";
 import CallInfo from "./CallInfo";
 import ListCalls from "./ListCalls";
+import { useSelector, useDispatch } from 'react-redux'
+import { setLive, setFilter,setDateFilter } from "../features/callPlayer/callPlayerSlice";
+import { getCalls, getOlderCalls, getNewerCalls, addCall } from "../features/calls/callsSlice";
+import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
+import { useInView } from 'react-intersection-observer';
 import {
   Container,
   Label,
@@ -14,304 +20,251 @@ import {
   Sticky,
   Menu,
   Icon,
-  Sidebar,
-  Visibility
+  Sidebar
 } from "semantic-ui-react";
 import "./CallPlayer.css";
-//import setupSocket from '../socket/SetupSocket.js'
 import queryString from '../query-string';
+import io from 'socket.io-client';
 
 
 
-
+const socket = io(process.env.REACT_APP_BACKEND_SERVER);
 
 
 // ----------------------------------------------------
-class CallPlayer extends React.Component {
+function CallPlayer(props) {
 
-  constructor(props) {
-    super(props);
-    this.loadNewerCalls = this.loadNewerCalls.bind(this);
-    this.loadOlderCalls = this.loadOlderCalls.bind(this);
-    this.playCall = this.playCall.bind(this);
-    this.updateUri = this.updateUri.bind(this);
-    this.switchAutoPlay = this.switchAutoPlay.bind(this);
-    this.callEnded = this.callEnded.bind(this);
-    this.addCall = this.addCall.bind(this);
-    this.handlePusherClick = this.handlePusherClick.bind(this);
-    this.handleSidebarToggle = this.handleSidebarToggle.bind(this);
-    this.handleFilterClose = this.handleFilterClose.bind(this);
-    this.handleGroupClose = this.handleGroupClose.bind(this);
-    this.handleCalendarToggle = this.handleCalendarToggle.bind(this);
-    this.handleCalendarClose = this.handleCalendarClose.bind(this);
-    this.handleLiveToggle = this.handleLiveToggle.bind(this);
-    this.handlePlayPause = this.handlePlayPause.bind(this);
-    this.getFilter = this.getFilter.bind(this);
-    this.socket = window.socket;
-    this.setupSocket = this.setupSocket.bind(this);
-    this.endSocket = this.endSocket.bind(this);
-    this.changeUrl = this.changeUrl.bind(this);
-    this.audioRef = React.createRef();
-    this.currentCallRef = React.createRef();
-    this.state = {
-      requestMessage: "",
-      callUrl: "",
-      autoPlay: true,
-      callId: false,
-      playTime: 0,
-      callScroll: false,
-      callSelect: false,
-      urlOptions: false,
-      isPlaying: false,
-      sidebarOpened: false,
-      filterVisible: false,
-      groupVisible: false,
-      calendarVisible: false
+  const { shortName } = useParams();
+  const { ref: loadOlderRef, inView: loadOlderInView } = useInView({
+    /* Optional options */
+    threshold: 0.5
+  });
+  const { ref: loadNewerRef, inView: loadNewerInView } = useInView({
+    /* Optional options */
+    threshold: 0.5
+  });
+  const { data: groupsData, isSuccess: isGroupsSuccess } = useGetGroupsQuery(shortName);
+  const { loading: callsLoading, data: callsData } = useSelector((state) => state.calls);
+  const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
+
+
+  const [autoPlay, setAutoPlay] = useState(true);
+  const [currentCall, setCurrentCall] = useState(false);
+  const [urlOptions, setUrlOptions] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [sidebarOpened, setSidebarOpened] = useState(false);
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [groupVisible, setGroupVisible] = useState(false);
+  const [calendarVisible, setCalendarVisible] = useState(false);
+  const [isConnected, setIsConnected] = useState(socket.connected);
+  const [loadCallId, setLoadCallId] = useState(false);
+
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const positionRef = useRef(); // lets us get the Y Scroll offset for the Call List
+  const pageYOffset = useRef(); // Store the current Scroll Offset in a way that guarantees the latest value is available when Call Data is updated
+  const shouldPlayAddCallRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
+  shouldPlayAddCallRef.current = (!isPlaying && autoPlay)?true:false;
+
+  const filterType = useSelector((state) => state.callPlayer.filterType);
+  const filterGroupId = useSelector((state) => state.callPlayer.filterGroupId);
+  const filterTalkgroups = useSelector((state) => state.callPlayer.filterTalkgroups);
+  const filterStarred = useSelector((state) => state.callPlayer.filterStarred);
+  const filterDate = useSelector((state) => state.callPlayer.filterDate);
+  const live = useSelector((state) => state.callPlayer.live);
+  const uri = queryString.parse(useLocation().search);
+  const pathname = useLocation().pathname;
+
+  let currentCallId = false;
+
+
+  if (currentCall) {
+    currentCallId = currentCall._id;
+  }
+
+  const handlePlayPause = (playing) => {
+    setIsPlaying(playing);
+  }
+
+  const handlePusherClick = () => {
+    if (sidebarOpened) setSidebarOpened(false);
+  }
+
+  const handleAutoPlay = (currentAutoPlay) => {
+    setAutoPlay(!currentAutoPlay);
+  }
+  const handleSidebarToggle = () => setSidebarOpened(!sidebarOpened);
+  const handleFilterToggle = () => setFilterVisible(!filterVisible);
+  const handleCalendarToggle = () => setCalendarVisible(!calendarVisible);
+
+  const playCall = (data) => {
+    setCurrentCall(data.call);
+    setIsPlaying(true);
+  }
+
+
+  const callEnded = () => {
+    if (callsData) {
+      const currentIndex = callsData.ids.findIndex(callId => callId === currentCallId);
+      if (autoPlay && (currentIndex > 0)) {
+        const nextCallId = callsData.ids[currentIndex - 1];
+        const nextCall = callsData.entities[nextCallId];
+
+        setCurrentCall(nextCall);
+        setIsPlaying(true);
+      } else {
+        setIsPlaying(false);
+      }
+    } else {
+      console.log("Somehow called, callEnded() but callsData was false");
     }
   }
 
-  switchAutoPlay = () => this.setState({
-    autoPlay: !this.state.autoPlay
-  })
-  handlePlayPause = (playing) => this.setState({
-    isPlaying: playing
-  })
-  handlePusherClick = () => {
-    const { sidebarOpened } = this.state
+  const getFilterDescription = () => {
 
-    if (sidebarOpened) this.setState({ sidebarOpened: false })
-  }
-
-  handleSidebarToggle = () => this.setState({ sidebarOpened: !this.state.sidebarOpened })
-
-  handleFilterToggle = () => this.setState({
-    filterVisible: !this.state.filterVisible
-  })
-
-  handleContextRef = contextRef => this.setState({ contextRef })
-  changeUrl = url => this.props.callActions.changeUrl(url)
-
-  loadNewerCalls() {
-
-    console.log("Loading Newer Calls");
-    this.props.callActions.fetchNewerCalls(this.props.newestCallTime.getTime());
-  }
-
-  loadOlderCalls() {
-
-    console.log("Loading Older Calls");
-    this.props.callActions.fetchOlderCalls(this.props.oldestCallTime.getTime());
-
-  }
-
-  handleCalendarToggle = () => this.setState({
-    calendarVisible: !this.state.calendarVisible
-  })
-
-  getFilter() {
     var filter = { type: 'all', code: "", filterStarred: false };
-    switch (this.props.filterType) {
+
+    switch (filterType) {
       case 1:
         filter.type = "group";
-        filter.code = this.props.filterGroupId;
+        filter.code = filterGroupId
         break;
       case 2:
         filter.type = "talkgroup";
-        filter.code = this.props.filterTalkgroups;
+        filter.code = filterTalkgroups
         break;
       default:
       case 0:
         filter.type = "all";
         filter.code = ""
     }
-    filter.filterStarred = this.props.filterStarred;
+    filter.filterStarred = filterStarred
     return filter;
   }
-  endSocket() {
-    this.socket.removeAllListeners("new message");
-    this.socket.removeAllListeners("reconnect");
-  }
-  setupSocket() {
-    this.socket.on('new message', this.addCall);
-    this.socket.on('reconnect', (attempts) => {
-      console.log("Socket Reconnected after attempts: " + attempts); // true
-      if (this.props.live) {
-        var filter = this.getFilter();
-        this.startSocket(this.props.shortName, filter.type, filter.code, filter.filterStarred);
-      }
-    })
-  }
-  startSocket(shortName, filterType = "", filterCode = "", filterStarred = false) {
-    this.socket.emit("start", {
-      filterCode: filterCode,
-      filterType: filterType,
-      filterName: "OpenMHz",
-      filterStarred: filterStarred,
-      shortName: shortName
-    });
-  }
-  stopSocket() {
-    this.socket.emit("stop");
-  }
-  handleLiveToggle() {
-    if (!this.props.live) {
-      this.props.callActions.setDateFilter(false);
-      this.props.callActions.setLive(false);
-      this.setState({ callUrl: "", callId: false });
-      this.props.callActions.fetchCalls();
-      var filter = this.getFilter();
-      this.startSocket(this.props.shortName, filter.type, filter.code, filter.filterStarred);
+
+
+  const handleSocketMessage = (data) => {
+    const message = JSON.parse(data)
+    switch (message.type) {
+      case 'calls':
+
+        pageYOffset.current = positionRef.current.clientHeight;
+
+        if (shouldPlayAddCallRef.current) {
+          setCurrentCall(message);
+        }
+        dispatch(addCall(message));
+
+        console.log("Got: " + message._id);
+        break
+      default:
+        break
     }
   }
 
-  updateUri(props, state) {
+  const startSocket = () => {
+    const filter = getFilterDescription();
+
+    socket.emit("start", {
+      filterCode: filter.code,
+      filterType: filter.type,
+      filterName: "OpenMHz",
+      filterStarred: filter.starred,
+      shortName: shortName
+    });
+  }
+  const stopSocket = () => {
+    socket.emit("stop");
+  }
+
+  const updateUri = () => {
     var search = "?"
-    switch (props.filterType) {
+    switch (filterType) {
 
       case 1:
-        search = search + `filter-type=group&filter-code=${props.filterGroupId}`;
+        search = search + `filter-type=group&filter-code=${filterGroupId}`;
         break;
       case 2:
-        search = search + `filter-type=talkgroup&filter-code=${props.filterTalkgroups}`;
+        search = search + `filter-type=talkgroup&filter-code=${filterTalkgroups}`;
         break;
       default:
       case 0:
         break;
 
     }
-    if (state.callId) {
+    if (loadCallId) {
       if (search.length !== 1) {
         search = search + '&';
       }
-      search = search + `call-id=${state.callId}`
+      search = search + `call-id=${loadCallId}`
     }
-    if (props.filterDate) {
+    if (filterDate) {
       if (search.length !== 1) {
         search = search + '&';
       }
-      search = search + `time=${props.filterDate}`;
+      search = search + `time=${filterDate}`;
     }
 
-    if (props.filterStarred) {
+    if (filterStarred) {
       if (search.length !== 1) {
         search = search + '&';
       }
       search = search + `starred=true`;
     }
+    navigate(pathname + search, { replace: true });
 
-    this.props.history.push({
-      pathname: this.props.history.location.pathname,
-      search: search
-    });
   }
 
-  handleCalendarClose(didUpdate) {
-    this.setState({
-      calendarVisible: !this.state.calendarVisible
-    });
+  const handleLiveToggle = (currentlyLive) => {
+    if (!live) {
+      dispatch(setDateFilter(false));
+      dispatch(setLive(true));
+      setCurrentCall(false);
+      dispatch(getCalls({}));
+
+      startSocket();
+    }
+  }
+
+  const handleCalendarClose = (didUpdate) => {
+    setCalendarVisible(!calendarVisible);
+
     if (didUpdate) {
-      this.props.callActions.setLive(false);
-      this.props.callActions.fetchCalls();
-
-      this.setState({ callUrl: "", callId: false });
-      this.stopSocket();
-      //this.socket.close();
-
+      dispatch(setLive(false));
+      setCurrentCall(false);
+      stopSocket();
     }
   }
 
-  handleGroupClose(didUpdate) {
-    this.setState({
-      groupVisible: !this.state.groupVisible
-    });
-    this.props.callActions.fetchCalls();
+  const handleGroupClose = (didUpdate) => {
+    setGroupVisible(!groupVisible);
   }
 
-  handleFilterClose(didUpdate) {
-    this.setState({
-      filterVisible: !this.state.filterVisible
-    });
+  const handleFilterClose = (didUpdate) => {
+    setFilterVisible(!filterVisible);
+
     if (didUpdate) {
-      this.setState({ callUrl: "", callId: false });
-      this.props.callActions.fetchCalls();
+      setCurrentCall(false);
     }
   }
 
-  callEnded(data) {
-    const audio = this.audioRef.current;
-    const currentIndex = this.props.callsAllIds.findIndex(callId => callId === this.state.callId);
-    if (this.state.autoPlay && (currentIndex > 0)) {
-      const nextCallId = this.props.callsAllIds[currentIndex - 1];
-      const nextCall = this.props.callsById[nextCallId];
-      var callUrl = nextCall.url;
 
-      this.setState({ callUrl: callUrl, callId: nextCallId, isPlaying: true }, () => { audio.playSource(callUrl) }); //scrollToComponent(this.currentCallRef.current);
-      if (this.currentCallRef.current) {
-        this.currentCallRef.current.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-      this.props.callActions.fetchCallInfo(nextCallId);
-    } else {
-      this.setState({ isPlaying: false });
-    }
-  }
-
-  playCall(data) {
-    const audio = this.audioRef.current;
-    var callUrl = data.call.url;
-    this.setState({
-      callUrl: callUrl,
-      callId: data.call._id,
-      isPlaying: true
-    }, () => { audio.playSource(callUrl); }); //scrollToComponent(this.currentCallRef.current);
-    this.props.callActions.fetchCallInfo(data.call._id);
-  }
-
-  addCall(data) {
-    const message = JSON.parse(data)
-    switch (message.type) {
-      case 'calls':
-        const refs = this.refs.current;
-        this.props.callActions.addCall(message);
-        const newCall = this.props.callsById[this.props.callsAllIds[0]];
-        if (!this.state.isPlaying && this.state.autoPlay) {
-          this.playCall({ call: newCall });
-          if (this.currentCallRef.current) {
-            this.currentCallRef.current.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-          }
-        }
-        break
-      default:
-        break
-    }
-  }
-  componentWillUnmount() {
-    this.endSocket();
-  }
-  componentDidMount() {
-    //const parsed = queryString.parse(location.search);
-    //console.log(parsed);
-    this.props.callActions.setShortName(this.props.shortName);
+  const setStateFromUri = async () => {
     var filter = {
       filterDate: false,
       filterType: 0,  // this is "all"
       filterTalkgroups: [],
       filterGroupId: false,
       filterStarred: false,
-      live: true
+      live: true,
+      shortName: shortName
     };
-    const uri = queryString.parse(this.props.location.search);
 
     // is there a star filter?
     if (uri.hasOwnProperty('starred')) {
       const starred = uri['starred'];
       filter.filterStarred = starred === 'true' ? true : false;
-      this.setState({ urlOptions: true });
+      if (!urlOptions) setUrlOptions(true);
     }
 
     // is there a time based filter?
@@ -319,42 +272,25 @@ class CallPlayer extends React.Component {
       const date = new Date(parseInt(uri['time']));
       filter.filterDate = date.getTime();
       filter.live = false;
-      this.setState({ urlOptions: true });
+      if (!urlOptions) setUrlOptions(true);
     }
 
     // is this just for one call?
     if (uri.hasOwnProperty('call-id')) {
       const _id = uri['call-id'];
-      const date = new Date(parseInt(uri['time']));
-
-      filter.live = false;
-      this.setState({
-        callId: _id,
-        urlOptions: true,
-        autoPlay: false,
-        callScroll: true,
-        callSelect: true
-      });
-      this.props.callActions.fetchCallInfo(_id);
-      this.props.callActions.setCallTime(date);
-
-
+      setLoadCallId(_id);
+      setAutoPlay(false);
+      if (!urlOptions) setUrlOptions(true);
     }
-
-
-    var filterType = "all";
-    var filterCode = "";
 
     // is there a Filter set?
     if ((uri.hasOwnProperty('filter-code')) && (uri.hasOwnProperty('filter-type'))) {
-      this.setState({ urlOptions: true });
+      if (!urlOptions) setUrlOptions(true);
 
       // The Filter is a group
       if (uri['filter-type'] === "group") {
         filter.filterType = 1;
         filter.filterGroupId = uri["filter-code"];
-        filterType = "group";
-        filterCode = uri["filter-code"];
       }
 
       // The Filter is talkgroups
@@ -362,256 +298,227 @@ class CallPlayer extends React.Component {
         const tg = uri["filter-code"].split(',').map(Number);
         filter.filterType = 2;
         filter.filterTalkgroups = tg;
-        filterType = "talkgroup";
-        filterCode = tg;
       }
     }
 
-    this.props.callActions.setFilter(filter);
-
-    // When a time/date is provided in the URL, it will be added to the filter
-    // When fetchCalls is called it will selected calls that are older
-    this.props.callActions.fetchCalls();
-    this.props.talkgroupActions.fetchTalkgroups(this.props.shortName);
-    this.props.groupActions.fetchGroups(this.props.shortName);
-    this.props.systemActions.fetchSystems();
-    this.setupSocket();
-
-    if (filter.live) {
-      this.startSocket(this.props.shortName, filterType, filterCode, filter.filterStarred);
-    }
-  }
-  compareArray(a1, a2) {
-    var i = a1.length;
-    while (i--) {
-      if (a1[i] !== a2[i])
-        return false;
-    }
-    return true
+    dispatch(setFilter(filter));
   }
 
-  componentWillUpdate(nextProps, nextState) {
-    if (!this.props.groups && nextProps.groups) {
-      if (!this.state.urlOptions && (nextProps.groups.length > 0)) {
-        this.setState({
-          groupVisible: true
-        });
-      }
+  useEffect(() => {
+    if (loadNewerInView && callsData && (callsData.ids.length > 0)) {
+      dispatch(getNewerCalls({}));
     }
+  }, [loadNewerInView]);
 
-    const filterChanged = (nextProps.filterType !== this.props.filterType) || !this.compareArray(nextProps.filterTalkgroups, this.props.filterTalkgroups) || (nextProps.filterGroupId !== this.props.filterGroupId) || (nextProps.filterDate !== this.props.filterDate) || (nextProps.filterStarred !== this.props.filterStarred);
-    if (filterChanged) {
-      var typeString = 'all';
-      var filterCode = '';
-      switch (nextProps.filterType) {
 
-        case 1:
-          typeString = 'group';
-          filterCode = nextProps.filterGroupId;
-          break;
-        case 2:
-          typeString = 'talkgroup';
-          filterCode = nextProps.filterTalkgroups;
-          break;
-        default:
-        case 0:
-          typeString = "all";
-          filterCode = '';
-          break;
-      }
-
-      this.updateUri(nextProps, nextState);
-      if (this.props.live) {
-        this.startSocket(this.props.shortName, typeString, filterCode, nextProps.filterStarred);
-      }
+  useEffect(() => {
+    if (loadOlderInView && callsData && (callsData.ids.length > 0)) {
+      dispatch(getOlderCalls({}));
     }
+  }, [loadOlderInView]);
 
-    const callsChanged = nextProps.callsAllIds[0] !== this.props.callsAllIds[0];
-    if (callsChanged) {
-      const { contextRef } = this.state;
-      this.scrollPos = contextRef.scrollTop;
-      this.prevHeight = contextRef.clientHeight;
-      this.autoScroll = true;
-    }
-    /* // if you do this, you also need to update time in the URI to be the call time...
-    if (this.state.callId != nextState.callId) {
-      this.updateUri(nextProps, nextState);
-    }*/
-
-    if (this.state.callId && !this.state.callUrl) {
-      const call = this.props.callsById[this.state.callId];
+  useEffect(() => {
+    if ( loadCallId && callsData) {
+      const call = callsData.entities[loadCallId];
       if (call) {
-        this.setState({ callUrl: call.url });
+        setCurrentCall(call);
       }
     }
+  }, [callsData])
+
+  useLayoutEffect( () => {
+    const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current);
+    if (scrollAmount > 0) {
+      console.log("useLayoutEffect for callsData -  ref: " + pageYOffset.current + " current: " + positionRef.current.clientHeight + " Scroll Amount: " + scrollAmount)
+      window.scrollBy(0, scrollAmount);
+    }
+  }, [callsData])
+
+/*
+  useEffect(() => {
+
+  }, [callsData]);
+*/
+  useEffect(() => {
+    setStateFromUri();
+    return () => {
+      stopSocket();
+    };
+  }, []);
+
+  useEffect(() => {
+    socket.on('connect', () => {
+      setIsConnected(true);
+    });
+
+    socket.on('disconnect', () => {
+      setIsConnected(false);
+    });
+
+    socket.on('reconnect', (attempts) => {
+      console.log("Socket Reconnected after attempts: " + attempts); // true
+
+      if (live) {
+        this.startSocket();
+      }
+    })
+
+    socket.on("new message", handleSocketMessage );
+
+    return () => {
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('pong');
+    };
+  }, []);
+
+  useEffect(() => {
+    dispatch(getCalls({}));
+    if (live) {
+      startSocket();
+    }
+  }, [shortName, filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred])
+
+
+  // Update the Browser URI when any relevant values change
+  useEffect(() => {
+    updateUri();
+  }, [filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred, loadCallId])
+
+
+  useEffect(() => {
+    if (!urlOptions && groupsData && (groupsData.length > 0)) {
+      setGroupVisible(true);
+    }
+  }, [groupsData])
+
+
+
+  var archiveLabel = "";
+  if (filterDate) {
+    const filterDateObj = new Date(filterDate);
+    archiveLabel = filterDateObj.toLocaleDateString() + " " + filterDateObj.toLocaleTimeString()
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    const { contextRef } = this.state
-    //console.log( contextRef.clientHeight - this.prevHeight );
-    if (this.autoScroll) {
-      this.autoScroll = false;
-      window.scrollBy(0, contextRef.clientHeight - this.prevHeight);
+  var callInfoHeader = "Call Info";
+  var callLink = ""
+  var callDownload = ""
+  if (currentCall) {
+    if ((talkgroupsData) && talkgroupsData[currentCall.talkgroupNum]) {
+      callInfoHeader = talkgroupsData[currentCall.talkgroupNum].description;
     }
+    const callDate = new Date(currentCall.time);
+    var search = ""
+    switch (filterType) {
 
-    // scroll to a call once the calls have loaded
-    if (this.state.callScroll && (this.props.callsAllIds.length > prevProps.callsAllIds.length)) {
-      const call = this.props.callsById[this.state.callId];
-      if (call) {
-        this.setState({ callScroll: false });
-        if (this.currentCallRef.current) {
-          this.currentCallRef.current.scrollIntoView({
-            behavior: "auto",
-            block: "center",
-          });
-        }
-        this.scrollPos = contextRef.scrollTop;
-        this.prevHeight = contextRef.clientHeight;
-      }
-    }
-
-    if (this.state.callSelect) {
-      const call = this.props.callsById[this.state.callId];
-      if (call) {
-        const audio = this.audioRef.current;
-        var callUrl = call.url;
-        this.setState({
-          callUrl: callUrl,
-          isPlaying: true,
-          callSelect: false
-        }, () => { audio.playSource(callUrl); }); //scrollToComponent(this.currentCallRef.current);
-      }
-    }
-  }
-
-  //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
-  //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
-  render() {
-    const { contextRef } = this.state
-    const { sidebarOpened } = this.state
-    var archiveLabel = "";
-    if (this.props.filterDate) {
-      const filterDate = new Date(this.props.filterDate);
-      archiveLabel = filterDate.toLocaleDateString() + " " + filterDate.toLocaleTimeString()
-    }
-
-    var callInfoHeader = "Call Info";
-
-    const currentCall = this.props.callsById[this.state.callId];
-
-    var callLink = ""
-    var callDownload = ""
-    if (currentCall) {
-      if ((this.props.talkgroups) && this.props.talkgroups[currentCall.talkgroupNum]) {
-        callInfoHeader = this.props.talkgroups[currentCall.talkgroupNum].description;
-      }
-      const callDate = new Date(currentCall.time);
-      callLink = "/system/" + this.props.shortName + "?call-id=" + currentCall._id + "&time=" + (callDate.getTime() + 1);
-      callDownload = currentCall.url;
-    }
-    var archive = process.env.REACT_APP_ARCHIVE_DAYS
-
-    var filterLabel = "All"
-    switch (this.props.filterType) {
       case 1:
-        filterLabel = "Group"
+        search = `filter-type=group&filter-code=${filterGroupId}&`;
         break;
-
       case 2:
-        filterLabel = "Talkgroups"
+        search = `filter-type=talkgroup&filter-code=${filterTalkgroups}&`;
         break;
       default:
       case 0:
-        filterLabel = "All"
+        break;
+
     }
-    /*    if (this.props.calls) {
-      var callRows = calls.map((call) =>
-        <CallItem call={call} key={call.shortName}/>
-      ))
-    }*/
-    return (
-      <div ref={this.handleContextRef}>
-        <FilterModal shortName={this.props.shortName} open={this.state.filterVisible} onClose={this.handleFilterClose} />
-        <CalendarModal open={this.state.calendarVisible} onClose={this.handleCalendarClose} archive={archive} key={this.props.shortName} />
-        <GroupModal shortName={this.props.shortName} open={this.state.groupVisible} onClose={this.handleGroupClose} />
-        
-        <Sidebar as={Menu} animation='overlay' inverted vertical visible={sidebarOpened}
-          onClick={this.handlePusherClick} duration={50} width='thin'>
-          <Menu.Item onClick={this.handlePusherClick} >
-            <span> </span><Icon name="close" inverted={true} link={true} size='small' /></Menu.Item>
-          <Link to="/"><Menu.Item link>Home</Menu.Item></Link>
-          <Link to="/systems"><Menu.Item link>Systems</Menu.Item></Link>
-          <Link to="/about"><Menu.Item link>About</Menu.Item></Link>
-        </Sidebar>
-        <Menu fixed="top">
-          <Menu.Item onClick={this.handleSidebarToggle}>
-            <Icon name='sidebar' />
-          </Menu.Item>
-          <Menu.Item name='filter-btn' onClick={this.handleFilterToggle}>
-            <Icon name="filter" />
-            <span className="desktop-only">Filter</span>
-            <Label horizontal={true} color="grey" className="desktop-only">{filterLabel}</Label>
-          </Menu.Item>
-          <Container className="desktop-only" textAlign='center' style={{ fontSize: '1.5rem', paddingLeft: '1em', paddingTop: '.5em' }}>
-            {this.props.system && this.props.system.name}
-          </Container>
-          <Menu.Menu position="right">
-            <Menu.Item name='archive-btn' onClick={this.handleCalendarToggle} active={!this.props.live}>
-              <Icon name="calendar" />
-              <span className="desktop-only">
-                {
-                  archiveLabel
-                    ? archiveLabel
-                    : "Archive"
-                }
-              </span>
-            </Menu.Item>
-            <Menu.Item name='live-btn' onClick={this.handleLiveToggle} active={this.props.live}>
-              <Icon name="unmute" />
-              <span className="desktop-only">Live</span>
-            </Menu.Item>
-          </Menu.Menu>
-        </Menu>
-
-
-
-
-        <Container className="main">
-          <Sidebar.Pushable>
-            <Sidebar.Pusher
-              onClick={this.handlePusherClick}
-              style={{ minHeight: '100vh' }}
-            >
-              <Visibility onTopVisible={this.loadNewerCalls} onBottomVisible={this.loadOlderCalls} once={false}>
-                <ListCalls callsAllIds={this.props.callsAllIds} currentCallRef={this.currentCallRef} callsById={this.props.callsById} activeCallId={this.state.callId} talkgroups={this.props.talkgroups} playCall={this.playCall} />
-              </Visibility>
-            </Sidebar.Pusher>
-          </Sidebar.Pushable>
-          <Rail position='right' className="desktop-only" dimmed={sidebarOpened ? "true" : "false"} >
-            <Sticky context={contextRef} offset={60}>
-              <CallInfo call={currentCall} header={callInfoHeader} link={callLink}/>
-            </Sticky>
-          </Rail>
-        </Container>
-
-        <Menu fixed="bottom" compact inverted >
-          <Menu.Item active={this.state.autoPlay} onClick={() => this.switchAutoPlay()}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
-          <MediaPlayer ref={this.audioRef} call={currentCall} onEnded={this.callEnded} onPlayPause={this.handlePlayPause} />
-          <Menu.Menu position="right" className="desktop-only">
-            <Menu.Item><SupportModal/></Menu.Item>
-            <Menu.Item><a href={callDownload}><Icon name="download" />Download</a></Menu.Item>
-            <Menu.Item><a href={callLink}><Icon name="at" />Link</a></Menu.Item>
-          </Menu.Menu>
-        </Menu>
-
-      </div>
-
-
-
-
-
-    );
+    callLink = "/system/" + shortName + "?" + search + "call-id=" + currentCall._id + "&time=" + (callDate.getTime() + 1);
+    callDownload = currentCall.url;
   }
+
+  const archive = process.env.REACT_APP_ARCHIVE_DAYS
+
+  var filterLabel = "All"
+  switch (filterType) {
+    case 1:
+      filterLabel = "Group"
+      break;
+
+    case 2:
+      filterLabel = "Talkgroups"
+      break;
+    default:
+    case 0:
+      filterLabel = "All"
+  }
+
+  return (
+    <div ref={positionRef}>
+      <FilterModal shortName={shortName} open={filterVisible} onClose={handleFilterClose} />
+      <CalendarModal open={calendarVisible} onClose={handleCalendarClose} archive={archive} key={shortName} />
+      <GroupModal shortName={shortName} open={groupVisible} onClose={handleGroupClose} />
+
+      <Sidebar as={Menu} animation='overlay' inverted vertical visible={sidebarOpened}
+        onClick={handlePusherClick} duration={50} width='thin'>
+        <Menu.Item onClick={handlePusherClick} >
+          <span> </span><Icon name="close" inverted={true} link={true} size='small' /></Menu.Item>
+        <Link to="/"><Menu.Item link>Home</Menu.Item></Link>
+        <Link to="/systems"><Menu.Item link>Systems</Menu.Item></Link>
+        <Link to="/about"><Menu.Item link>About</Menu.Item></Link>
+      </Sidebar>
+      <Menu fixed="top">
+        <Menu.Item onClick={handleSidebarToggle}>
+          <Icon name='sidebar' />
+        </Menu.Item>
+        <Menu.Item name='filter-btn' onClick={handleFilterToggle}>
+          <Icon name="filter" />
+          <span className="desktop-only">Filter</span>
+          <Label horizontal={true} color="grey" className="desktop-only">{filterLabel}</Label>
+        </Menu.Item>
+        <Container className="desktop-only" textAlign='center' style={{ fontSize: '1.5rem', paddingLeft: '1em', paddingTop: '.5em' }}>
+          {/*system && system.name*/}
+        </Container>
+        <Menu.Menu position="right">
+          <Menu.Item name='archive-btn' onClick={handleCalendarToggle} active={!live}>
+            <Icon name="calendar" />
+            <span className="desktop-only">
+              {
+                archiveLabel
+                  ? archiveLabel
+                  : "Archive"
+              }
+            </span>
+          </Menu.Item>
+          <Menu.Item name='live-btn' onClick={handleLiveToggle} active={live}>
+            <Icon name="unmute" />
+            <span className="desktop-only">Live</span>
+          </Menu.Item>
+        </Menu.Menu>
+      </Menu>
+
+      <Container className="main">
+        <Sidebar.Pushable>
+          <Sidebar.Pusher
+            onClick={handlePusherClick}
+            style={{ minHeight: '100vh' }}
+          >
+            <div ref={loadNewerRef} />
+            <ListCalls callsData={callsData} activeCallId={isPlaying?currentCallId:false} talkgroups={talkgroupsData?talkgroupsData.talkgroups:false} playCall={playCall} />
+            <div ref={loadOlderRef} style={{ height: 50 }} />
+
+
+          </Sidebar.Pusher>
+        </Sidebar.Pushable>
+        <Rail position='right' className="desktop-only" dimmed={sidebarOpened ? "true" : "false"} >
+          <Sticky offset={60} context={positionRef}>
+            <CallInfo call={currentCall} header={callInfoHeader} link={callLink} />
+          </Sticky>
+        </Rail>
+      </Container>
+
+      <Menu fixed="bottom" compact inverted >
+        <Menu.Item active={autoPlay} onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
+        <MediaPlayer call={currentCall} onEnded={callEnded} onPlayPause={handlePlayPause} />
+        <Menu.Menu position="right" className="desktop-only">
+          <Menu.Item><SupportModal /></Menu.Item>
+          <Menu.Item><a href={callDownload}><Icon name="download" />Download</a></Menu.Item>
+          <Menu.Item><a href={callLink}><Icon name="at" />Link</a></Menu.Item>
+        </Menu.Menu>
+      </Menu>
+
+    </div>
+  );
 }
+
 
 export default CallPlayer;

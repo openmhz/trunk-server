@@ -1,4 +1,7 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
+import { setGroupFilter, setTalkgroupFilter, setAllFilter, setStarredFilter } from "../features/callPlayer/callPlayerSlice";
+import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
+import { useSelector, useDispatch } from 'react-redux'
 import {
   Modal,
   Button,
@@ -12,136 +15,132 @@ import {
 import "./FilterModal.css";
 
 
-class FilterModal extends Component {
-  constructor(props) {
-    super(props)
-    this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleTabChange = this.handleTabChange.bind(this);
-    this.toggleStarred = this.toggleStarred.bind(this);
-    this.handleDone = this.handleDone.bind(this);
-    this.handleClose = this.handleClose.bind(this);
+function FilterModal(props) {
+  const globalFilterStarred = useSelector((state) => state.callPlayer.filterStarred);
+  const { data:groupsData, isSuccess:isGroupsSuccess } = useGetGroupsQuery(props.shortName);
+  const { data:talkgroupsData, isSuccess:isTalkgroupsSuccess } = useGetTalkgroupsQuery(props.shortName);
+  const [selectedTalkgroup, setSelectedTalkgroup] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState(false);
+  const [filterStarred, setFilterStarred] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const dispatch = useDispatch()
 
-    this.state = {
-      open: false,
-      selectedTalkgroup: this.props.selectedTalkgroups,
-      selectedGroup: this.props.selectedGroup,
-      filterStarred: this.props.filterStarred,
-      activeTab: this.props.activeTab
+  const handleTabChange = (e, data) => setActiveTab(data.activeIndex);
+  const handleGroupChange = (e, { name, value }) => setSelectedGroup(value);
+  const handleTalkgroupChange = (e, { name, value }) => setSelectedTalkgroup(value);
+  const toggleStarred = () => setFilterStarred(!filterStarred);
+  const handleClose = () => props.onClose(false);
+  const onClose = props.onClose;
+
+  function handleDone(onClose) {
+    switch (activeTab) {
+
+      case 1:
+        if (selectedGroup) {
+          dispatch(setGroupFilter(selectedGroup));
+          props.onClose(true);
+        } else {
+          props.onClose(false);
+        }
+        break;
+      case 2:
+        if (selectedTalkgroup) {
+          dispatch(setTalkgroupFilter(selectedTalkgroup))
+          props.onClose(true);
+        } else {
+          props.onClose(false);
+        }
+        break;
+      default:
+      case 0:
+        dispatch(setAllFilter());
+        props.onClose(true);
+        break;
     }
-}
+    if (globalFilterStarred !== filterStarred) {
+      dispatch(setStarredFilter(filterStarred));
+    }
 
-
-handleTabChange = (e, data) => this.setState({activeTab: data.activeIndex});
-handleInputChange = (e, { name, value }) => this.setState({ [name]: value });
-toggleStarred = () => this.setState(prevState => ({ filterStarred: !prevState.filterStarred }));
-handleClose = () => this.props.onClose(false);
-handleDone(event) {
-  switch(this.state.activeTab) {
-
-    case 1:
-      if (this.state.selectedGroup) {
-        this.props.callActions.setGroupFilter(this.state.selectedGroup);
-        this.props.onClose(true);
-      } else {
-        this.props.onClose(false);
-      }
-    break;
-    case 2:
-      if (this.state.selectedTalkgroup) {
-        this.props.callActions.setTalkgroupFilter(this.state.selectedTalkgroup);
-        this.props.onClose(true);
-      } else {
-        this.props.onClose(false);
-      }
-    break;
-    default:
-    case 0:
-      this.props.callActions.setAllFilter();
-      this.props.onClose(true);
-    break;
   }
-  if (this.state.filterStarred !== this.props.filterStarred) {
-    this.props.callActions.setStarred(this.state.filterStarred);
-    this.props.onClose(true);
+
+
+  var obj;
+  let talkgroupList = [];
+  if (isTalkgroupsSuccess) {
+    for (const num in talkgroupsData["talkgroups"]) {
+      const talkgroup = talkgroupsData["talkgroups"][num];
+      obj = {
+        key: talkgroup.num,
+        value: talkgroup.num,
+        text: talkgroup.description
+      }
+      talkgroupList.push(obj);
+    }
+  }
+
+  let groupList = [];
+  if (isGroupsSuccess) {
+    for (const num in groupsData) {
+      const group = groupsData[num]
+      obj = {
+        key: group._id,
+        value: group._id,
+        text: group.groupName
+      }
+      groupList.push(obj);
+    }
   }
   
-}
-componentDidUpdate(prevProps) {
-
-  const filterChanged = ((prevProps.selectedTalkgroups !== this.props.selectedTalkgroups) || (prevProps.selectedGroup !== this.props.selectedGroup));
-  if (filterChanged) {
-    this.setState({selectedTalkgroup: prevProps.selectedTalkgroups,  selectedGroup: prevProps.selectedGroup, activeTab: prevProps.activeTab});
-  }
-}
-
-  render() {
-    var obj;
-    var talkgroupList = [];
-    if (this.props.talkgroups) {
-      for (const num in this.props.talkgroups) {
-        const talkgroup = this.props.talkgroups[num];
-        obj = {
-          key: talkgroup.num,
-          value: talkgroup.num,
-          text: talkgroup.description
-        }
-        talkgroupList.push(obj);
+  const panes = [
+    {
+      menuItem: 'All', render: () => {
+        return (
+          <Tab.Pane attached={false}>
+            <Header>All Calls</Header>
+            <p>Dispaly all of the calls.</p>
+          </Tab.Pane>
+        )
       }
-    }
-    var groupList = [];
-    if (this.props.groups) {
-      for (const num in this.props.groups) {
-        const group = this.props.groups[num];
-        obj = {
-          key: group._id,
-          value: group._id,
-          text: group.groupName
-        }
-        groupList.push(obj);
+    },
+    {
+      menuItem: 'Groups', render: () => {
+        return (
+          <Tab.Pane attached={false}>
+            <Dropdown placeholder='Groups' fluid selection options={groupList} value={selectedGroup} name='selectedGroup' onChange={handleGroupChange} />
+
+          </Tab.Pane>
+        )
       }
-    }
-    const panes = [
-  { menuItem: 'All', render: () =>
-  { return (
-    <Tab.Pane attached={false}>
-    <Header>All Calls</Header>
-   <p>Dispaly all of the calls.</p>
-   </Tab.Pane>
-    )}},
-  { menuItem: 'Groups', render: () =>
-  { return (
-    <Tab.Pane attached={false}>
-      <Dropdown placeholder='Groups' fluid selection options={groupList} value={this.state.selectedGroup} name='selectedGroup' onChange={this.handleInputChange} />
+    },
+    {
+      menuItem: 'Talkgroups', render: () => {
+        return (
+          <Tab.Pane attached={false}>
+            <Dropdown placeholder='Talkgroups' fluid multiple selection options={talkgroupList} value={selectedTalkgroup} name='selectedTalkgroup' onChange={handleTalkgroupChange} />
+          </Tab.Pane>
+        )
+      }
+    },
+  ]
+  return (
 
-    </Tab.Pane>
-  )} },
-  { menuItem: 'Talkgroups', render: () =>
-  { return (
-    <Tab.Pane attached={false}>
-     <Dropdown placeholder='Talkgroups' fluid multiple selection options={talkgroupList} value={this.state.selectedTalkgroup} name='selectedTalkgroup' onChange={this.handleInputChange} />
-    </Tab.Pane>
-  )} },
-]
-    return (
+    <Modal open={props.open} onClose={handleClose} centered={false} size="tiny">
+      <Modal.Header>Select a Filter</Modal.Header>
+      <Modal.Content >
+        <Modal.Description>
+          <Tab menu={{ pointing: true }} panes={panes} defaultActiveIndex={activeTab} onTabChange={handleTabChange} />
+          <Divider />
+          <Checkbox label='Show only Starred calls' checked={filterStarred} name='filterStarred' onChange={toggleStarred} />
+        </Modal.Description>
+      </Modal.Content>
+      <Modal.Actions>
+        <Button onClick={()=> handleDone(onClose)} >
+          <Icon name='checkmark' /> Done
+        </Button>
+      </Modal.Actions>
+    </Modal>
 
-      <Modal open={this.props.open} onClose={this.handleClose} centered={false} size="tiny">
-        <Modal.Header>Select a Filter</Modal.Header>
-        <Modal.Content >
-          <Modal.Description>
-            <Tab menu={{ pointing: true }} panes={panes} defaultActiveIndex={this.props.activeTab} onTabChange={this.handleTabChange}/>
-            <Divider/>
-            <Checkbox label='Show only Starred calls'  checked={this.state.filterStarred} name='filterStarred' onChange={this.toggleStarred}/>
-          </Modal.Description>
-        </Modal.Content>
-        <Modal.Actions>
-          <Button onClick={this.handleDone} >
-            <Icon name='checkmark' /> Done
-          </Button>
-        </Modal.Actions>
-      </Modal>
-
-    )
-  }
+  )
 }
 
 export default FilterModal;

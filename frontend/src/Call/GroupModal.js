@@ -1,4 +1,8 @@
-import React, { Component } from "react";
+import React, { Component, useState } from "react";
+import { useGetGroupsQuery } from '../features/api/apiSlice'
+import { setGroupFilter } from "../features/callPlayer/callPlayerSlice";
+import { useSelector, useDispatch } from 'react-redux'
+
 import {
   Modal,
   Button,
@@ -7,7 +11,65 @@ import {
 } from "semantic-ui-react";
 import "./FilterModal.css";
 
+function GroupModal (props) {
+  const shortName = useSelector((state) => state.callPlayer.shortName);
+  const { data, isError, isLoading, isSuccess,error } = useGetGroupsQuery(props.shortName);
+  const [open, setOpen] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState(false);
+  const dispatch = useDispatch()
+  const onClose = props.onClose;
 
+  function handleDone(onClose) {
+
+    if (selectedGroup) {
+      dispatch(setGroupFilter(selectedGroup))
+      //dispatch({type: types.SET_GROUP_FILTER, groupId: selectedGroup  })
+      onClose(true);
+    } else {
+      onClose(false);
+    }
+}  
+
+
+  let groupOptions = []
+
+  if (isSuccess) {
+
+    for (const num in data) {
+      const group = data[num];
+      var obj = {
+        key: group._id,
+        value: group._id,
+        text: group.groupName
+      }
+      groupOptions.push(obj);
+    }
+}
+
+
+  return (
+
+    <Modal open={props.open} onClose={() => setOpen(false)} onOpen={() => setOpen(true)} size='tiny'>
+   
+      <Modal.Header>Select a Group</Modal.Header>
+      <Modal.Content >
+        <Modal.Description>
+          <p>Choose the type of calls you want to listen to</p>
+          <Dropdown placeholder='Group...' fluid selection options={groupOptions}  name='selectedGroup' onChange={(e, data) => setSelectedGroup(data.value)} />
+
+        </Modal.Description>
+
+      </Modal.Content>
+      <Modal.Actions>
+        <Button onClick={()=> handleDone(onClose)} >
+          <Icon name='headphones' /> Listen
+        </Button>
+      </Modal.Actions>
+    </Modal>
+
+  )
+}
+/*
 class GroupModal extends Component {
   constructor(props) {
     super(props)
@@ -34,7 +96,7 @@ handleDone(event) {
         this.props.onClose(false);
       }
 
-}
+}  
 componentDidUpdate(prevProps) {
 
   const filterChanged = (prevProps.selectedGroup !== this.props.selectedGroup);
@@ -80,6 +142,6 @@ componentDidUpdate(prevProps) {
 
     )
   }
-}
+}*/
 
 export default GroupModal;

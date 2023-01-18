@@ -2,17 +2,13 @@
 // from https://github.com/supasate/connected-react-router
 import { combineReducers } from 'redux'
 import { connectRouter } from 'connected-react-router'
-import systemReducer from "../System/system-reducer"
-import talkgroupReducer from "../Talkgroups/talkgroup-reducer"
-import groupReducer from "../Group/group-reducer"
-import callReducer from "../Call/call-reducer"
-import { apiSlice } from '../features/api/apiSlice'
+import {apiSlice} from "../features/api/apiSlice"
+import callPlayerSlice from "../features/callPlayer/callPlayerSlice"
+import { callsReducer } from "../features/calls/callsSlice"
 
 export default (history) => combineReducers({
   router: connectRouter(history),
-  system: systemReducer,
-  talkgroup: talkgroupReducer,
-	group: groupReducer,
-	call: callReducer,
-  [apiSlice.reducerPath]: apiSlice.reducer
+  callPlayer: callPlayerSlice,
+  calls: callsReducer,
+  [apiSlice.reducerPath]: apiSlice.reducer,
 })

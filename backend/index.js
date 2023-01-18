@@ -30,12 +30,17 @@ var app = express();
 
 const server = require('http').createServer(app);
 
-const io = require('socket.io')(server, {});
+const io = require('socket.io')(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  }
+});
 
 var Twitter = require('twitter-lite');
 
 
-io.origins('*:*');
+//io.origins('*:*');
 /*
 io.origins((origin, callback) => {
   //if (origin !== 'https://foo.example.com') {
@@ -173,7 +178,7 @@ app.get('/:shortName/calls/older', calls.get_older_calls);
 app.get('/:shortName/calls/:time/older', calls.get_iphone_calls);
 app.get('/:shortName/calls', calls.get_calls);
 app.post('/:shortName/star/:id', calls.add_star);
-
+app.post('/:shortName/removeStar/:id', calls.remove_star);
 
 /*------    UPLOADS   ---------- upload.single('call'),  uploads.upload,*/
 app.post('/:shortName/upload', upload.single('call'), uploads.upload, async function (req, res) {

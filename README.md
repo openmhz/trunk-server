@@ -131,11 +131,15 @@ yarn start
 
 This should build the frontend and open a browser. In order to have all the cookies work correctly, you have to use the same domain name. Make sure you have setup the local domains as described above. Then goto the base domain, for me that is openmhz.test, at port 3000 `openmhz.test:3000`
 
+## Upgrading a "Frontend" server
+
+https://create-react-app.dev/docs/updating-to-new-releases/
+
 
 ## Managing MongoDB
 
 MongoDB is used in the backend to store data. It is pretty fast, flexible and has worked well enough for me.
-All of the files that MongoDB uses to store the DB are in the */data* directory, which gets mapped into the contianer. 
+All of the files that MongoDB uses to store the DB are in the */data* directory, which gets mapped into the container. 
 Mapping this directory makes sure that the data persists each time you run the mongo container.
 
 ### Working with the MongoDB Container

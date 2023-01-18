@@ -11,27 +11,28 @@ import 'semantic-ui-css/semantic.min.css'
 //import withTracker from './withTracker';
 
 // Main
-import MainContainer from "./Main/MainContainer"
+import Main from "./Main/Main"
 
 // System
-import ListSystemsContainer from "./System/ListSystemsContainer"
+import ListSystems from "./System/ListSystems"
 
 // Call
-import CallPlayerContainer from "./Call/CallPlayerContainer"
+import CallPlayer from "./Call/CallPlayer"
 
 import AboutComponent from "./About/AboutComponent"
 
 
 const store = configureStore(/* provide initial state if any */)
+
 const container = document.getElementById('root');
 const root = createRoot(container);
 root.render(
   <Provider store={store}>
   <BrowserRouter>
         <Routes>
-          <Route exact path="/" element={<MainContainer/>} />
-          <Route exact path="/systems" element={<ListSystemsContainer/>} />
-          <Route exact path="/system/:shortName" element={<CallPlayerContainer/>} />
+          <Route exact path="/" element={<Main/>} />
+          <Route exact path="/systems" element={<ListSystems/>} />
+          <Route exact path="/system/:shortName" element={<CallPlayer/>} />
           <Route exact path="/about" element={<AboutComponent/>} />
 
         </Routes>

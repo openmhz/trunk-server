@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Link } from 'react-router-dom'
+import { Link, useNavigate  } from 'react-router-dom'
 import SystemCard from "./SystemCard";
 import {
   Container,
@@ -10,22 +10,15 @@ import {
   Divider
 } from "semantic-ui-react";
 
+import { selectAllSystems, selectActiveSystems, useGetSystemsQuery } from "../features/api/apiSlice";
 
 // ----------------------------------------------------
-class ListSystems extends Component {
 
-  state = {
-    requestMessage: "",
-  }
+const ListSystems = (props) => {
+
   
-  componentDidMount() {
-  		this.props.fetchSystems();
-  	}
-
-//https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
-//https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
-  render() {
-    const systems = this.props.system.items;
+  const {data:systems, isSuccess} = useGetSystemsQuery(); 
+  const navigate = useNavigate();
     return (
       <div>
         <Menu fixed="top">
@@ -35,8 +28,9 @@ class ListSystems extends Component {
         <Container >
           <Divider horizontal style={{paddingTop:"5em", paddingBottom:"2em"}}><Header as="h1">Radio Systems<Icon name='rss' /></Header></Divider>
           <Card.Group itemsPerRow={4} stackable={true}>
-          {systems.map((system) =>
-            system.active&&<SystemCard system={system} key={system.shortName} onClick={(e) => this.props.changeUrl("/system/" + system.shortName)}/>
+
+          {isSuccess&&systems.systems.map((system) =>
+            system.active&&<SystemCard system={system} key={system.shortName} onClick={(e) => navigate("/system/" + system.shortName)}/>
             // <SystemCard system={system} key={system.shortName} onClick={(e) => this.props.changeUrl("/system/" + system.shortName)}/>
          )}
           </Card.Group>
@@ -44,6 +38,6 @@ class ListSystems extends Component {
       </div>
     );
   }
-}
+
 
 export default ListSystems;

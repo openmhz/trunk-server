@@ -1,4 +1,4 @@
-import React from "react";
+import React, {  useEffect, useState } from "react";
 import {
   Menu,
   Icon,
@@ -8,29 +8,29 @@ import {
 import ReactAudioPlayer from 'react-audio-player'
 
 
-class MediaPlayer extends React.Component {
 
-  constructor(props) {
-    super(props);
-    this.updatePlayProgress = this.updatePlayProgress.bind(this);
-    this.handlePlay = this.handlePlay.bind(this);
-    this.handlePause = this.handlePause.bind(this);
-    this.playPause = this.playPause.bind(this);
-    this.audioRef = React.createRef();
-    this.state = {
-      sourceIndex: 0,
-      playProgress: 0,
-      isPlaying: false
-    }
-  }
-  handlePause = () => { this.setState({ isPlaying: false }); this.props.onPlayPause(false); }
-  handlePlay = () => { this.setState({ isPlaying: true }); this.props.onPlayPause(true); }
-  playPause = () => { const audio = this.audioRef.current.audioEl.current; if (this.state.isPlaying) { audio.pause(); } else { audio.play(); } }
-  playSource(callUrl) {
-    const audio = this.audioRef.current.audioEl.current;
-    var onEnded = this.props.onEnded;
-    audio.src = callUrl;
+const MediaPlayer = (props) => {
 
+  const audioRef = React.createRef();
+  const [sourceIndex, setSourceIndex] = useState(0);
+  const [playProgress, setPlayProgress] = useState(0);
+  const [playTime, setPlayTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const parentHandlePlayPause = props.onPlayPause
+
+  const handlePause = () => { setIsPlaying(false); parentHandlePlayPause(false); }
+  const handlePlay = () => { setIsPlaying(true); parentHandlePlayPause(true); }
+  const playPause = () => { const audio = audioRef.current.audioEl.current; if (isPlaying) { audio.pause(); } else { audio.play(); } }
+
+  var call = props.call;
+
+  useEffect(() => {
+
+    const audio = audioRef.current.audioEl.current;
+    var onEnded = props.onEnded;
+    setSourceIndex(0);
+    if (call) {
+    audio.src = call.url;
     var playPromise = audio.play();
 
     // In browsers that don’t yet support this functionality,
@@ -43,82 +43,75 @@ class MediaPlayer extends React.Component {
         onEnded();
         // Show a UI element to let the user manually start playback.
       });
+    } else {
+      audio.src = false;
     }
-  }
+    }
+  }, [call]);
 
-  updatePlayProgress() {
-    const audio = this.audioRef.current.audioEl.current;
+  const updatePlayProgress = () => {
+    const audio = audioRef.current.audioEl.current;
     const { currentTime, duration } = audio;
-    var call = this.props.call;
+
 
     // this checks to see if it should display the next Source ID
-    if (call && ((call.srcList.length - 1) >= (this.state.sourceIndex + 1)) && (currentTime > call.srcList[this.state.sourceIndex + 1].pos)) {
-      this.setState({
-        sourceIndex: this.state.sourceIndex + 1
-      });
+    if (call && ((call.srcList.length - 1) >= (sourceIndex + 1)) && (currentTime > call.srcList[sourceIndex + 1].pos)) {
+      setSourceIndex(sourceIndex + 1);
     }
 
     // updates the play percentage progress and current playing time
-    this.setState({
-      playProgress: currentTime / duration * 100,
-      playTime: Math.floor(currentTime)
-    });
+    setPlayProgress(currentTime / duration * 100);
+    setPlayTime(Math.floor(currentTime));
+
+
   }
 
-  componentDidUpdate(prevProps) {
-    if (this.props.call && (prevProps.call !== this.props.call)) {
-      this.setState({
-        sourceIndex: 0
-      });
 
+
+
+  let playEnabled = { "disabled": true }
+  let sourceId = "-";
+
+  if (call) {
+    if (call.srcList.length > sourceIndex) {
+      sourceId = call.srcList[sourceIndex].src;
     }
-
+    playEnabled = {};
   }
-
-  render() {
-    var playEnabled = { "disabled": true }
-    var sourceId = "-";
-
-    if (this.props.call) {
-      if (this.props.call.srcList.length > this.state.sourceIndex) {
-        sourceId = this.props.call.srcList[this.state.sourceIndex].src;
-      }
-      playEnabled = {};
-    }
-    return (
-      <Menu.Menu>
-        <ReactAudioPlayer
-          ref={this.audioRef}
-          onPause={this.handlePause}
-          onPlay={this.handlePlay}
-          listenInterval={100}
-          onListen={this.updatePlayProgress}
-          onEnded={this.props.onEnded}
-          autoPlay
-        />
+  return (
+    <Menu.Menu>
+      <ReactAudioPlayer
+        ref={audioRef}
+        onPause={handlePause}
+        onPlay={handlePlay}
+        listenInterval={100}
+        onListen={updatePlayProgress}
+        onEnded={props.onEnded}
+        autoPlay
+      />
 
 
-        <Menu.Item onClick={this.playPause}  >
+      <Menu.Item onClick={playPause}  >
 
-          {
-            this.state.isPlaying
-              ? (<Icon name="pause" />)
-              : (<Icon name="play" />)
-          }
-        </Menu.Item>
-        <Menu.Item>
-          <Progress inverted percent={this.state.playProgress} />
-          <Label color="black">
-            {this.state.playTime}
-            Sec
-          </Label>
-          <Label color="black" className="desktop-only">
-            {sourceId}
-          </Label>
+        {
+          isPlaying
+            ? (<Icon name="pause" />)
+            : (<Icon name="play" />)
+        }
+      </Menu.Item>
+      <Menu.Item>
+        <Progress inverted percent={playProgress} />
+        <Label color="black">
+          {playTime}
+          Sec
+        </Label>
+        <Label color="black" className="desktop-only">
+          {sourceId}
+        </Label>
 
-        </Menu.Item>
-      </Menu.Menu>
-    )
-  }
+      </Menu.Item>
+    </Menu.Menu>
+  )
 }
+
 export default MediaPlayer;

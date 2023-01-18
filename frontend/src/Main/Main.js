@@ -1,5 +1,5 @@
-import React, { Component } from "react";
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from 'react-router-dom'
 import SystemCard from "../System/SystemCard";
 import "./Main.css";
 import { createMedia } from "@artsy/fresnel";
@@ -16,6 +16,9 @@ import {
   Transition,
 
 } from 'semantic-ui-react'
+
+import { useDispatch } from 'react-redux'
+import { useGetSystemsQuery } from "../features/api/apiSlice";
 
 /* Responsive component was removed from Semantic UI. This is discussed here: https://github.com/Semantic-Org/Semantic-UI-React/pull/4008 */
 
@@ -80,15 +83,12 @@ General flow:
 - componentDidMount(): it will call fetchSystem() this will perform an HTTP request if Systems does not exist, and then add System to Props
 */
 
-class DesktopContainer extends Component {
-  state = {}
-
-  hideFixedMenu = () => this.setState({ fixed: false })
-  showFixedMenu = () => this.setState({ fixed: true })
-
-  render() {
-    const { children } = this.props
-    const { fixed } = this.state
+const DesktopContainer = (props) => {  
+  const [fixed, setFixed] = useState(false);
+  const hideFixedMenu = () => setFixed(false) 
+  const showFixedMenu = () => setFixed(true)
+  
+    const { children } = props
 
     return (
       <Media greaterThanOrEqual="tablet">
@@ -128,26 +128,24 @@ class DesktopContainer extends Component {
       </Media>
     )
   }
-}
+
 /*
 DesktopContainer.propTypes = {
   children: PropTypes.node,
 }
 */
-class MobileContainer extends Component {
-  state = {}
+const MobileContainer = (props) => {
 
-  handlePusherClick = () => {
-    const { sidebarOpened } = this.state
+  const [sidebarOpened, setSidebarOpened] = useState(false);
 
-    if (sidebarOpened) this.setState({ sidebarOpened: false })
+  const handlePusherClick = () => {
+    setSidebarOpened(!sidebarOpened)
   }
 
-  handleToggle = () => this.setState({ sidebarOpened: !this.state.sidebarOpened })
+  const handleToggle = () => setSidebarOpened(!sidebarOpened)
 
-  render() {
-    const { children } = this.props
-    const { sidebarOpened } = this.state
+
+    const { children } = props
 
     return (
       <Media lessThan="tablet">
@@ -162,7 +160,7 @@ class MobileContainer extends Component {
 
           <Sidebar.Pusher
             dimmed={sidebarOpened}
-            onClick={this.handlePusherClick}
+            onClick={handlePusherClick}
             style={{ minHeight: '100vh' }}
           >
           <div className='relative'>
@@ -181,7 +179,7 @@ class MobileContainer extends Component {
             <Container>
 
             <Menu inverted secondary size='large'>
-              <Menu.Item onClick={this.handleToggle}>
+              <Menu.Item onClick={handleToggle}>
                 <Icon name='sidebar' />
               </Menu.Item>
               <Menu.Item header>{process.env.REACT_APP_SITE_NAME}</Menu.Item>
@@ -196,7 +194,6 @@ class MobileContainer extends Component {
       </Media>
     )
   }
-}
 /*
 MobileContainer.propTypes = {
   children: PropTypes.node,
@@ -210,41 +207,56 @@ const ResponsiveContainer = ({ children }) => (
 )
 
 // ----------------------------------------------------
-class Main extends Component {
-  constructor(props) {
-    super(props);
-    this.advanceSystem = this.advanceSystem.bind(this);
-    this.state = {  duration: 500, visible: true, currentSystem: 0}
-  }
+const Main = (props) => {
 
+  const [visible, setVisible] = useState(true);
+  const [currentSystem, setCurrentSystem] = useState(0);
+  const navigate = useNavigate();
+  const {data:systems, isSuccess} = useGetSystemsQuery();   //= selectAllSystems();
 
-
-    handleChange = (e, { name, value }) => this.setState({ [name]: value })
-
-    handleVisibility = () => this.setState({ visible: !this.state.visible })
-
-    advanceSystem() {
-        var currentSystem = this.state.currentSystem + 1;
-        if (currentSystem > this.props.system.items.length) {
-          currentSystem = 0;
-        }
-        this.setState({ visible: !this.state.visible, currentSystem });
-    }
-
-  componentDidMount() {
-      this.props.fetchSystems();
-      this.interval = setInterval(() => this.advanceSystem(), 3000);
-  }
+  function useInterval(callback, delay) {
+    const savedCallback = useRef();
   
-  componentWillUnmount() {
-    clearInterval(this.interval);
+    // Remember the latest callback.
+    useEffect(() => {
+      savedCallback.current = callback;
+    }, [callback]);
+  
+    // Set up the interval.
+    useEffect(() => {
+      function tick() {
+        savedCallback.current();
+      }
+      if (delay !== null) {
+        let id = setInterval(tick, delay);
+        return () => clearInterval(id);
+      }
+    }, [delay]);
   }
+
+    const advanceSystem = () => {
+      if (isSuccess) {
+        let nextSystem = currentSystem + 1;
+        if (nextSystem > systems.systems.length) {
+          nextSystem = 0;
+        }
+        setCurrentSystem(nextSystem);
+        setVisible(!visible);
+      }
+        //this.setState({ visible: !this.state.visible, currentSystem });
+    }
+  
+      useInterval( ()=>{ advanceSystem()}, 3000)
+
+
 
 //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
 //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
-render() {
 
-  const system = this.props.system.items[this.state.currentSystem];
+  let system = false;
+  if (isSuccess) {
+   system = systems.systems[currentSystem];
+  }
   return (
   <>
   <style>{mediaStyles}</style>
@@ -254,15 +266,15 @@ render() {
     <Grid columns='equal' stackable textAlign='center'  style={{ height: '350px', marginRight: '0px' }}>
       <Grid.Row textAlign='center'>
         <Grid.Column  style={{ paddingBottom: '4em', paddingTop: '2em', maxWidth: 450  }}>
-        { system && (<Transition visible={this.state.visible} animation='pulse' duration={500}>
+        { system && (<Transition visible={visible} animation='pulse' duration={500}>
 
-        <SystemCard keepShort={true} system={system} key={system.shortName} onClick={(e) => this.props.changeUrl("/system/" + system.shortName)}/>
+        <SystemCard keepShort={true} system={system} key={system.shortName} onClick={(e) => navigate("/system/" + system.shortName)}/>
 
       </Transition>)}
         </Grid.Column>
         <Grid.Column style={{ paddingBottom: '0em', paddingTop: '6em', maxWidth: 450  }}>
         <Link to="/systems">
-        <Button primary size='huge' id="listen" animated>
+        <Button primary size='huge' id="listen" animated onClick={(e) => navigate("/system/" + system.shortName)}>
           <Button.Content visible><Icon name='headphones' />
           <Icon name='right arrow' /></Button.Content>
           <Button.Content hidden>Listen</Button.Content>
@@ -351,6 +363,5 @@ render() {
   </>);
 }
 
-}
 
 export default Main;
