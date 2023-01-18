@@ -1,4 +1,7 @@
 import React from "react";
+import { useCallLink } from "./CallLinks";
+import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
+import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 import {
   Header,
   Divider,
@@ -11,39 +14,46 @@ import {
 
 // ----------------------------------------------------
 function CallInfo(props) {
-    let srcList = "";
-    let callLength = "-";
-    let callFreq = "-";
-    let callDate = "-";
-    let callTime = "-";
-    let talkgroupNum = "-";
-    let callDownload = "";
-    let callTweet = "";
-    if (props.call) {
-      const currentCall = props.call;
-      var time = new Date(currentCall.time);
-      callTime = time.toLocaleTimeString();
-      callDate = time.toLocaleDateString();
-      if (currentCall.freq) {
-        var freq = currentCall.freq / 1000000;
-        callFreq = Math.round(freq * 1000) / 1000;
-      }
+  const { shortName } = useParams();
+  const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
 
-      srcList = currentCall.srcList.map((source, index) => <List.Item key={index}>{source.src}[{source.pos}]</List.Item>);
-      callLength = currentCall.len;
-      talkgroupNum = currentCall.talkgroupNum;
-      callDownload = currentCall.url;
-      callTweet = "https://twitter.com/intent/tweet?url="+encodeURIComponent(document.location.origin+props.link)+"&via="+encodeURIComponent("OpenMHz");
+  let srcList = "";
+  let callLength = "-";
+  let callFreq = "-";
+  let callDate = "-";
+  let callTime = "-";
+  let talkgroupNum = "-";
+  let header = "Call Info"
+
+  if (props.call) {
+    const currentCall = props.call;
+    if ((talkgroupsData) && talkgroupsData.talkgroups[currentCall.talkgroupNum]) {
+      header = talkgroupsData.talkgroups[currentCall.talkgroupNum].description;
+    }
+    var time = new Date(currentCall.time);
+    callTime = time.toLocaleTimeString();
+    callDate = time.toLocaleDateString();
+    if (currentCall.freq) {
+      var freq = currentCall.freq / 1000000;
+      callFreq = Math.round(freq * 1000) / 1000;
     }
 
-    return (
-      <div>
+
+    srcList = currentCall.srcList.map((source, index) => <List.Item key={index}>{source.src}[{source.pos}]</List.Item>);
+    callLength = currentCall.len;
+    talkgroupNum = currentCall.talkgroupNum;
+
+  }
+  const {callLink,callDownload,callTweet} = useCallLink(props.call)
+
+  return (
+    <div>
       <Segment padded attached>
         <Header as='h1'>{props.header}</Header>
         <List bulleted horizontal link>
           {srcList}
         </List>
-        <Divider/>
+        <Divider />
         <Statistic size='small'>
           <Statistic.Label>Seconds</Statistic.Label>
           <Statistic.Value>{callLength}</Statistic.Value>
@@ -55,32 +65,32 @@ function CallInfo(props) {
 
         <List divided verticalAlign='middle'>
           <List.Item>
-            <Icon name="wait"/>
+            <Icon name="wait" />
             <List.Content>
               {callTime}
             </List.Content>
           </List.Item>
           <List.Item>
-            <Icon name="calendar outline"/>
+            <Icon name="calendar outline" />
             <List.Content>
               {callDate}
             </List.Content>
           </List.Item>
           <List.Item>
-            <Icon name="cubes"/>
+            <Icon name="cubes" />
             <List.Content>
               {callFreq} MHz
             </List.Content>
           </List.Item>
         </List>
       </Segment>
-          <Menu attached='bottom'>
-          <a href={callTweet}><Menu.Item name="tweet" ><Icon name='twitter' />Tweet</Menu.Item></a>
-          <a href={callDownload}><Menu.Item name="download"><Icon name="download" />Download</Menu.Item></a>
-          <a href={props.link}><Menu.Item name="link"><Icon name="at" />Link</Menu.Item></a>
-        </Menu>
-        </div>
-    );
-  }
+      <Menu attached='bottom'>
+        <a href={callTweet}><Menu.Item name="tweet" ><Icon name='twitter' />Tweet</Menu.Item></a>
+        <a href={callDownload}><Menu.Item name="download"><Icon name="download" />Download</Menu.Item></a>
+        <a href={callLink}><Menu.Item name="link"><Icon name="at" />Link</Menu.Item></a>
+      </Menu>
+    </div>
+  );
+}
 
-  export default CallInfo;
+export default CallInfo;

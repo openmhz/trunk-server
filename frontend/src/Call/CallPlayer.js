@@ -24,7 +24,7 @@ import {
 import "./CallPlayer.css";
 import queryString from '../query-string';
 import io from 'socket.io-client';
-
+import { useCallLink } from "./CallLinks";
 
 
 const socket = io(process.env.REACT_APP_BACKEND_SERVER);
@@ -55,9 +55,7 @@ function CallPlayer(props) {
   const [isPlaying, setIsPlaying] = useState(false);
 
 
-  const filterType = useSelector((state) => state.callPlayer.filterType);
-  const filterGroupId = useSelector((state) => state.callPlayer.filterGroupId);
-  const filterTalkgroups = useSelector((state) => state.callPlayer.filterTalkgroups);
+  const {callLink,callDownload,callTweet} = useCallLink(props.call)
 
 
 
@@ -109,9 +107,6 @@ function CallPlayer(props) {
     }
   }
 
-
-
-
   useEffect(() => {
     if (loadNewerInView && callsData && (callsData.ids.length > 0)) {
       dispatch(getNewerCalls({}));
@@ -142,40 +137,6 @@ function CallPlayer(props) {
     }
   }, [callsData])
 
-/*
-  useEffect(() => {
-
-  }, [callsData]);
-*/
-
-
-  var callInfoHeader = "Call Info";
-  var callLink = ""
-  var callDownload = ""
-  if (currentCall) {
-    if ((talkgroupsData) && talkgroupsData[currentCall.talkgroupNum]) {
-      callInfoHeader = talkgroupsData[currentCall.talkgroupNum].description;
-    }
-    const callDate = new Date(currentCall.time);
-    var search = ""
-    switch (filterType) {
-
-      case 1:
-        search = `filter-type=group&filter-code=${filterGroupId}&`;
-        break;
-      case 2:
-        search = `filter-type=talkgroup&filter-code=${filterTalkgroups}&`;
-        break;
-      default:
-      case 0:
-        break;
-
-    }
-    callLink = "/system/" + shortName + "?" + search + "call-id=" + currentCall._id + "&time=" + (callDate.getTime() + 1);
-    callDownload = currentCall.url;
-  }
-
-
 
   return (
     <div ref={positionRef}>
@@ -187,13 +148,11 @@ function CallPlayer(props) {
             <div ref={loadNewerRef} />
             <ListCalls callsData={callsData} activeCallId={isPlaying?currentCallId:false} talkgroups={talkgroupsData?talkgroupsData.talkgroups:false} playCall={playCall} />
             <div ref={loadOlderRef} style={{ height: 50 }} />
-
-
           </Sidebar.Pusher>
         </Sidebar.Pushable>
         <Rail position='right' className="desktop-only"  >
           <Sticky offset={60} context={positionRef}>
-            <CallInfo call={currentCall} header={callInfoHeader} link={callLink} />
+            <CallInfo call={currentCall} />
           </Sticky>
         </Rail>
       </Container>
