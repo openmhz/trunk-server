@@ -34,7 +34,7 @@ const ListCalls = (props) => {
               <Table.HeaderCell><Icon name='star' /></Table.HeaderCell>
             </Table.Row>
           </Table.Header>
-          {callsData != false && 
+          {callsData && 
           <Table.Body>
             
             {

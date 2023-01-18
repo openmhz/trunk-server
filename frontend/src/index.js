@@ -17,7 +17,7 @@ import Main from "./Main/Main"
 import ListSystems from "./System/ListSystems"
 
 // Call
-import CallPlayer from "./Call/CallPlayer"
+import Calls from "./Call/Calls"
 
 import AboutComponent from "./About/AboutComponent"
 
@@ -32,7 +32,7 @@ root.render(
         <Routes>
           <Route exact path="/" element={<Main/>} />
           <Route exact path="/systems" element={<ListSystems/>} />
-          <Route exact path="/system/:shortName" element={<CallPlayer/>} />
+          <Route exact path="/system/:shortName" element={<Calls/>} />
           <Route exact path="/about" element={<AboutComponent/>} />
 
         </Routes>
