@@ -1,4 +1,4 @@
-import React, { Component, useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from 'react-router-dom'
 import SystemCard from "../System/SystemCard";
 import "./Main.css";
@@ -17,8 +17,8 @@ import {
 
 } from 'semantic-ui-react'
 
-import { useSelector, useDispatch } from 'react-redux'
-import { selectAllSystems, selectActiveSystems, useGetSystemsQuery } from "../features/api/apiSlice";
+import { useDispatch } from 'react-redux'
+import { useGetSystemsQuery } from "../features/api/apiSlice";
 
 /* Responsive component was removed from Semantic UI. This is discussed here: https://github.com/Semantic-Org/Semantic-UI-React/pull/4008 */
 
@@ -83,14 +83,12 @@ General flow:
 - componentDidMount(): it will call fetchSystem() this will perform an HTTP request if Systems does not exist, and then add System to Props
 */
 
-const DesktopContainer = (props) => {
+const DesktopContainer = (props) => {  
   const [fixed, setFixed] = useState(false);
   const hideFixedMenu = () => setFixed(false) 
   const showFixedMenu = () => setFixed(true)
-
   
     const { children } = props
-
 
     return (
       <Media greaterThanOrEqual="tablet">
@@ -212,14 +210,9 @@ const ResponsiveContainer = ({ children }) => (
 const Main = (props) => {
 
   const [visible, setVisible] = useState(true);
-  const [duration, setDuration] = useState(500);
   const [currentSystem, setCurrentSystem] = useState(0);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const {data:systems, isSuccess} = useGetSystemsQuery();   //= selectAllSystems();
-  
-
-
 
   function useInterval(callback, delay) {
     const savedCallback = useRef();
@@ -240,8 +233,6 @@ const Main = (props) => {
       }
     }, [delay]);
   }
-
-    const handleVisibility = () => setVisible(!visible); 
 
     const advanceSystem = () => {
       if (isSuccess) {

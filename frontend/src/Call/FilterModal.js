@@ -1,4 +1,4 @@
-import React, { Component, useState } from "react";
+import React, { useState } from "react";
 import { setGroupFilter, setTalkgroupFilter, setAllFilter, setStarredFilter } from "../features/callPlayer/callPlayerSlice";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
 import { useSelector, useDispatch } from 'react-redux'
@@ -16,11 +16,9 @@ import "./FilterModal.css";
 
 
 function FilterModal(props) {
-  const shortName = useSelector((state) => state.callPlayer.shortName);
   const globalFilterStarred = useSelector((state) => state.callPlayer.filterStarred);
   const { data:groupsData, isSuccess:isGroupsSuccess } = useGetGroupsQuery(props.shortName);
   const { data:talkgroupsData, isSuccess:isTalkgroupsSuccess } = useGetTalkgroupsQuery(props.shortName);
-  const [open, setOpen] = useState(false);
   const [selectedTalkgroup, setSelectedTalkgroup] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(false);
   const [filterStarred, setFilterStarred] = useState(false);

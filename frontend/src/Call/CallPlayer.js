@@ -9,7 +9,7 @@ import CalendarModal from "./CalendarModal";
 import CallInfo from "./CallInfo";
 import ListCalls from "./ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
-import { setLive, setShortName, setFilter,setDateFilter } from "../features/callPlayer/callPlayerSlice";
+import { setLive, setFilter,setDateFilter } from "../features/callPlayer/callPlayerSlice";
 import { getCalls, getOlderCalls, getNewerCalls, addCall } from "../features/calls/callsSlice";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
 import { useInView } from 'react-intersection-observer';
@@ -20,8 +20,7 @@ import {
   Sticky,
   Menu,
   Icon,
-  Sidebar,
-  Button
+  Sidebar
 } from "semantic-ui-react";
 import "./CallPlayer.css";
 import queryString from '../query-string';
@@ -36,11 +35,11 @@ const socket = io(process.env.REACT_APP_BACKEND_SERVER);
 function CallPlayer(props) {
 
   const { shortName } = useParams();
-  const { ref: loadOlderRef, inView: loadOlderInView, entry: loadOlderEntry } = useInView({
+  const { ref: loadOlderRef, inView: loadOlderInView } = useInView({
     /* Optional options */
     threshold: 0.5
   });
-  const { ref: loadNewerRef, inView: loadNewerInView, entry: loadNewerEntry } = useInView({
+  const { ref: loadNewerRef, inView: loadNewerInView } = useInView({
     /* Optional options */
     threshold: 0.5
   });
@@ -82,9 +81,6 @@ function CallPlayer(props) {
   if (currentCall) {
     currentCallId = currentCall._id;
   }
-
-
-
 
   const handlePlayPause = (playing) => {
     setIsPlaying(playing);
@@ -151,7 +147,7 @@ function CallPlayer(props) {
     const message = JSON.parse(data)
     switch (message.type) {
       case 'calls':
-        const ref = positionRef.current;
+
         pageYOffset.current = positionRef.current.clientHeight;
 
         if (shouldPlayAddCallRef.current) {
@@ -282,17 +278,10 @@ function CallPlayer(props) {
     // is this just for one call?
     if (uri.hasOwnProperty('call-id')) {
       const _id = uri['call-id'];
-      const date = new Date(parseInt(uri['time']));
       setLoadCallId(_id);
       setAutoPlay(false);
       if (!urlOptions) setUrlOptions(true);
-      //callActions.fetchCallInfo(_id);
-      //callActions.setCallTime(date);
     }
-
-
-    var filterType = "all";
-    var filterCode = "";
 
     // is there a Filter set?
     if ((uri.hasOwnProperty('filter-code')) && (uri.hasOwnProperty('filter-type'))) {
@@ -302,8 +291,6 @@ function CallPlayer(props) {
       if (uri['filter-type'] === "group") {
         filter.filterType = 1;
         filter.filterGroupId = uri["filter-code"];
-        filterType = "group";
-        filterCode = uri["filter-code"];
       }
 
       // The Filter is talkgroups
@@ -311,8 +298,6 @@ function CallPlayer(props) {
         const tg = uri["filter-code"].split(',').map(Number);
         filter.filterType = 2;
         filter.filterTalkgroups = tg;
-        filterType = "talkgroup";
-        filterCode = tg;
       }
     }
 
