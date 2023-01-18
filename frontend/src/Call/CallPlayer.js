@@ -34,6 +34,9 @@ const socket = io(process.env.REACT_APP_BACKEND_SERVER);
 function CallPlayer(props) {
 
   const { shortName } = useParams();
+  const loadCallId = props.loadCallId;
+  const callsData = props.callsData;
+
   const { ref: loadOlderRef, inView: loadOlderInView } = useInView({
     /* Optional options */
     threshold: 0.5
@@ -42,21 +45,21 @@ function CallPlayer(props) {
     /* Optional options */
     threshold: 0.5
   });
+
   const { data: groupsData, isSuccess: isGroupsSuccess } = useGetGroupsQuery(shortName);
   const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
-  const callsData = props.callsData;
+
 
   const [autoPlay, setAutoPlay] = useState(true);
   const [currentCall, setCurrentCall] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [loadCallId, setLoadCallId] = useState(false);
+
 
   const filterType = useSelector((state) => state.callPlayer.filterType);
   const filterGroupId = useSelector((state) => state.callPlayer.filterGroupId);
   const filterTalkgroups = useSelector((state) => state.callPlayer.filterTalkgroups);
-  const filterStarred = useSelector((state) => state.callPlayer.filterStarred);
-  const filterDate = useSelector((state) => state.callPlayer.filterDate);
-  const live = useSelector((state) => state.callPlayer.live);
+
+
 
 
   const navigate = useNavigate();
@@ -121,15 +124,15 @@ function CallPlayer(props) {
       dispatch(getOlderCalls({}));
     }
   }, [loadOlderInView]);
-/*
+
   useEffect(() => {
-    if ( loadCallId && callsData) {
+    if ( loadCallId && callsData && !currentCall) {
       const call = callsData.entities[loadCallId];
       if (call) {
         setCurrentCall(call);
       }
     }
-  }, [callsData])*/
+  }, [loadCallId, callsData])
 
   useLayoutEffect( () => {
     const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current);

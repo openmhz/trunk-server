@@ -398,7 +398,7 @@ function Calls(props) {
         </Menu.Menu>
       </Menu>
 
-       <CallPlayer callsData={callsData}  />     
+       <CallPlayer callsData={callsData}  loadCallId={loadCallId}/>     
 
     </div>
   );
