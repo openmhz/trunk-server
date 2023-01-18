@@ -1,4 +1,4 @@
-import React, { Component, useState } from "react";
+import React, { useState } from "react";
 import { useGetGroupsQuery } from '../features/api/apiSlice'
 import { setGroupFilter } from "../features/callPlayer/callPlayerSlice";
 import { useSelector, useDispatch } from 'react-redux'
@@ -12,7 +12,6 @@ import {
 import "./FilterModal.css";
 
 function GroupModal (props) {
-  const shortName = useSelector((state) => state.callPlayer.shortName);
   const { data, isError, isLoading, isSuccess,error } = useGetGroupsQuery(props.shortName);
   const [open, setOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState(false);
