@@ -5,7 +5,7 @@ import {
   Table,
   Ref
 } from "semantic-ui-react";
-import "./CallPlayer.css";
+import "../CallPlayer.css";
 
 // ----------------------------------------------------
 const ListCalls = (props) => {
@@ -34,7 +34,7 @@ const ListCalls = (props) => {
               <Table.HeaderCell><Icon name='star' /></Table.HeaderCell>
             </Table.Row>
           </Table.Header>
-          {callsData != false && 
+          {callsData && 
           <Table.Body>
             
             {

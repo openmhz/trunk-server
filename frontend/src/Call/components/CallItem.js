@@ -6,7 +6,7 @@ import {
 } from "semantic-ui-react";
 
 
-import { addStar, removeStar } from "../features/calls/callsSlice";
+import { addStar, removeStar } from "../../features/calls/callsSlice";
 import { useDispatch } from 'react-redux'
 
 const CallItem = (props) => {
@@ -31,9 +31,9 @@ const CallItem = (props) => {
     }
   }
 
-  var rowSelected = {};
+  let rowSelected = {};
   let starButton;
-  var starClickable = {};
+  let starClickable = {};
 
   const onDragStart = (event) => {
     // It receives a DragEvent
@@ -78,7 +78,7 @@ const CallItem = (props) => {
       inverted: "true"
     }
   }
-  var talkgroup;
+  let talkgroup;
   if ((typeof props.talkgroups == 'undefined') || (typeof props.talkgroups[call.talkgroupNum] == 'undefined')) {
     talkgroup = call.talkgroupNum;
   } else {
