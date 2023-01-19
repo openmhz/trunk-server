@@ -31,9 +31,9 @@ const CallItem = (props) => {
     }
   }
 
-  var rowSelected = {};
+  let rowSelected = {};
   let starButton;
-  var starClickable = {};
+  let starClickable = {};
   if (!starClicked) {
     starClickable = { link: true };
   }
@@ -61,7 +61,7 @@ const CallItem = (props) => {
       inverted: "true"
     }
   }
-  var talkgroup;
+  let talkgroup;
   if ((typeof props.talkgroups == 'undefined') || (typeof props.talkgroups[call.talkgroupNum] == 'undefined')) {
     talkgroup = call.talkgroupNum;
   } else {

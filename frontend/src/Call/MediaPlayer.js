@@ -22,16 +22,16 @@ const MediaPlayer = (props) => {
   const handlePlay = () => { setIsPlaying(true); parentHandlePlayPause(true); }
   const playPause = () => { const audio = audioRef.current.audioEl.current; if (isPlaying) { audio.pause(); } else { audio.play(); } }
 
-  var call = props.call;
+  const call = props.call;
 
   useEffect(() => {
 
     const audio = audioRef.current.audioEl.current;
-    var onEnded = props.onEnded;
+    const onEnded = props.onEnded;
     setSourceIndex(0);
     if (call) {
     audio.src = call.url;
-    var playPromise = audio.play();
+    const playPromise = audio.play();
 
     // In browsers that don’t yet support this functionality,
     // playPromise won’t be defined.

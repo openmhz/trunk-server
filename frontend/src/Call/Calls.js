@@ -50,7 +50,7 @@ function Calls(props) {
   const [groupVisible, setGroupVisible] = useState(false);
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [isConnected, setIsConnected] = useState(socket.connected);
-  const [loadCallId, setLoadCallId] = useState(false);
+  const [selectCallId, setSelectCallId] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -89,7 +89,7 @@ function Calls(props) {
 
   const getFilterDescription = () => {
 
-    var filter = { type: 'all', code: "", filterStarred: false };
+    let filter = { type: 'all', code: "", filterStarred: false };
 
     switch (filterType) {
       case 1:
@@ -117,9 +117,7 @@ function Calls(props) {
 
         pageYOffset.current = positionRef.current.clientHeight;
 
-        if (shouldPlayAddCallRef.current) {
-          setCurrentCall(message);
-        }
+        setSelectCallId(message._id);
         dispatch(addCall(message));
 
         console.log("Got: " + message._id);
@@ -145,7 +143,7 @@ function Calls(props) {
   }
 
   const updateUri = () => {
-    var search = "?"
+    let search = "?"
     switch (filterType) {
 
       case 1:
@@ -159,12 +157,7 @@ function Calls(props) {
         break;
 
     }
-    if (loadCallId) {
-      if (search.length !== 1) {
-        search = search + '&';
-      }
-      search = search + `call-id=${loadCallId}`
-    }
+
     if (filterDate) {
       if (search.length !== 1) {
         search = search + '&';
@@ -217,7 +210,7 @@ function Calls(props) {
 
 
   const setStateFromUri = async () => {
-    var filter = {
+    let filter = {
       filterDate: false,
       filterType: 0,  // this is "all"
       filterTalkgroups: [],
@@ -245,7 +238,7 @@ function Calls(props) {
     // is this just for one call?
     if (uri.hasOwnProperty('call-id')) {
       const _id = uri['call-id'];
-      setLoadCallId(_id);
+      setSelectCallId(_id);
       setAutoPlay(false);
       if (!urlOptions) setUrlOptions(true);
     }
@@ -319,18 +312,25 @@ function Calls(props) {
   // Update the Browser URI when any relevant values change
   useEffect(() => {
     updateUri();
-  }, [filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred, loadCallId])
+  }, [filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred, selectCallId])
 
-
+/*
   useEffect(() => {
     if (!urlOptions && groupsData && (groupsData.length > 0)) {
       setGroupVisible(true);
     }
-  }, [groupsData])
+  }, [groupsData])*/
+
+  useLayoutEffect( () => {
+    const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current);
+    if (scrollAmount > 0) {
+      console.log("useLayoutEffect for callsData -  ref: " + pageYOffset.current + " current: " + positionRef.current.clientHeight + " Scroll Amount: " + scrollAmount)
+      window.scrollBy(0, scrollAmount);
+    }
+  }, [callsData])
 
 
-
-  var archiveLabel = "";
+  let archiveLabel = "";
   if (filterDate) {
     const filterDateObj = new Date(filterDate);
     archiveLabel = filterDateObj.toLocaleDateString() + " " + filterDateObj.toLocaleTimeString()
@@ -340,7 +340,7 @@ function Calls(props) {
 
   const archive = process.env.REACT_APP_ARCHIVE_DAYS
 
-  var filterLabel = "All"
+  let filterLabel = "All"
   switch (filterType) {
     case 1:
       filterLabel = "Group"
@@ -398,7 +398,7 @@ function Calls(props) {
         </Menu.Menu>
       </Menu>
 
-       <CallPlayer callsData={callsData}  loadCallId={loadCallId}/>     
+       <CallPlayer callsData={callsData}  selectCallId={selectCallId} />     
 
     </div>
   );

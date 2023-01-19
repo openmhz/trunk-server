@@ -30,11 +30,11 @@ function CallInfo(props) {
     if ((talkgroupsData) && talkgroupsData.talkgroups[currentCall.talkgroupNum]) {
       header = talkgroupsData.talkgroups[currentCall.talkgroupNum].description;
     }
-    var time = new Date(currentCall.time);
+    const time = new Date(currentCall.time);
     callTime = time.toLocaleTimeString();
     callDate = time.toLocaleDateString();
     if (currentCall.freq) {
-      var freq = currentCall.freq / 1000000;
+      const freq = currentCall.freq / 1000000;
       callFreq = Math.round(freq * 1000) / 1000;
     }
 
@@ -49,7 +49,7 @@ function CallInfo(props) {
   return (
     <div>
       <Segment padded attached>
-        <Header as='h1'>{props.header}</Header>
+        <Header as='h1'>{header}</Header>
         <List bulleted horizontal link>
           {srcList}
         </List>

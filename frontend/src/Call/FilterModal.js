@@ -64,12 +64,12 @@ function FilterModal(props) {
   }
 
 
-  var obj;
+  
   let talkgroupList = [];
   if (isTalkgroupsSuccess) {
     for (const num in talkgroupsData["talkgroups"]) {
       const talkgroup = talkgroupsData["talkgroups"][num];
-      obj = {
+      const obj = {
         key: talkgroup.num,
         value: talkgroup.num,
         text: talkgroup.description
@@ -82,7 +82,7 @@ function FilterModal(props) {
   if (isGroupsSuccess) {
     for (const num in groupsData) {
       const group = groupsData[num]
-      obj = {
+      const obj = {
         key: group._id,
         value: group._id,
         text: group.groupName

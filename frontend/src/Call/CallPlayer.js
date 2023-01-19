@@ -34,7 +34,7 @@ const socket = io(process.env.REACT_APP_BACKEND_SERVER);
 function CallPlayer(props) {
 
   const { shortName } = useParams();
-  const loadCallId = props.loadCallId;
+  const selectCallId = props.selectCallId;
   const callsData = props.callsData;
 
   const { ref: loadOlderRef, inView: loadOlderInView } = useInView({
@@ -55,7 +55,7 @@ function CallPlayer(props) {
   const [isPlaying, setIsPlaying] = useState(false);
 
 
-  const {callLink,callDownload,callTweet} = useCallLink(props.call)
+  const {callLink,callDownload,callTweet} = useCallLink(currentCall)
 
 
 
@@ -63,7 +63,6 @@ function CallPlayer(props) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const positionRef = useRef(); // lets us get the Y Scroll offset for the Call List
-  const pageYOffset = useRef(); // Store the current Scroll Offset in a way that guarantees the latest value is available when Call Data is updated
   const shouldPlayAddCallRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
   shouldPlayAddCallRef.current = (!isPlaying && autoPlay)?true:false;
 
@@ -121,26 +120,20 @@ function CallPlayer(props) {
   }, [loadOlderInView]);
 
   useEffect(() => {
-    if ( loadCallId && callsData && !currentCall) {
-      const call = callsData.entities[loadCallId];
+    if ( selectCallId && callsData && !currentCall) {
+      const call = callsData.entities[selectCallId];
       if (call) {
         setCurrentCall(call);
       }
     }
-  }, [loadCallId, callsData])
+  }, [selectCallId, callsData])
 
-  useLayoutEffect( () => {
-    const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current);
-    if (scrollAmount > 0) {
-      console.log("useLayoutEffect for callsData -  ref: " + pageYOffset.current + " current: " + positionRef.current.clientHeight + " Scroll Amount: " + scrollAmount)
-      window.scrollBy(0, scrollAmount);
-    }
-  }, [callsData])
+
 
 
   return (
     <div ref={positionRef}>
-      <Container className="main">
+      <Container className="main" >
         <Sidebar.Pushable>
           <Sidebar.Pusher
             style={{ minHeight: '100vh' }}
