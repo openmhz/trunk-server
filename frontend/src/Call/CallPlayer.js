@@ -1,12 +1,12 @@
 import React, { useEffect, useLayoutEffect, useState, useRef } from "react";
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 
-import MediaPlayer from "./MediaPlayer";
+import MediaPlayer from "./components/MediaPlayer";
 
-import SupportModal from "./SupportModal";
+import SupportModal from "./components/SupportModal";
 
-import CallInfo from "./CallInfo";
-import ListCalls from "./ListCalls";
+import CallInfo from "./components/CallInfo";
+import ListCalls from "./components/ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
 import { setLive, setFilter,setDateFilter } from "../features/callPlayer/callPlayerSlice";
 import { getCalls, getOlderCalls, getNewerCalls, addCall } from "../features/calls/callsSlice";
@@ -24,8 +24,8 @@ import {
 import "./CallPlayer.css";
 import queryString from '../query-string';
 import io from 'socket.io-client';
-import { useCallLink } from "./CallLinks";
-
+import { useCallLink } from "./components/CallLinks";
+import "./CallPlayer.css";
 
 const socket = io(process.env.REACT_APP_BACKEND_SERVER);
 

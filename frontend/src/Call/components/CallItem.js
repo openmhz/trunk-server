@@ -6,7 +6,7 @@ import {
 } from "semantic-ui-react";
 
 
-import { addStar, removeStar } from "../features/calls/callsSlice";
+import { addStar, removeStar } from "../../features/calls/callsSlice";
 import { useDispatch } from 'react-redux'
 
 const CallItem = (props) => {

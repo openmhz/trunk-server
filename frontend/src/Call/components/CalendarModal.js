@@ -5,7 +5,7 @@ import {
   Icon
 } from "semantic-ui-react";
 import "./CalendarModal.css";
-import { setDateFilter } from "../features/callPlayer/callPlayerSlice";
+import { setDateFilter } from "../../features/callPlayer/callPlayerSlice";
 import DatePicker from 'react-datepicker';
 import { useDispatch } from 'react-redux'
 import { subDays } from 'date-fns'

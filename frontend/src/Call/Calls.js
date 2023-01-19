@@ -1,10 +1,10 @@
 import React, { useEffect, useLayoutEffect, useState, useRef } from "react";
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 
-import FilterModal from "./FilterModal";
-import GroupModal from "./GroupModal";
+import FilterModal from "./components/FilterModal";
+import GroupModal from "./components/GroupModal";
 
-import CalendarModal from "./CalendarModal";
+import CalendarModal from "./components/CalendarModal";
 import CallPlayer from "./CallPlayer";
 
 import { useSelector, useDispatch } from 'react-redux'

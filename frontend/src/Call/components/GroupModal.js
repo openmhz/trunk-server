@@ -1,6 +1,6 @@
 import React, { Component, useState } from "react";
-import { useGetGroupsQuery } from '../features/api/apiSlice'
-import { setGroupFilter } from "../features/callPlayer/callPlayerSlice";
+import { useGetGroupsQuery } from '../../features/api/apiSlice'
+import { setGroupFilter } from "../../features/callPlayer/callPlayerSlice";
 import { useSelector, useDispatch } from 'react-redux'
 
 import {

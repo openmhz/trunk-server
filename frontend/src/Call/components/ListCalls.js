@@ -5,7 +5,7 @@ import {
   Table,
   Ref
 } from "semantic-ui-react";
-import "./CallPlayer.css";
+import "../CallPlayer.css";
 
 // ----------------------------------------------------
 const ListCalls = (props) => {

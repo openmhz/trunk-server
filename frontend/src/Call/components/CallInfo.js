@@ -1,6 +1,6 @@
 import React from "react";
 import { useCallLink } from "./CallLinks";
-import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
+import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../../features/api/apiSlice'
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 import {
   Header,

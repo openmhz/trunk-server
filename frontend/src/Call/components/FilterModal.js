@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { setGroupFilter, setTalkgroupFilter, setAllFilter, setStarredFilter } from "../features/callPlayer/callPlayerSlice";
-import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
+import { setGroupFilter, setTalkgroupFilter, setAllFilter, setStarredFilter } from "../../features/callPlayer/callPlayerSlice";
+import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../../features/api/apiSlice'
 import { useSelector, useDispatch } from 'react-redux'
 import {
   Modal,
