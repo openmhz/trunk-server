@@ -129,8 +129,6 @@ function CallPlayer(props) {
   }, [selectCallId, callsData])
 
 
-
-
   return (
     <div ref={positionRef}>
       <Container className="main" >
