@@ -1,20 +1,15 @@
-import React, { useEffect, useLayoutEffect, useState, useRef } from "react";
-import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
-
+import React, { useEffect, useState, useRef } from "react";
+import { useParams } from 'react-router-dom';
 import MediaPlayer from "./components/MediaPlayer";
-
 import SupportModal from "./components/SupportModal";
-
 import CallInfo from "./components/CallInfo";
 import ListCalls from "./components/ListCalls";
-import { useSelector, useDispatch } from 'react-redux'
-import { setLive, setFilter,setDateFilter } from "../features/callPlayer/callPlayerSlice";
-import { getCalls, getOlderCalls, getNewerCalls, addCall } from "../features/calls/callsSlice";
+import { useDispatch } from 'react-redux'
+import { getOlderCalls, getNewerCalls } from "../features/calls/callsSlice";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
 import { useInView } from 'react-intersection-observer';
 import {
   Container,
-  Label,
   Rail,
   Sticky,
   Menu,
@@ -46,30 +41,20 @@ function CallPlayer(props) {
     /* Optional options */
     threshold: 0.5
   });
-
-  const { data: groupsData, isSuccess: isGroupsSuccess } = useGetGroupsQuery(shortName);
+  
   const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
-
-
   const [autoPlay, setAutoPlay] = useState(true);
   const [currentCall, setCurrentCall] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
-
   const {callLink,callDownload,callTweet} = useCallLink(currentCall)
 
-
-
-
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const positionRef = useRef(); // lets us get the Y Scroll offset for the Call List
   const shouldPlayAddCallRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
   shouldPlayAddCallRef.current = (!isPlaying && autoPlay)?true:false;
 
-
   let currentCallId = false;
-
 
   if (currentCall) {
     currentCallId = currentCall._id;
@@ -79,7 +64,6 @@ function CallPlayer(props) {
     setIsPlaying(playing);
   }
 
-
   const handleAutoPlay = (currentAutoPlay) => {
     setAutoPlay(!currentAutoPlay);
   }
@@ -88,7 +72,6 @@ function CallPlayer(props) {
     setCurrentCall(data.call);
     setIsPlaying(true);
   }
-
 
   const callEnded = () => {
     if (callsData) {
@@ -134,8 +117,6 @@ function CallPlayer(props) {
       }
     }
   }, [selectCallId, callsData])
-
-
 
 
   return (

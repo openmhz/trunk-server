@@ -1,17 +1,14 @@
 import React, { useEffect, useLayoutEffect, useState, useRef } from "react";
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
-
 import FilterModal from "./components/FilterModal";
 import GroupModal from "./components/GroupModal";
-
 import CalendarModal from "./components/CalendarModal";
 import CallPlayer from "./CallPlayer";
-
 import { useSelector, useDispatch } from 'react-redux'
 import { setLive, setFilter,setDateFilter } from "../features/callPlayer/callPlayerSlice";
-import { getCalls, getOlderCalls, getNewerCalls, addCall } from "../features/calls/callsSlice";
+import { getCalls, addCall } from "../features/calls/callsSlice";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
-import { useInView } from 'react-intersection-observer';
+
 import {
   Container,
   Label,
@@ -38,8 +35,6 @@ function Calls(props) {
 
   const { data: groupsData, isSuccess: isGroupsSuccess } = useGetGroupsQuery(shortName);
   const { loading: callsLoading, data: callsData } = useSelector((state) => state.calls);
-  const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
-
 
   const [autoPlay, setAutoPlay] = useState(true);
   const [currentCall, setCurrentCall] = useState(false);
@@ -84,11 +79,7 @@ function Calls(props) {
   const handleFilterToggle = () => setFilterVisible(!filterVisible);
   const handleCalendarToggle = () => setCalendarVisible(!calendarVisible);
 
-
-
-
   const getFilterDescription = () => {
-
     let filter = { type: 'all', code: "", filterStarred: false };
 
     switch (filterType) {
@@ -179,9 +170,7 @@ function Calls(props) {
     if (!live) {
       dispatch(setDateFilter(false));
       dispatch(setLive(true));
-      setCurrentCall(false);
       dispatch(getCalls({}));
-
       startSocket();
     }
   }
@@ -191,7 +180,6 @@ function Calls(props) {
 
     if (didUpdate) {
       dispatch(setLive(false));
-      setCurrentCall(false);
       stopSocket();
     }
   }
@@ -202,10 +190,6 @@ function Calls(props) {
 
   const handleFilterClose = (didUpdate) => {
     setFilterVisible(!filterVisible);
-
-    if (didUpdate) {
-      setCurrentCall(false);
-    }
   }
 
 
@@ -263,9 +247,6 @@ function Calls(props) {
 
     dispatch(setFilter(filter));
   }
-
-
-
 
 
   useEffect(() => {
@@ -335,8 +316,6 @@ function Calls(props) {
     archiveLabel = filterDateObj.toLocaleDateString() + " " + filterDateObj.toLocaleTimeString()
   }
 
-
-
   const archive = process.env.REACT_APP_ARCHIVE_DAYS
 
   let filterLabel = "All"
@@ -396,9 +375,7 @@ function Calls(props) {
           </Menu.Item>
         </Menu.Menu>
       </Menu>
-
        <CallPlayer callsData={callsData}  selectCallId={selectCallId} />     
-
     </div>
   );
 }
