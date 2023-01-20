@@ -120,7 +120,7 @@ function CallPlayer(props) {
   }, [loadOlderInView]);
 
   useEffect(() => {
-    if ( selectCallId && callsData && !currentCall) {
+    if ( selectCallId && callsData ) {
       const call = callsData.entities[selectCallId];
       if (call) {
         setCurrentCall(call);

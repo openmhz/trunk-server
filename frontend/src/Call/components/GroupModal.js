@@ -14,7 +14,6 @@ import "./FilterModal.css";
 function GroupModal (props) {
   const shortName = useSelector((state) => state.callPlayer.shortName);
   const { data, isError, isLoading, isSuccess,error } = useGetGroupsQuery(props.shortName);
-  const [open, setOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState(false);
   const dispatch = useDispatch()
   const onClose = props.onClose;
@@ -49,7 +48,7 @@ function GroupModal (props) {
 
   return (
 
-    <Modal open={props.open} onClose={() => setOpen(false)} onOpen={() => setOpen(true)} size='tiny'>
+    <Modal open={props.open} onClose={onClose} size='tiny'>
    
       <Modal.Header>Select a Group</Modal.Header>
       <Modal.Content >

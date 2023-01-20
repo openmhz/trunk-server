@@ -314,17 +314,16 @@ function Calls(props) {
     updateUri();
   }, [filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred, selectCallId])
 
-/*
+
   useEffect(() => {
     if (!urlOptions && groupsData && (groupsData.length > 0)) {
       setGroupVisible(true);
     }
-  }, [groupsData])*/
+  }, [groupsData])
 
   useLayoutEffect( () => {
     const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current);
     if (scrollAmount > 0) {
-      console.log("useLayoutEffect for callsData -  ref: " + pageYOffset.current + " current: " + positionRef.current.clientHeight + " Scroll Amount: " + scrollAmount)
       window.scrollBy(0, scrollAmount);
     }
   }, [callsData])

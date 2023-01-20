@@ -1,4 +1,4 @@
-import React, {  useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Menu,
   Icon,
@@ -30,22 +30,23 @@ const MediaPlayer = (props) => {
     const onEnded = props.onEnded;
     setSourceIndex(0);
     if (call) {
-    audio.src = call.url;
-    const playPromise = audio.play();
+      audio.src = call.url;
+      const playPromise = audio.play();
 
-    // In browsers that don’t yet support this functionality,
-    // playPromise won’t be defined.
-    if (playPromise !== undefined) {
-      playPromise.then(function () {
+      // In browsers that don’t yet support this functionality,
+      // playPromise won’t be defined.
+      if (playPromise !== undefined) {
+        playPromise.then(function () {
 
-      }).catch(function (error) {
-        console.log("Automatic playback failed: " + error);
-        onEnded();
-        // Show a UI element to let the user manually start playback.
-      });
-    } else {
-      audio.src = false;
-    }
+        }).catch(function (error) {
+          console.log("Automatic playback failed: " + error);
+          handlePause();
+          onEnded();
+          // Show a UI element to let the user manually start playback.
+        });
+      } else {
+        audio.src = false;
+      }
     }
   }, [call]);
 

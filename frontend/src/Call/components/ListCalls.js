@@ -14,13 +14,15 @@ const ListCalls = (props) => {
   //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
   //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
 
+
+  /*
     useEffect(() => {
       if (activeCallRef.current) {
         activeCallRef.current.scrollIntoView({
           block: "center",
         });
     }
-  });
+  });*/
 
     const callsData = props.callsData;
     return (
