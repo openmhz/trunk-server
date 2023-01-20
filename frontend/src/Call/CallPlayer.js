@@ -27,6 +27,7 @@ import io from 'socket.io-client';
 import { useCallLink } from "./components/CallLinks";
 import "./CallPlayer.css";
 
+
 const socket = io(process.env.REACT_APP_BACKEND_SERVER);
 
 
@@ -119,8 +120,14 @@ function CallPlayer(props) {
     }
   }, [loadOlderInView]);
 
+
+  // Triggered when a new call is selected in the parent component.
+  // This happens in 2 scenarios: when a call is specified in the URI or when a new call comes over the socket
+  // When a call is set to CurrentCall, it will automatically start playing
+  // we should only set the selectCallId to be the current call when AutoPlay is selected
+  // and when there isn't another call already playing
   useEffect(() => {
-    if ( selectCallId && callsData ) {
+    if ( selectCallId && callsData && !isPlaying && autoPlay) {
       const call = callsData.entities[selectCallId];
       if (call) {
         setCurrentCall(call);
