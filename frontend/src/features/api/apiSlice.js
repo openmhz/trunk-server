@@ -25,6 +25,13 @@ export const apiSlice = createApi({
             // The URL for the request is '/fakeApi/posts'
             query: (shortName) => ({ url: `/${shortName}/talkgroups` })
         }),
+        addNewEvent: builder.mutation({
+            query: initialEvent => ({
+                url: '/events',
+                method: 'POST',
+                body: initialEvent
+            })
+        })
 
     })
 })
@@ -45,4 +52,4 @@ export const selectActiveSystems = createSelector(
 )
 
 // Export the auto-generated hook for the `getPosts` query endpoint
-export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery } = apiSlice
+export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useAddNewEventMutation } = apiSlice
