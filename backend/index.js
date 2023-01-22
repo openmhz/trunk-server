@@ -13,7 +13,7 @@ var systems = require("./controllers/systems");
 var talkgroups = require("./controllers/talkgroups");
 var groups = require("./controllers/groups");
 var stats = require("./controllers/stats");
-
+var events = require("./controllers/events");
 var config = require('./config/config.json');
 
 var mongoose = require("mongoose");
@@ -169,6 +169,7 @@ function addSystemClients(req, res, next) {
 
 
 /*------    CALLS   ----------*/
+
 app.get('/card/:id', calls.get_card);
 app.get('/:shortName/call/:id', calls.get_call);
 app.get('/:shortName/calls/latest', calls.get_latest_calls);
@@ -208,6 +209,9 @@ app.get('/:shortName/talkgroups', talkgroups.get_talkgroups);
 
 /*------    GROUPS   ----------*/
 app.get('/:shortName/groups', groups.get_groups);
+
+/*------    EVENTS   ----------*/
+app.post('/events', events.addNewEvent);
 
 
 /*------    STATS   ----------*/

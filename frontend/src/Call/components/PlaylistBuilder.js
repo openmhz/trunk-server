@@ -77,11 +77,12 @@ function PlaylistBuilder(props) {
   let listItems = "";
 
   listItems = playlist.map((call, index) => {
-    let tgAlpha = "";
+    let tgAlpha = call.talkgroupNum;
     if (talkgroupsData) {
       const talkgroup = talkgroupsData.talkgroups[call.talkgroupNum]
-      tgAlpha = talkgroup.alpha
+      tgAlpha = talkgroup.alpha?talkgroup.alpha:tgAlpha;
     }
+
     const time = new Date(call.time);
     const callTime = time.toLocaleTimeString();
     const callDate = time.toLocaleDateString();

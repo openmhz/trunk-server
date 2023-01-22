@@ -2,7 +2,7 @@
 var ObjectID = require('mongodb').ObjectID;
 var db = require('../db');
 var mongoose = require("mongoose");
-var Call = require("../models/call");
+var {callModel:Call} = require("../models/call");
 var Star = require("../models/star");
 
 var defaultNumResults = 50;
