@@ -21,6 +21,14 @@ export const apiSlice = createApi({
             // The URL for the request is '/fakeApi/posts'
             query: () => ({ url: '/systems' })
         }),
+        getEvents: builder.query({
+            // The URL for the request is '/fakeApi/posts'
+            query: () => ({ url: '/events' })
+        }),
+        getEvent: builder.query({
+            // The URL for the request is '/fakeApi/posts'
+            query: (eventId) => ({ url: `/events/${eventId}` })
+        }),
         getTalkgroups: builder.query({
             // The URL for the request is '/fakeApi/posts'
             query: (shortName) => ({ url: `/${shortName}/talkgroups` })
@@ -52,4 +60,4 @@ export const selectActiveSystems = createSelector(
 )
 
 // Export the auto-generated hook for the `getPosts` query endpoint
-export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useAddNewEventMutation } = apiSlice
+export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetEventsQuery, useGetEventQuery, useAddNewEventMutation } = apiSlice

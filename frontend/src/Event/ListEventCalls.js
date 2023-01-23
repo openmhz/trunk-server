@@ -1,14 +1,14 @@
 import React, { useEffect, useRef } from "react";
-import CallItem from "./CallItem";
+import CallItem from "../Call/components/CallItem";
 import {
   Icon,
   Table,
   Ref
 } from "semantic-ui-react";
-import "../CallPlayer.css";
+import "../Call/CallPlayer.css";
 
 // ----------------------------------------------------
-const ListCalls = (props) => {
+const ListEventCalls = (props) => {
     const activeCallRef  = useRef();
 
   //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
@@ -22,7 +22,7 @@ const ListCalls = (props) => {
     }
   });
 
-    const callsData = props.callsData;
+
     return (
 
         <Table id="calls" unstackable  >
@@ -34,15 +34,14 @@ const ListCalls = (props) => {
               <Table.HeaderCell><Icon name='star' /></Table.HeaderCell>
             </Table.Row>
           </Table.Header>
-          {callsData && 
+          {props.eventData && 
           <Table.Body>
             
-            {
-              props.callsData.ids.map((callId, index) => {
-              if (callId === props.activeCallId) {
-                return (<Ref innerRef={activeCallRef} key={index} ><CallItem activeCall={true}  call={props.callsData.entities[callId]} key={index} onClick={props.playCall}/></Ref>)
+            { props.eventData.calls.map((call, index) => {
+              if (call._id === props.activeCallId) {
+                return (<Ref innerRef={activeCallRef} key={index} ><CallItem activeCall={true}  call={call} key={index} onClick={props.playCall}/></Ref>)
               } else {
-                return <CallItem activeCall={false} call={props.callsData.entities[callId]} key={index} onClick={props.playCall}/>
+                return <CallItem activeCall={false} call={call} key={index} onClick={props.playCall}/>
               }
             })
            
@@ -57,4 +56,4 @@ const ListCalls = (props) => {
   
 }
 
-export default ListCalls;
+export default ListEventCalls;

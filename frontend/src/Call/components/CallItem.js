@@ -7,16 +7,19 @@ import {
 
 
 import { addStar, removeStar } from "../../features/calls/callsSlice";
+import { useGetTalkgroupsQuery } from '../../features/api/apiSlice'
 import { useDispatch } from 'react-redux'
 
 const CallItem = (props) => {
-
+  const call = props.call;
+  const activeCall = props.activeCall;
   const [starVisible, setStarVisible] = useState(false);
   const [starClicked, setStarClicked] = useState(false);
+  const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(call.shortName);
   const dispatch = useDispatch();
-  const call = props.call;
+
   const time = new Date(call.time);
-  const activeCall = props.activeCall;
+
 
   const handleStarClicked = (e) => {
     e.preventDefault();
@@ -79,10 +82,10 @@ const CallItem = (props) => {
     }
   }
   let talkgroup;
-  if ((typeof props.talkgroups == 'undefined') || (typeof props.talkgroups[call.talkgroupNum] == 'undefined')) {
+  if ((typeof talkgroupsData == 'undefined') || (typeof talkgroupsData.talkgroups[call.talkgroupNum] == 'undefined')) {
     talkgroup = call.talkgroupNum;
   } else {
-    talkgroup = props.talkgroups[call.talkgroupNum].description;
+    talkgroup = talkgroupsData.talkgroups[call.talkgroupNum].description;
   }
   return (
     <Table.Row draggable="true" onClick={(e) => props.onClick({ call: call }, e)} {...rowSelected} onDragStart={onDragStart} data-callid={call._id}>

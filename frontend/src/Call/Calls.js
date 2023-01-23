@@ -366,6 +366,7 @@ function Calls(props) {
           <span> </span><Icon name="close" inverted={true} link={true} size='small' /></Menu.Item>
         <Link to="/"><Menu.Item link>Home</Menu.Item></Link>
         <Link to="/systems"><Menu.Item link>Systems</Menu.Item></Link>
+        <Link to="/events"><Menu.Item link>Events</Menu.Item></Link>
         <Link to="/about"><Menu.Item link>About</Menu.Item></Link>
       </Sidebar>
       <Menu fixed="top">

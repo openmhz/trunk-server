@@ -2,18 +2,22 @@ var mongoose = require('mongoose');
 var {callSchema} = require('./call');
 console.log(callSchema)
 
-var groupSchema = mongoose.Schema({
+var eventSchema = mongoose.Schema({
   title: String,
   description: String,
-  expireTime: Number,
-  startTime: Number,
-  endTime: Number,
+  expireTime: Date,
+  startTime: Date,
+  endTime: Date,
   shortNames: [String],
-  calls: [callSchema]
+  calls: [callSchema],
+  numCalls: Number
 },
 {
   timestamps: true
 });
 
-
-module.exports = mongoose.model('Event', groupSchema);
+// add virtual if You want
+eventSchema.virtual('callCount').get(function () {
+  return this.calls.length;
+});
+module.exports = mongoose.model('Event', eventSchema);

@@ -4,12 +4,34 @@ var mongoose = require("mongoose");
 var Event = require("../models/event");
 var { callModel: Call, callSchema } = require("../models/call");
 
-/*
-var oids = [];
-ids.forEach(function(item){
-oids.push(new ObjectId(item));
-});
-*/
+exports.getEvent = async function (req, res, next) {
+
+    try {
+        var objectId = req.params.id;
+        const event = await Event.findById(objectId).exec();
+        res.contentType('json');
+        res.send(JSON.stringify(event));
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500);
+        res.send(`Error fetching Event ${req.params.id}: ` + err);
+    }
+}
+
+exports.getEvents = async function (req, res, next) {
+    try {
+        let events = await Event.find({},["title",  "description", "startTime", "endTime", "expireTime", "numCalls", "createdAt"]).exec();
+        res.contentType('json');
+        res.send(JSON.stringify(events));
+    }
+    catch (err) {
+        console.error(err);
+        res.status(500);
+        res.send("Error fetching Events" + err);
+    }
+}
+
 const compareCalls = (a, b) => {
     const aTimestamp = new Date(a.time).getTime()
     const bTimestamp = new Date(b.time).getTime()
@@ -45,8 +67,8 @@ exports.addNewEvent = async function (req, res, next) {
                 res.send("Not all of the Calls were found");
             }
             calls = calls.sort(compareCalls);
-            event.startTime = new Date(calls[0].time).getTime();
-            event.endTime = new Date(calls[calls.length - 1].time).getTime();
+            event.startTime = new Date(calls[0].time);
+            event.endTime = new Date(calls[calls.length - 1].time);
             event.expireTime = event.startTime;
             calls.forEach((call) => {
                 if (event.shortNames.indexOf(call.shortName) === -1) {
@@ -54,6 +76,7 @@ exports.addNewEvent = async function (req, res, next) {
                 }
             });
             event.calls = calls;
+            event.numCalls = calls.length;
             console.log(await event.save());
             res.contentType('json');
             res.send(JSON.stringify({

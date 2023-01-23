@@ -212,7 +212,8 @@ app.get('/:shortName/groups', groups.get_groups);
 
 /*------    EVENTS   ----------*/
 app.post('/events', events.addNewEvent);
-
+app.get('/events', events.getEvents);
+app.get('/events/:id', events.getEvent);
 
 /*------    STATS   ----------*/
 app.get('/:shortName/errors', stats.get_errors);
