@@ -13,6 +13,7 @@ import {
   Tab
 } from "semantic-ui-react";
 import PlaylistBuilder from "./PlaylistBuilder"
+import CallInfoPane from "./CallInfoPane"
 // ----------------------------------------------------
 function CallInfo(props) {
   const { shortName } = useParams();
@@ -51,56 +52,18 @@ function CallInfo(props) {
 
   const panes = [
     {
-      menuItem: 'Call Info', render: () => {
+      menuItem: { key: 'info', icon: 'info', content: 'Call Info' }, render: () => {
         return (
-          <div>
-            <Tab.Pane attached='bottom'>
-              <Header as='h1'>{header}</Header>
-              <List bulleted horizontal link>
-                {srcList}
-              </List>
-              <Divider />
-              <Statistic size='small'>
-                <Statistic.Label>Seconds</Statistic.Label>
-                <Statistic.Value>{callLength}</Statistic.Value>
-              </Statistic>
-              <Statistic size='small'>
-                <Statistic.Label>Talkgroup</Statistic.Label>
-                <Statistic.Value>{talkgroupNum}</Statistic.Value>
-              </Statistic>
 
-              <List divided verticalAlign='middle'>
-                <List.Item>
-                  <Icon name="wait" />
-                  <List.Content>
-                    {callTime}
-                  </List.Content>
-                </List.Item>
-                <List.Item>
-                  <Icon name="calendar outline" />
-                  <List.Content>
-                    {callDate}
-                  </List.Content>
-                </List.Item>
-                <List.Item>
-                  <Icon name="cubes" />
-                  <List.Content>
-                    {callFreq} MHz
-                  </List.Content>
-                </List.Item>
-              </List>
+            <Tab.Pane attached='bottom'>
+                <CallInfoPane call={props.call} />
             </Tab.Pane>
-            <Menu>
-              <a href={callTweet}><Menu.Item name="tweet" ><Icon name='twitter' />Tweet</Menu.Item></a>
-              <a href={callDownload}><Menu.Item name="download"><Icon name="download" />Download</Menu.Item></a>
-              <a href={callLink}><Menu.Item name="link"><Icon name="at" />Link</Menu.Item></a>
-            </Menu>
-          </div>
+
         )
       }
     },
     {
-      menuItem: 'Playlist', render: () => {
+      menuItem: { key: 'list', icon: 'list', content: 'Create Event' }, render: () => {
         return (
           <PlaylistBuilder />
         )
@@ -111,7 +74,7 @@ function CallInfo(props) {
 
   return (
     <div>
-      <Tab menu={{ attached: 'top' }} panes={panes} defaultActiveIndex={activeTab} onTabChange={handleTabChange} />
+      <Tab menu={{ attached: 'top', fluid: true, widths: 2 }} panes={panes} defaultActiveIndex={activeTab} onTabChange={handleTabChange} />
     </div>
   );
 }

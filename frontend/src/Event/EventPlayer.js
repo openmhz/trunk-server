@@ -5,7 +5,7 @@ import MediaPlayer from "../Call/components/MediaPlayer";
 
 import SupportModal from "../Call/components/SupportModal";
 
-import CallInfo from "../Call/components/CallInfo";
+import EventCallInfo from "./EventCallInfo";
 import ListEventCalls from "./ListEventCalls";
 import { useSelector, useDispatch } from 'react-redux'
 
@@ -110,7 +110,7 @@ function EventPlayer(props) {
         </Sidebar.Pushable>
         <Rail position='right' className="desktop-only"  >
           <Sticky offset={60} context={positionRef}>
-            <CallInfo call={currentCall} />
+            <EventCallInfo call={currentCall} />
           </Sticky>
         </Rail>
       </Container>

@@ -17,6 +17,7 @@ function get_calls(query, numResults, res) {
     var fields = {
         _id: true,
         talkgroupNum: true,
+        shortName: true,
         path: true,
         name: true,
         time: true,
@@ -38,6 +39,7 @@ function get_calls(query, numResults, res) {
                 if (item) {
                     call = {
                         _id: item._id.toHexString(),
+                        shortName: item.shortName,
                         talkgroupNum: item.talkgroupNum,
                         url: item.url,
                         filename: item.path + item.name,

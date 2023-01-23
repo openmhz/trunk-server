@@ -123,7 +123,7 @@ function ViewEvent(props) {
         </Container>
       </Menu>
       <Grid style={{ paddingTop: '4em' }}>
-        <Grid.Column mobile={0} tablet={0} computer={1} ></Grid.Column>
+        <Grid.Column mobile={1} tablet={1} computer={1} ></Grid.Column>
         <Grid.Column mobile={16} tablet={8} computer={4}>
           <Container text >
             {eventData && eventData.description}
@@ -135,15 +135,15 @@ function ViewEvent(props) {
         <Grid.Column mobile={8} tablet={8} computer={2}>
         
           <Statistic>
-            <Statistic.Value>{eventData.numCalls}</Statistic.Value>
+            <Statistic.Value>{eventData && eventData.numCalls}</Statistic.Value>
             <Statistic.Label>Calls</Statistic.Label>
           </Statistic>
           </Grid.Column>
 
-        <Grid.Column mobile={0} tablet={0} computer={5}>
+        <Grid.Column mobile={1} tablet={1} computer={5}>
         </Grid.Column>
       </Grid>
-      <EventPlayer eventData={eventData} selectCallId={selectCallId} />
+      {eventData && <EventPlayer eventData={eventData} selectCallId={selectCallId} />}
     </div>
   );
 }

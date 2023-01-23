@@ -164,7 +164,7 @@ function PlaylistBuilder(props) {
           </Table.Body>
         </Table>
       </Tab.Pane>
-      <Menu>
+      <Menu fluid widths={2}>
         <Menu.Item name="clear" onClick={() => setPlaylist([])}><Icon name='delete' />Clear</Menu.Item>
         <Menu.Item active name="submit" onClick={submitPlaylist}><Icon name="cloud upload" />Submit</Menu.Item>
       </Menu>
