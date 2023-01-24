@@ -1,33 +1,28 @@
 import React, { useEffect, useRef } from "react";
-import { useParams } from 'react-router-dom';
-import CallItem from "./CallItem";
+import EventCallItem from "./EventCallItem";
 import {
   Icon,
   Table,
   Ref
 } from "semantic-ui-react";
-import "../CallPlayer.css";
-import { useGetTalkgroupsQuery } from '../../features/api/apiSlice'
+import "../Call/CallPlayer.css";
 
 // ----------------------------------------------------
-const ListCalls = (props) => {
+const ListEventCalls = (props) => {
     const activeCallRef  = useRef();
-    const { shortName } = useParams();
-    const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
+
   //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
   //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
 
-
-  /*
     useEffect(() => {
       if (activeCallRef.current) {
         activeCallRef.current.scrollIntoView({
           block: "center",
         });
     }
-  });*/
+  });
 
-    const callsData = props.callsData;
+
     return (
 
         <Table id="calls" unstackable  >
@@ -36,18 +31,17 @@ const ListCalls = (props) => {
               <Table.HeaderCell>Len</Table.HeaderCell>
               <Table.HeaderCell>Talkgroup</Table.HeaderCell>
               <Table.HeaderCell>Time</Table.HeaderCell>
-              <Table.HeaderCell><Icon name='star' /></Table.HeaderCell>
+              <Table.HeaderCell>System</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
-          {callsData && 
+          {props.eventData && 
           <Table.Body>
             
-            {
-              props.callsData.ids.map((callId, index) => {
-              if (callId === props.activeCallId) {
-                return (<Ref innerRef={activeCallRef} key={index} ><CallItem activeCall={true}  call={props.callsData.entities[callId]} talkgroups={talkgroupsData} key={index} onClick={props.playCall}/></Ref>)
+            { props.eventData.calls.map((call, index) => {
+              if (call._id === props.activeCallId) {
+                return (<Ref innerRef={activeCallRef} key={index} ><EventCallItem activeCall={true}  call={call} key={index} onClick={props.playCall} showStar={false}/></Ref>)
               } else {
-                return <CallItem activeCall={false} call={props.callsData.entities[callId]} talkgroups={talkgroupsData} key={index} onClick={props.playCall}/>
+                return <EventCallItem activeCall={false} call={call} key={index} onClick={props.playCall} showStar={false}/>
               }
             })
            
@@ -62,4 +56,4 @@ const ListCalls = (props) => {
   
 }
 
-export default ListCalls;
+export default ListEventCalls;

@@ -129,8 +129,7 @@ const initialState = {
 export const addStar = createAsyncThunk(
   'calls/addStar',
   async(callId,{getState, requestIdleCallback}) => {
-    const {shortName} = getState().callPlayer; 
-    const url = process.env.REACT_APP_BACKEND_SERVER + "/" + shortName.toLowerCase() + "/star/" + callId
+    const url = process.env.REACT_APP_BACKEND_SERVER + "/add_star/" + callId
     const res = await fetch(url, {
       method: 'POST',
       headers: {
@@ -148,8 +147,7 @@ export const addStar = createAsyncThunk(
 export const removeStar = createAsyncThunk(
   'calls/removeStar',
   async(callId,{getState, requestIdleCallback}) => {
-    const {shortName} = getState().callPlayer; 
-    const url = process.env.REACT_APP_BACKEND_SERVER + "/" + shortName.toLowerCase() + "/removeStar/" + callId
+    const url = process.env.REACT_APP_BACKEND_SERVER + "/remove_star/" + callId
     const res = await fetch(url, {
       method: 'POST',
       headers: {

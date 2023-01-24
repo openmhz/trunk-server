@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useCallLink } from "./CallLinks";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../../features/api/apiSlice'
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
@@ -9,9 +9,11 @@ import {
   Segment,
   Statistic,
   Icon,
-  Menu
+  Menu,
+  Tab
 } from "semantic-ui-react";
-
+import PlaylistBuilder from "./PlaylistBuilder"
+import CallInfoPane from "./CallInfoPane"
 // ----------------------------------------------------
 function CallInfo(props) {
   const { shortName } = useParams();
@@ -44,51 +46,35 @@ function CallInfo(props) {
     talkgroupNum = currentCall.talkgroupNum;
 
   }
-  const {callLink,callDownload,callTweet} = useCallLink(props.call)
+  const { callLink, callDownload, callTweet } = useCallLink(props.call)
+  const [activeTab, setActiveTab] = useState(0);
+  const handleTabChange = (e, data) => setActiveTab(data.activeIndex);
+
+  const panes = [
+    {
+      menuItem: { key: 'info', icon: 'info', content: 'Call Info' }, render: () => {
+        return (
+
+            <Tab.Pane attached='bottom'>
+                <CallInfoPane call={props.call} />
+            </Tab.Pane>
+
+        )
+      }
+    },
+    {
+      menuItem: { key: 'list', icon: 'list', content: 'Create Event' }, render: () => {
+        return (
+          <PlaylistBuilder />
+        )
+      }
+    }
+  ]
+
 
   return (
     <div>
-      <Segment padded attached>
-        <Header as='h1'>{header}</Header>
-        <List bulleted horizontal link>
-          {srcList}
-        </List>
-        <Divider />
-        <Statistic size='small'>
-          <Statistic.Label>Seconds</Statistic.Label>
-          <Statistic.Value>{callLength}</Statistic.Value>
-        </Statistic>
-        <Statistic size='small'>
-          <Statistic.Label>Talkgroup</Statistic.Label>
-          <Statistic.Value>{talkgroupNum}</Statistic.Value>
-        </Statistic>
-
-        <List divided verticalAlign='middle'>
-          <List.Item>
-            <Icon name="wait" />
-            <List.Content>
-              {callTime}
-            </List.Content>
-          </List.Item>
-          <List.Item>
-            <Icon name="calendar outline" />
-            <List.Content>
-              {callDate}
-            </List.Content>
-          </List.Item>
-          <List.Item>
-            <Icon name="cubes" />
-            <List.Content>
-              {callFreq} MHz
-            </List.Content>
-          </List.Item>
-        </List>
-      </Segment>
-      <Menu attached='bottom'>
-        <a href={callTweet}><Menu.Item name="tweet" ><Icon name='twitter' />Tweet</Menu.Item></a>
-        <a href={callDownload}><Menu.Item name="download"><Icon name="download" />Download</Menu.Item></a>
-        <a href={callLink}><Menu.Item name="link"><Icon name="at" />Link</Menu.Item></a>
-      </Menu>
+      <Tab menu={{ attached: 'top', fluid: true, widths: 2 }} panes={panes} defaultActiveIndex={activeTab} onTabChange={handleTabChange} />
     </div>
   );
 }

@@ -9,7 +9,7 @@ import {
   Menu,
   Divider
 } from "semantic-ui-react";
-
+import  NavBar  from "../Common/NavBar"
 import { selectAllSystems, selectActiveSystems, useGetSystemsQuery } from "../features/api/apiSlice";
 
 // ----------------------------------------------------
@@ -21,10 +21,7 @@ const ListSystems = (props) => {
   const navigate = useNavigate();
     return (
       <div>
-        <Menu fixed="top">
-          <Link to="/"><Menu.Item link><Icon name='arrow left' /> Home</Menu.Item></Link>
-          <Link to="/about"><Menu.Item link>About</Menu.Item></Link>
-        </Menu>
+        <NavBar/>
         <Container >
           <Divider horizontal style={{paddingTop:"5em", paddingBottom:"2em"}}><Header as="h1">Radio Systems<Icon name='rss' /></Header></Divider>
           <Card.Group itemsPerRow={4} stackable={true}>

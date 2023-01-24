@@ -26,4 +26,5 @@ var callSchema = mongoose.Schema({
 });
 
 
-module.exports = mongoose.model('Call', callSchema);
+exports.callSchema = callSchema;
+exports.callModel = mongoose.model('Call', callSchema);

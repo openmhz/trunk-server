@@ -2,7 +2,7 @@
 var ObjectID = require('mongodb').ObjectID;
 var db = require('../db');
 var mongoose = require("mongoose");
-var Call = require("../models/call");
+var {callModel:Call} = require("../models/call");
 var Star = require("../models/star");
 
 var defaultNumResults = 50;
@@ -246,7 +246,7 @@ exports.remove_star = function(req, res, next) {
     try {
         var o_id = ObjectID.createFromHexString(objectId);
     } catch (err) {
-        console.warn("[" + req.params.shortName + "] Error - /:shortName/call/:id generating ObjectID " + err);
+        console.warn("[" + req.params.shortName + "] Error - /remove_star/:id generating ObjectID " + err);
         res.status(500);
         res.send(JSON.stringify({
             success: false,
@@ -281,7 +281,7 @@ exports.add_star = function(req, res, next) {
     try {
         var o_id = ObjectID.createFromHexString(objectId);
     } catch (err) {
-        console.warn("[" + req.params.shortName + "] Error - /:shortName/call/:id generating ObjectID " + err);
+        console.warn("[" + req.params.shortName + "] Error - /add_star/:id generating ObjectID " + err);
         res.status(500);
         res.send(JSON.stringify({
             success: false,
