@@ -13,10 +13,6 @@ import {
 import CallInfoPane from "../Call/components/CallInfoPane"
 // ----------------------------------------------------
 function EventCallInfo(props) {
-
-
-
-
   return (
     <Segment>
         <CallInfoPane call={props.call} />

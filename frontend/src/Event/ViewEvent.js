@@ -68,21 +68,23 @@ function ViewEvent(props) {
   
   const dateRange = (start, end) => {
     if (start.getYear() != end.getYear()) {
-        return {"part1": start.toLocaleDateString('en-us', { weekday:"short", year:"numeric", month:"short", day:"numeric"}) + " " + start.toLocaleTimeString(), "part2":  end.toLocaleDateString('en-us', { weekday:"short", year:"numeric", month:"short", day:"numeric"}) + " " + end.toLocaleTimeString()}; 
+        return {"part1": start.toLocaleDateString('en-us', { weekday:"short", year:"numeric", month:"short", day:"numeric"}) + " " + start.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'}), "part2":  end.toLocaleDateString('en-us', { weekday:"short", year:"numeric", month:"short", day:"numeric"}) + " " + end.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})}; 
     } else if (start.getMonth() != end.getMonth()) {
-        return {"part1": start.toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"}) + " " + start.toLocaleTimeString(), "part2": end.toLocaleDateString('en-us', { weekday:"short", month:"short", day:"numeric"}) + " " + end.toLocaleTimeString()}; 
+        return {"part1": start.toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"}) + " " + start.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'}), "part2": end.toLocaleDateString('en-us', { weekday:"short", month:"short", day:"numeric"}) + " " + end.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})}; 
     
     } else if (start.getDay() != end.getDay()) {
-        return {"part1": start.toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"}) + " " + start.toLocaleTimeString(), "part2": end.toLocaleDateString('en-us', { weekday:"short", day:"numeric"}) + " " + end.toLocaleTimeString()}; 
+        return {"part1": start.toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"}) + " " + start.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'}), "part2": end.toLocaleDateString('en-us', { weekday:"short", day:"numeric"}) + " " + end.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})}; 
     
     } else {
-        return {"part1": start.toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"}) + " " + start.toLocaleTimeString(), "part2": end.toLocaleTimeString()}; 
+        return {"part1": start.toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"}) + " " + start.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'}), "part2": end.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})}; 
     
     }
 }
   let dates = {part1: "", part2: ""}
+  let expirationDate = ""
   if (eventData) {
    dates = dateRange(new Date(eventData.startTime),new Date(eventData.endTime))
+   expirationDate = new Date(eventData.expireTime).toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"})
   }
 /*
   const dateRange = (start, end) => {
@@ -126,11 +128,16 @@ function ViewEvent(props) {
         <Grid.Column mobile={1} tablet={1} computer={1} ></Grid.Column>
         <Grid.Column mobile={16} tablet={8} computer={4}>
           <Container text >
-            {eventData && eventData.description}
+            {eventData&& 
+            <>
+            <p>{eventData.description}</p>
+            <Header size='tiny'>Expires {expirationDate}</Header>
+            </>
+          }
           </Container>
         </Grid.Column>
         <Grid.Column mobile={8} tablet={8} computer={4}>
-          <Header as="h2">{dates.part1} → <br/>{dates.part2}</Header>
+          <Header as="h2">{dates.part1} <br/>→ {dates.part2}</Header>
         </Grid.Column>
         <Grid.Column mobile={8} tablet={8} computer={2}>
         

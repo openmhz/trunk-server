@@ -7,15 +7,17 @@ import {
 
 
 import { addStar, removeStar } from "../../features/calls/callsSlice";
-import { useGetTalkgroupsQuery } from '../../features/api/apiSlice'
+
 import { useDispatch } from 'react-redux'
 
 const CallItem = (props) => {
   const call = props.call;
+  const shortName = props.shortName;
+  const talkgroups = props.talkgroups;
   const activeCall = props.activeCall;
   const [starVisible, setStarVisible] = useState(false);
   const [starClicked, setStarClicked] = useState(false);
-  const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(call.shortName);
+
   const dispatch = useDispatch();
 
   const time = new Date(call.time);
@@ -82,10 +84,10 @@ const CallItem = (props) => {
     }
   }
   let talkgroup;
-  if ((typeof talkgroupsData == 'undefined') || (typeof talkgroupsData.talkgroups[call.talkgroupNum] == 'undefined')) {
+  if ((typeof talkgroups== 'undefined') || (typeof talkgroups.talkgroups[call.talkgroupNum] == 'undefined')) {
     talkgroup = call.talkgroupNum;
   } else {
-    talkgroup = talkgroupsData.talkgroups[call.talkgroupNum].description;
+    talkgroup = talkgroups.talkgroups[call.talkgroupNum].description;
   }
   return (
     <Table.Row draggable="true" onClick={(e) => props.onClick({ call: call }, e)} {...rowSelected} onDragStart={onDragStart} data-callid={call._id}>
@@ -94,8 +96,6 @@ const CallItem = (props) => {
       <Table.Cell> {time.toLocaleTimeString()} </Table.Cell>
       <Table.Cell onMouseEnter={() => setStarVisible(true)} onMouseLeave={() => setStarVisible(false)} onClick={handleStarClicked}>{starButton}</Table.Cell>
     </Table.Row>
-
-
   );
 }
 

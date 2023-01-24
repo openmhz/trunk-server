@@ -17,7 +17,6 @@ function get_calls(query, numResults, res) {
     var fields = {
         _id: true,
         talkgroupNum: true,
-        shortName: true,
         path: true,
         name: true,
         time: true,
@@ -39,7 +38,6 @@ function get_calls(query, numResults, res) {
                 if (item) {
                     call = {
                         _id: item._id.toHexString(),
-                        shortName: item.shortName,
                         talkgroupNum: item.talkgroupNum,
                         url: item.url,
                         filename: item.path + item.name,
@@ -248,7 +246,7 @@ exports.remove_star = function(req, res, next) {
     try {
         var o_id = ObjectID.createFromHexString(objectId);
     } catch (err) {
-        console.warn("[" + req.params.shortName + "] Error - /:shortName/call/:id generating ObjectID " + err);
+        console.warn("[" + req.params.shortName + "] Error - /remove_star/:id generating ObjectID " + err);
         res.status(500);
         res.send(JSON.stringify({
             success: false,
@@ -283,7 +281,7 @@ exports.add_star = function(req, res, next) {
     try {
         var o_id = ObjectID.createFromHexString(objectId);
     } catch (err) {
-        console.warn("[" + req.params.shortName + "] Error - /:shortName/call/:id generating ObjectID " + err);
+        console.warn("[" + req.params.shortName + "] Error - /add_star/:id generating ObjectID " + err);
         res.status(500);
         res.send(JSON.stringify({
             success: false,

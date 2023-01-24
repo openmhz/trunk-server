@@ -15,7 +15,8 @@ import {
   Modal,
   Button,
   Image,
-  Form
+  Form,
+  Message
 } from "semantic-ui-react";
 import { useAddNewEventMutation, useGetTalkgroupsQuery } from '../../features/api/apiSlice'
 
@@ -113,6 +114,16 @@ function PlaylistBuilder(props) {
     setDescription("")
     setPlaylist([])
   }
+
+  let content = (<Header as="h3" icon textAlign='center' style={{paddingTop: "3em"}}><Icon name='target' />Drag Calls Here</Header>)
+  if (playlist.length > 0) {
+    content = (<Table basic="very">
+    <Table.Body>
+    {listItems}
+    </Table.Body>
+  </Table>)
+  }
+
   return (
     <>
         <Modal
@@ -121,11 +132,16 @@ function PlaylistBuilder(props) {
       open={open}
     >
       <Modal.Header>Submit an Event</Modal.Header>
-      <Modal.Content image>
-        <Image size='medium' src='https://react.semantic-ui.com/images/avatar/large/rachel.png' wrapped />
+      <Modal.Content>
+        
         <Modal.Description>
+        <Message icon>
+            <Icon name='warning sign' />
+            <Message.Content>The Events feature is a work in progress! Things may break, change, or get deleted. Contact me with ideas or problems: luke@robotastic.com</Message.Content>
+            </Message>
           <Header>Event</Header>
           <Form>
+          
             <Form.Input
               name="title"
               value={title}
@@ -139,8 +155,6 @@ function PlaylistBuilder(props) {
               placeholder='Please describe the event'
               onChange={handleDescriptionChange}
               />
-
-
           </Form>
         </Modal.Description>
       </Modal.Content>
@@ -158,11 +172,7 @@ function PlaylistBuilder(props) {
       </Modal.Actions>
     </Modal>
       <Tab.Pane attached='bottom' onDragOver={onDragOver} onDrop={onDrop}>
-        <Table basic="very">
-          <Table.Body>
-          {listItems}
-          </Table.Body>
-        </Table>
+        {content}
       </Tab.Pane>
       <Menu fluid widths={2}>
         <Menu.Item name="clear" onClick={() => setPlaylist([])}><Icon name='delete' />Clear</Menu.Item>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import CallItem from "../Call/components/CallItem";
+import EventCallItem from "./EventCallItem";
 import {
   Icon,
   Table,
@@ -31,7 +31,7 @@ const ListEventCalls = (props) => {
               <Table.HeaderCell>Len</Table.HeaderCell>
               <Table.HeaderCell>Talkgroup</Table.HeaderCell>
               <Table.HeaderCell>Time</Table.HeaderCell>
-              <Table.HeaderCell><Icon name='star' /></Table.HeaderCell>
+              <Table.HeaderCell>System</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           {props.eventData && 
@@ -39,9 +39,9 @@ const ListEventCalls = (props) => {
             
             { props.eventData.calls.map((call, index) => {
               if (call._id === props.activeCallId) {
-                return (<Ref innerRef={activeCallRef} key={index} ><CallItem activeCall={true}  call={call} key={index} onClick={props.playCall}/></Ref>)
+                return (<Ref innerRef={activeCallRef} key={index} ><EventCallItem activeCall={true}  call={call} key={index} onClick={props.playCall} showStar={false}/></Ref>)
               } else {
-                return <CallItem activeCall={false} call={call} key={index} onClick={props.playCall}/>
+                return <EventCallItem activeCall={false} call={call} key={index} onClick={props.playCall} showStar={false}/>
               }
             })
            

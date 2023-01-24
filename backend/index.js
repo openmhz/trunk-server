@@ -171,6 +171,8 @@ function addSystemClients(req, res, next) {
 /*------    CALLS   ----------*/
 
 app.get('/card/:id', calls.get_card);
+app.post('/add_star/:id', calls.add_star);
+app.post('/remove_star/:id', calls.remove_star);
 app.get('/:shortName/call/:id', calls.get_call);
 app.get('/:shortName/calls/latest', calls.get_latest_calls);
 app.get('/:shortName/calls/next', calls.get_next_calls);
@@ -178,8 +180,7 @@ app.get('/:shortName/calls/newer', calls.get_newer_calls);
 app.get('/:shortName/calls/older', calls.get_older_calls);
 app.get('/:shortName/calls/:time/older', calls.get_iphone_calls);
 app.get('/:shortName/calls', calls.get_calls);
-app.post('/:shortName/star/:id', calls.add_star);
-app.post('/:shortName/removeStar/:id', calls.remove_star);
+
 
 /*------    UPLOADS   ---------- upload.single('call'),  uploads.upload,*/
 app.post('/:shortName/upload', upload.single('call'), uploads.upload, async function (req, res) {
