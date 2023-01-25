@@ -1,5 +1,7 @@
 const path = require("path");
 const express = require("express");
+var favicon = require('serve-favicon')
+
 const secrets = require("./secrets");
 
 
@@ -18,7 +20,7 @@ module.exports = function(app) {
 	// It can be removed safely
 	app.disable("x-powered-by")
 	app.enable('trust proxy')
-
+	app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 	app.use(express.static(path.join(process.cwd(), 'public')));
 	app.set('view engine', 'ejs')
 	app.set('views', './')

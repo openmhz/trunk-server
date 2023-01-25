@@ -1,4 +1,4 @@
-
+.DS_Store
 prod.env
 test.env
 account/.eslintcache
