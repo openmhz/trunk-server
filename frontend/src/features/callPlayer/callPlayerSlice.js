@@ -13,6 +13,7 @@ const initialState = {
   filterDate: false,
   filterStarred: false,
   currentCallId: false,
+  playlist: [],
   live: false
 }
 
@@ -26,6 +27,11 @@ export const callPlayerSlice = createSlice({
     setCallTime: (state, action) => {
       state.newestCallTime = action.payload;
       state.oldestCallTime = action.payload;
+    },
+    setPlaylist: (state, action) => {
+      if (Array.isArray(action.payload )) {
+      state.playlist = action.payload;
+      }
     },
     setFilter: (state,action) => {
       var filter={};

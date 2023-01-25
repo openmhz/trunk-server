@@ -174,7 +174,7 @@ const removeItem = (call) => {
         />
       </Modal.Actions>
     </Modal>
-      <Tab.Pane attached='bottom' onDragOver={onDragOver} onDrop={onDrop}>
+      <Tab.Pane attached='bottom' onDragOver={onDragOver} onDrop={onDrop} style={{overflowY: "auto", height: 300}}>
         {content}
       </Tab.Pane>
       <Menu fluid widths={2}>

@@ -39,7 +39,7 @@ const PlaylistItem = (props) => {
   const time = new Date(call.time);
   const callTime = time.toLocaleTimeString();
   return (
-    <Table.Row key={index} onClick={(e) => props.onClick({ call: call }, e)}>
+    <Table.Row key={index} >
       <Table.Cell>{call.len} </Table.Cell>
       <Table.Cell>{tgAlpha}</Table.Cell>
       <Table.Cell>{callTime}</Table.Cell>
