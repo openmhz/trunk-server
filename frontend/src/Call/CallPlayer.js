@@ -50,6 +50,7 @@ function CallPlayer(props) {
   const {callLink,callDownload,callTweet} = useCallLink(currentCall)
 
   const dispatch = useDispatch();
+  const stickyRef = useRef(); // lets us get the Y Scroll offset for the Call List
   const positionRef = useRef(); // lets us get the Y Scroll offset for the Call List
   const shouldPlayAddCallRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
   shouldPlayAddCallRef.current = (!isPlaying && autoPlay)?true:false;
@@ -120,8 +121,8 @@ function CallPlayer(props) {
 
 
   return (
-    <>
-      <Container className="main" ref={positionRef}>
+    <div ref={positionRef}>
+      <Container className="main" >
         <Sidebar.Pushable>
           <Sidebar.Pusher
             style={{ minHeight: '100vh' }}
@@ -148,7 +149,7 @@ function CallPlayer(props) {
         </Menu.Menu>
       </Menu>
 
-    </>
+    </div>
   );
 }
 
