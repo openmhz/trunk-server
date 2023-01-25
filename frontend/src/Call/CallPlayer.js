@@ -120,8 +120,8 @@ function CallPlayer(props) {
 
 
   return (
-    <div ref={positionRef}>
-      <Container className="main" >
+    <>
+      <Container className="main" ref={positionRef}>
         <Sidebar.Pushable>
           <Sidebar.Pusher
             style={{ minHeight: '100vh' }}
@@ -148,7 +148,7 @@ function CallPlayer(props) {
         </Menu.Menu>
       </Menu>
 
-    </div>
+    </>
   );
 }
 
