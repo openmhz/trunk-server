@@ -69,7 +69,8 @@ exports.addNewEvent = async function (req, res, next) {
             calls = calls.sort(compareCalls);
             event.startTime = new Date(calls[0].time);
             event.endTime = new Date(calls[calls.length - 1].time);
-            event.expireTime = event.startTime;
+            event.expireTime = new Date();
+            event.expireTime.setDate(event.startTime.getDate() + 29);
             calls.forEach((call) => {
                 if (event.shortNames.indexOf(call.shortName) === -1) {
                     event.shortNames.push(call.shortName);

@@ -194,7 +194,7 @@ Then switch to the scanner db: `use scanner`
 And then add an index:
 
 ```
-db.calls.createIndex( {shortName: 1, time: -1,  star: -1, talkgroupNum: 1})
+db.calls.createIndex( {shortName: 1, time: -1, talkgroupNum: 1})
 ```
 
 ### Upgrading MongoDB

@@ -127,14 +127,14 @@ function ViewEvent(props) {
       <Grid style={{ paddingTop: '4em' }}>
         <Grid.Column mobile={1} tablet={1} computer={1} ></Grid.Column>
         <Grid.Column mobile={16} tablet={8} computer={4}>
-          <Container text >
+          
             {eventData&& 
             <>
             <p>{eventData.description}</p>
             <Header size='tiny'>Expires {expirationDate}</Header>
             </>
           }
-          </Container>
+          
         </Grid.Column>
         <Grid.Column mobile={8} tablet={8} computer={4}>
           <Header as="h2">{dates.part1} <br/>→ {dates.part2}</Header>

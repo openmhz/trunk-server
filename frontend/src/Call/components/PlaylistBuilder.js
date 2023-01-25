@@ -19,6 +19,7 @@ import {
   Message
 } from "semantic-ui-react";
 import { useAddNewEventMutation, useGetTalkgroupsQuery } from '../../features/api/apiSlice'
+import PlaylistItem from "./PlaylistItem"
 
 function PlaylistBuilder(props) {
   const { shortName } = useParams();
@@ -75,6 +76,17 @@ function PlaylistBuilder(props) {
     console.log("Dropping: " + callId);
     addCall(callsData.entities[callId])
   }
+
+const removeItem = (call) => {
+  if (call) {
+    const found = playlist.findIndex(c => c._id == call._id);
+    if (found!=-1) {
+      playlist.splice(found,1)
+      setPlaylist([...playlist.sort(compareCalls)])
+    }
+  }
+}
+
   let listItems = "";
 
   listItems = playlist.map((call, index) => {
@@ -84,16 +96,7 @@ function PlaylistBuilder(props) {
       tgAlpha = talkgroup.alpha?talkgroup.alpha:tgAlpha;
     }
 
-    const time = new Date(call.time);
-    const callTime = time.toLocaleTimeString();
-    const callDate = time.toLocaleDateString();
-
-    return ( <Table.Row key={index}>
-      <Table.Cell>{call.len} </Table.Cell>
-      <Table.Cell>{tgAlpha}</Table.Cell>
-      <Table.Cell>{callTime}</Table.Cell>
-    </Table.Row>
-    )
+    return ( <PlaylistItem call={call} tgAlpha={tgAlpha} index={index} removeItem={removeItem}/> )
   })
 
   const submitPlaylist = () => {
