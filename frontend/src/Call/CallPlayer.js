@@ -5,7 +5,6 @@ import SupportModal from "./components/SupportModal";
 import CallInfo from "./components/CallInfo";
 import ListCalls from "./components/ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
-import { getOlderCalls, getNewerCalls } from "../features/calls/callsSlice";
 import { useGetTalkgroupsQuery } from '../features/api/apiSlice'
 import { useInView } from 'react-intersection-observer';
 import {
@@ -32,6 +31,8 @@ function CallPlayer(props) {
   const { shortName } = useParams();
   const selectCallId = props.selectCallId;
   const callsData = props.callsData;
+  const handleNewer = props.handleNewer;
+  const handleOlder = props.handleOlder;
   const { ref: loadOlderRef, inView: loadOlderInView } = useInView({
     /* Optional options */
     threshold: 0.5
@@ -92,15 +93,15 @@ function CallPlayer(props) {
   }
 
   useEffect(() => {
-    if (loadNewerInView && !live && callsData && (callsData.ids.length > 0)) {
-      dispatch(getNewerCalls({}));
+    if (loadNewerInView && callsData && (callsData.ids.length > 0)) {
+      handleNewer();
     }
   }, [loadNewerInView]);
 
 
   useEffect(() => {
     if (loadOlderInView && callsData && (callsData.ids.length > 0)) {
-      dispatch(getOlderCalls({}));
+      handleOlder();
     }
   }, [loadOlderInView]);
 

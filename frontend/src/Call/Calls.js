@@ -6,7 +6,7 @@ import CalendarModal from "./components/CalendarModal";
 import CallPlayer from "./CallPlayer";
 import { useSelector, useDispatch } from 'react-redux'
 import { setLive, setFilter, setDateFilter } from "../features/callPlayer/callPlayerSlice";
-import { getCalls, addCall } from "../features/calls/callsSlice";
+import { getCalls, addCall, getOlderCalls, getNewerCalls  } from "../features/calls/callsSlice";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
 
 import {
@@ -107,7 +107,7 @@ function Calls(props) {
       case 'calls':
 
         if (positionRef.current) {
-          pageYOffset.current = positionRef.current.clientHeight;
+          pageYOffset.current = {direction: "top", position: positionRef.current.clientHeight};
         }
         setSelectCallId(message._id);
         dispatch(addCall(message));
@@ -193,6 +193,34 @@ function Calls(props) {
   const handleFilterClose = (didUpdate) => {
     setFilterVisible(!filterVisible);
   }
+
+
+const handleNewer = () => {
+  if (positionRef.current && !live) {
+    pageYOffset.current = {direction: "top", position: positionRef.current.clientHeight};
+  }
+  dispatch(getNewerCalls({}));
+}
+
+const handleOlder = () => {
+  if (positionRef.current) {
+    pageYOffset.current = {direction: "bottom", position: positionRef.current.clientHeight};
+  }
+  dispatch(getOlderCalls({}));
+}
+
+useLayoutEffect(() => {
+  if (pageYOffset.current) {
+  const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current.position);
+    if (pageYOffset.current.direction == "top") {
+    window.scrollBy(0, scrollAmount);
+    } else {
+      //window.scrollBy(0, -1 * scrollAmount);
+    }
+  }
+}, [callsData])
+
+
 
 
   const setStateFromUri = async () => {
@@ -307,12 +335,6 @@ function Calls(props) {
 
 
 
-  useLayoutEffect(() => {
-    const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current);
-
-      window.scrollBy(0, scrollAmount);
-    
-  }, [callsData])
 
 
   let archiveLabel = "";
@@ -381,7 +403,7 @@ function Calls(props) {
           </Menu.Item>
         </Menu.Menu>
       </Menu>
-      <CallPlayer callsData={callsData} selectCallId={selectCallId} />
+      <CallPlayer callsData={callsData} selectCallId={selectCallId} handleNewer={handleNewer} handleOlder={handleOlder} />
     </div>
   );
 }
