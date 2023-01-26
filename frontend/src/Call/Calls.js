@@ -112,7 +112,7 @@ function Calls(props) {
         setSelectCallId(message._id);
         dispatch(addCall(message));
 
-        console.log("Got: " + message._id);
+        console.log("Got Socket Message: " + message._id);
         break
       default:
         break
@@ -121,7 +121,7 @@ function Calls(props) {
 
   const startSocket = () => {
     const filter = getFilterDescription();
-
+    console.log("Starting Socket");
     socket.emit("start", {
       filterCode: filter.code,
       filterType: filter.type,
@@ -131,6 +131,7 @@ function Calls(props) {
     });
   }
   const stopSocket = () => {
+    console.log("Stopping Socket")
     socket.emit("stop");
   }
 
@@ -259,10 +260,12 @@ function Calls(props) {
 
   useEffect(() => {
     socket.on('connect', () => {
+      console.log("Socket Connect");
       setIsConnected(true);
     });
 
     socket.on('disconnect', () => {
+      console.log("Socket Disconnect");
       setIsConnected(false);
     });
 
@@ -302,15 +305,13 @@ function Calls(props) {
     }
   }, [groupsData])
 
-  useEffect(() => {
-    pageYOffset.current = positionRef.current.clientHeight;
-  }, [callsData])
+
 
   useLayoutEffect(() => {
-    const scrollAmount = parseInt(pageYOffset.current) - parseInt(positionRef.current.clientHeight);
-    if (scrollAmount > 0) {
+    const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current);
+
       window.scrollBy(0, scrollAmount);
-    }
+    
   }, [callsData])
 
 

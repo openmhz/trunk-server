@@ -67,8 +67,8 @@ exports.addNewEvent = async function (req, res, next) {
                 res.send("Not all of the Calls were found");
             }
             calls = calls.sort(compareCalls);
-            event.startTime = new Date(calls[0].time);
-            event.endTime = new Date(calls[calls.length - 1].time);
+            event.endTime = new Date(calls[0].time);
+            event.startTime = new Date(calls[calls.length - 1].time);
             event.expireTime = new Date();
             event.expireTime.setDate(event.startTime.getDate() + 29);
             calls.forEach((call) => {
