@@ -19,6 +19,7 @@ import {
   Message
 } from "semantic-ui-react";
 import { useAddNewEventMutation, useGetTalkgroupsQuery } from '../../features/api/apiSlice'
+import { setPlaylist, addToPlaylist, removeFromPLaylist } from '../../features/callPlayer/callPlayerSlice';
 import PlaylistItem from "./PlaylistItem"
 
 function PlaylistBuilder(props) {
@@ -26,31 +27,17 @@ function PlaylistBuilder(props) {
   const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
   const [addNewEvent, { isLoading }] = useAddNewEventMutation()
   const { loading: callsLoading, data: callsData } = useSelector((state) => state.calls);
-  const [playlist, setPlaylist] = useState([]);
   const [open, setOpen] = React.useState(false);
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const handleTitleChange = (e, { name, value }) => setTitle(value);
   const handleDescriptionChange = (e, { name, value }) => setDescription(value);
+  const playlist = useSelector((state) => state.callPlayer.playlist);
+
+  const dispatch = useDispatch();
 
 
-  const compareCalls = (a, b) => {
-    const aTimestamp = new Date(a.time).getTime()
-    const bTimestamp = new Date(b.time).getTime()
-    if (aTimestamp > bTimestamp) {
-      return -1
-    } else {
-      return 1
-    }
-  }
-  const addCall = (call) => {
-    const found = playlist.find(c => c._id == call._id);
-    if (!found) {
-      playlist.push(call);
-      setPlaylist([...playlist.sort(compareCalls)])
-    }
 
-  }
 
   const onDragOver = (event) => {
     // It also receives a DragEvent.
@@ -67,6 +54,9 @@ function PlaylistBuilder(props) {
     event.preventDefault();
   }
 
+  const removeItem = (call) => {
+    dispatch(removeFromPLaylist(call))
+  }
 
   const onDrop = (event) => {
     // Here, we will:
@@ -74,18 +64,10 @@ function PlaylistBuilder(props) {
     // - and reset the DnD state
     var callId = event.dataTransfer.getData("call-id");
     console.log("Dropping: " + callId);
-    addCall(callsData.entities[callId])
+    dispatch(addToPlaylist(callsData.entities[callId]))
   }
 
-const removeItem = (call) => {
-  if (call) {
-    const found = playlist.findIndex(c => c._id == call._id);
-    if (found!=-1) {
-      playlist.splice(found,1)
-      setPlaylist([...playlist.sort(compareCalls)])
-    }
-  }
-}
+
 
   let listItems = "";
 
@@ -93,10 +75,12 @@ const removeItem = (call) => {
     let tgAlpha = call.talkgroupNum;
     if (talkgroupsData) {
       const talkgroup = talkgroupsData.talkgroups[call.talkgroupNum]
-      tgAlpha = talkgroup.alpha?talkgroup.alpha:tgAlpha;
+      if (talkgroup && talkgroup.alpha!=" ") {
+      tgAlpha = talkgroup.alpha;
+      }
     }
 
-    return ( <PlaylistItem call={call} tgAlpha={tgAlpha} index={index} removeItem={removeItem}/> )
+    return (<PlaylistItem call={call} tgAlpha={tgAlpha} index={index} removeItem={removeItem} />)
   })
 
   const submitPlaylist = () => {
@@ -104,81 +88,80 @@ const removeItem = (call) => {
   }
 
   const handleSubmit = () => {
-    console.log(title)
     setOpen(false)
-    const callIds = playlist.map( (call) => call._id)
+    const callIds = playlist.map((call) => call._id)
     const event = {
       title,
       description,
       callIds
     }
-   addNewEvent(event)
-    setTitle("")
-    setDescription("")
-    setPlaylist([])
+    addNewEvent(event);
+    setTitle("");
+    setDescription("");
+    dispatch(setPlaylist([]));
   }
 
-  let content = (<Header as="h3" icon textAlign='center' style={{paddingTop: "3em"}}><Icon name='target' />Drag Calls Here</Header>)
+  let content = (<Header as="h3" icon textAlign='center' style={{ paddingTop: "3em" }}><Icon name='target' />Drag Calls Here</Header>)
   if (playlist.length > 0) {
     content = (<Table basic="very">
-    <Table.Body>
-    {listItems}
-    </Table.Body>
-  </Table>)
+      <Table.Body>
+        {listItems}
+      </Table.Body>
+    </Table>)
   }
 
   return (
     <>
-        <Modal
-      onClose={() => setOpen(false)}
-      onOpen={() => setOpen(true)}
-      open={open}
-    >
-      <Modal.Header>Submit an Event</Modal.Header>
-      <Modal.Content>
-        
-        <Modal.Description>
-        <Message icon>
-            <Icon name='warning sign' />
-            <Message.Content>The Events feature is a work in progress! Things may break, change, or get deleted. Contact me with ideas or problems: luke@robotastic.com</Message.Content>
+      <Modal
+        onClose={() => setOpen(false)}
+        onOpen={() => setOpen(true)}
+        open={open}
+      >
+        <Modal.Header>Submit an Event</Modal.Header>
+        <Modal.Content>
+
+          <Modal.Description>
+            <Message icon>
+              <Icon name='warning sign' />
+              <Message.Content>The Events feature is a work in progress! Things may break, change, or get deleted. Contact me with ideas or problems: luke@robotastic.com</Message.Content>
             </Message>
-          <Header>Event</Header>
-          <Form>
-          
-            <Form.Input
-              name="title"
-              value={title}
-              label="Title"
-              onChange={handleTitleChange}
+            <Header>Event</Header>
+            <Form>
+
+              <Form.Input
+                name="title"
+                value={title}
+                label="Title"
+                onChange={handleTitleChange}
               />
-            <Form.TextArea
-              name="description"
-              value={description}
-              label="Description"
-              placeholder='Please describe the event'
-              onChange={handleDescriptionChange}
+              <Form.TextArea
+                name="description"
+                value={description}
+                label="Description"
+                placeholder='Please describe the event'
+                onChange={handleDescriptionChange}
               />
-          </Form>
-        </Modal.Description>
-      </Modal.Content>
-      <Modal.Actions>
-        <Button color='black' onClick={() => setOpen(false)}>
-          Nope
-        </Button>
-        <Button
-          content="Submit"
-          labelPosition='right'
-          icon='checkmark'
-          onClick={handleSubmit}
-          positive
-        />
-      </Modal.Actions>
-    </Modal>
-      <Tab.Pane attached='bottom' onDragOver={onDragOver} onDrop={onDrop} style={{overflowY: "auto", height: 300}}>
+            </Form>
+          </Modal.Description>
+        </Modal.Content>
+        <Modal.Actions>
+          <Button color='black' onClick={() => setOpen(false)}>
+            Nope
+          </Button>
+          <Button
+            content="Submit"
+            labelPosition='right'
+            icon='checkmark'
+            onClick={handleSubmit}
+            positive
+          />
+        </Modal.Actions>
+      </Modal>
+      <Tab.Pane attached='bottom' onDragOver={onDragOver} onDrop={onDrop} style={{ overflowY: "auto", height: 300 }}>
         {content}
       </Tab.Pane>
       <Menu fluid widths={2}>
-        <Menu.Item name="clear" onClick={() => setPlaylist([])}><Icon name='delete' />Clear</Menu.Item>
+        <Menu.Item name="clear" onClick={() => dispatch(setPlaylist([]))}><Icon name='delete' />Clear</Menu.Item>
         <Menu.Item active name="submit" onClick={submitPlaylist}><Icon name="cloud upload" />Submit</Menu.Item>
       </Menu>
     </>

@@ -17,6 +17,16 @@ const initialState = {
   live: false
 }
 
+const compareCalls = (a, b) => {
+  const aTimestamp = new Date(a.time).getTime()
+  const bTimestamp = new Date(b.time).getTime()
+  if (aTimestamp > bTimestamp) {
+    return -1
+  } else {
+    return 1
+  }
+}
+
 export const callPlayerSlice = createSlice({
   name: 'callPlayer',
   initialState,
@@ -31,6 +41,23 @@ export const callPlayerSlice = createSlice({
     setPlaylist: (state, action) => {
       if (Array.isArray(action.payload )) {
       state.playlist = action.payload;
+      }
+    },
+    removeFromPlaylist: (state, action) => { 
+      const call = action.payload;
+      if (call) {
+        const found = state.playlist.findIndex(c => c._id == call._id);
+        if (found != -1) {
+          state.playlist = state.playlist.splice(found, 1)
+        }
+      }
+    },
+    addToPlaylist: (state, action) => {
+      const call = action.payload;
+      const found = state.playlist.find(c => c._id == call._id);
+      if (!found) {
+        const newlist = [...state.playlist, call];
+        state.playlist = newlist.sort(compareCalls);
       }
     },
     setFilter: (state,action) => {
@@ -75,7 +102,7 @@ export const callPlayerSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setCurrentCallId, setCallTime, setFilter, setLive, setShortName, setDateFilter, setStarredFilter, setAllFilter, setGroupFilter, setTalkgroupFilter } = callPlayerSlice.actions
+export const { setCurrentCallId, setCallTime, setFilter, setLive, setPlaylist, removeFromPLaylist, addToPlaylist, setShortName, setDateFilter, setStarredFilter, setAllFilter, setGroupFilter, setTalkgroupFilter } = callPlayerSlice.actions
 
 export default callPlayerSlice.reducer
 

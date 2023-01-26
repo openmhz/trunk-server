@@ -4,9 +4,9 @@ import MediaPlayer from "./components/MediaPlayer";
 import SupportModal from "./components/SupportModal";
 import CallInfo from "./components/CallInfo";
 import ListCalls from "./components/ListCalls";
-import { useDispatch } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { getOlderCalls, getNewerCalls } from "../features/calls/callsSlice";
-import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
+import { useGetTalkgroupsQuery } from '../features/api/apiSlice'
 import { useInView } from 'react-intersection-observer';
 import {
   Container,
@@ -32,7 +32,6 @@ function CallPlayer(props) {
   const { shortName } = useParams();
   const selectCallId = props.selectCallId;
   const callsData = props.callsData;
-
   const { ref: loadOlderRef, inView: loadOlderInView } = useInView({
     /* Optional options */
     threshold: 0.5
@@ -53,6 +52,7 @@ function CallPlayer(props) {
   const stickyRef = useRef(); // lets us get the Y Scroll offset for the Call List
   const positionRef = useRef(); // lets us get the Y Scroll offset for the Call List
   const shouldPlayAddCallRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
+  const live = useSelector((state) => state.callPlayer.live);
   shouldPlayAddCallRef.current = (!isPlaying && autoPlay)?true:false;
 
   let currentCallId = false;
@@ -92,7 +92,7 @@ function CallPlayer(props) {
   }
 
   useEffect(() => {
-    if (loadNewerInView && callsData && (callsData.ids.length > 0)) {
+    if (loadNewerInView && !live && callsData && (callsData.ids.length > 0)) {
       dispatch(getNewerCalls({}));
     }
   }, [loadNewerInView]);

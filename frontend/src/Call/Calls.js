@@ -5,7 +5,7 @@ import GroupModal from "./components/GroupModal";
 import CalendarModal from "./components/CalendarModal";
 import CallPlayer from "./CallPlayer";
 import { useSelector, useDispatch } from 'react-redux'
-import { setLive, setFilter,setDateFilter } from "../features/callPlayer/callPlayerSlice";
+import { setLive, setFilter, setDateFilter } from "../features/callPlayer/callPlayerSlice";
 import { getCalls, addCall } from "../features/calls/callsSlice";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
 
@@ -52,7 +52,7 @@ function Calls(props) {
   const positionRef = useRef(); // lets us get the Y Scroll offset for the Call List
   const pageYOffset = useRef(); // Store the current Scroll Offset in a way that guarantees the latest value is available when Call Data is updated
   const shouldPlayAddCallRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
-  shouldPlayAddCallRef.current = (!isPlaying && autoPlay)?true:false;
+  shouldPlayAddCallRef.current = (!isPlaying && autoPlay) ? true : false;
 
   const filterType = useSelector((state) => state.callPlayer.filterType);
   const filterGroupId = useSelector((state) => state.callPlayer.filterGroupId);
@@ -106,8 +106,9 @@ function Calls(props) {
     switch (message.type) {
       case 'calls':
 
-        pageYOffset.current = positionRef.current.clientHeight;
-
+        if (positionRef.current) {
+          pageYOffset.current = positionRef.current.clientHeight;
+        }
         setSelectCallId(message._id);
         dispatch(addCall(message));
 
@@ -273,7 +274,7 @@ function Calls(props) {
       }
     })
 
-    socket.on("new message", handleSocketMessage );
+    socket.on("new message", handleSocketMessage);
 
     return () => {
       socket.off('connect');
@@ -295,15 +296,18 @@ function Calls(props) {
     updateUri();
   }, [filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred, selectCallId])
 
-
   useEffect(() => {
     if (!urlOptions && groupsData && (groupsData.length > 0)) {
       setGroupVisible(true);
     }
   }, [groupsData])
 
-  useLayoutEffect( () => {
-    const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current);
+  useEffect(() => {
+    pageYOffset.current = positionRef.current.clientHeight;
+  }, [callsData])
+
+  useLayoutEffect(() => {
+    const scrollAmount = parseInt(pageYOffset.current) - parseInt(positionRef.current.clientHeight);
     if (scrollAmount > 0) {
       window.scrollBy(0, scrollAmount);
     }
@@ -376,7 +380,7 @@ function Calls(props) {
           </Menu.Item>
         </Menu.Menu>
       </Menu>
-       <CallPlayer callsData={callsData}  selectCallId={selectCallId} />     
+      <CallPlayer callsData={callsData} selectCallId={selectCallId} />
     </div>
   );
 }
