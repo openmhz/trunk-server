@@ -213,7 +213,7 @@ useLayoutEffect(() => {
   if (pageYOffset.current) {
   const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current.position);
     if (pageYOffset.current.direction == "top") {
-    window.scrollBy(0, scrollAmount);
+    window.scrollBy({left: 0, top: scrollAmount, behavior: "auto"});
     } else {
       //window.scrollBy(0, -1 * scrollAmount);
     }
