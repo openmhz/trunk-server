@@ -334,7 +334,7 @@ useLayoutEffect(() => {
   }, [groupsData])
 
 
-
+  const setPositionRef = node => positionRef.current = node;
 
 
   let archiveLabel = "";
@@ -360,7 +360,7 @@ useLayoutEffect(() => {
   }
 
   return (
-    <div ref={positionRef}>
+    <div ref={setPositionRef}>
       <FilterModal shortName={shortName} open={filterVisible} onClose={handleFilterClose} />
       <CalendarModal open={calendarVisible} onClose={handleCalendarClose} archive={archive} key={shortName} />
       <GroupModal shortName={shortName} open={groupVisible} onClose={handleGroupClose} />
