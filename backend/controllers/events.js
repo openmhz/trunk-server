@@ -3,6 +3,8 @@ var db = require('../db');
 var mongoose = require("mongoose");
 var Event = require("../models/event");
 var { callModel: Call, callSchema } = require("../models/call");
+var frontend_server = process.env['REACT_APP_FRONTEND_SERVER'] != null ? process.env['REACT_APP_FRONTEND_SERVER'] : 'https://openmhz.com';
+
 
 exports.getEvent = async function (req, res, next) {
 
@@ -78,17 +80,16 @@ exports.addNewEvent = async function (req, res, next) {
             });
             event.calls = calls;
             event.numCalls = calls.length;
-            console.log(await event.save());
+            await event.save();
+            
+            const url =  "/events/" + event._id;
             res.contentType('json');
-            res.send(JSON.stringify({
-              success: false,
-              error: "Upload failed"
-            }));
+            res.send(JSON.stringify({url:url}));
         }
         catch (err) {
             console.error(err);
             res.status(500);
-            res.send("Error parsing sourcelist " + err);
+            res.send("Error creating event" + err);
         }
 
 
