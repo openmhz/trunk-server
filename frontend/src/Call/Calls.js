@@ -8,7 +8,6 @@ import { useSelector, useDispatch } from 'react-redux'
 import { setLive, setFilter, setDateFilter } from "../features/callPlayer/callPlayerSlice";
 import { getCalls, addCall, getOlderCalls, getNewerCalls  } from "../features/calls/callsSlice";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
-import { useGetSystemsQuery,  } from "../features/api/apiSlice";
 
 import {
   Container,

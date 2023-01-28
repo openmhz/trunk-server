@@ -43,14 +43,23 @@ const ListSystems = (props) => {
     systemsByState.push((<Header as="h2">{state}</Header>))
     systemsByState.push((
       <Card.Group key={state} itemsPerRow={4} stackable={true}>
-        {
+        {states[state]&&
           states[state].map((system) => {
             return <SystemCard system={system} key={system.shortName} onClick={(e) => navigate("/system/" + system.shortName)} />
           })}
       </Card.Group>
     ))
   }
-
+  let international = [];
+  international.push((<Header as="h2">International</Header>))
+  international.push((
+    <Card.Group  itemsPerRow={4} stackable={true}>
+      {other&&
+        other.map((system) => {
+          return <SystemCard system={system} key={system.shortName} onClick={(e) => navigate("/system/" + system.shortName)} />
+        })}
+    </Card.Group>
+  ))
   const navigate = useNavigate();
   return (
     <div>
@@ -58,6 +67,7 @@ const ListSystems = (props) => {
       <Container >
         <Divider horizontal style={{ paddingTop: "5em", paddingBottom: "2em" }}><Header as="h1">Radio Systems<Icon name='rss' /></Header></Divider>
         {systemsByState}
+        {international}
       </Container>
     </div>
   );
