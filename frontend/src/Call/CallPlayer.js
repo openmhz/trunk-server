@@ -41,20 +41,20 @@ function CallPlayer(props) {
     /* Optional options */
     threshold: 0.5
   });
-  
+
   const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
   const [autoPlay, setAutoPlay] = useState(true);
   const [currentCall, setCurrentCall] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const {callLink,callDownload,callTweet} = useCallLink(currentCall)
+  const { callLink, callDownload, callTweet } = useCallLink(currentCall)
 
   const dispatch = useDispatch();
   const stickyRef = useRef(); // lets us get the Y Scroll offset for the Call List
   const positionRef = useRef(); // lets us get the Y Scroll offset for the Call List
   const shouldPlayAddCallRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
   const live = useSelector((state) => state.callPlayer.live);
-  shouldPlayAddCallRef.current = (!isPlaying && autoPlay)?true:false;
+  shouldPlayAddCallRef.current = (!isPlaying && autoPlay) ? true : false;
 
   let currentCallId = false;
 
@@ -112,7 +112,7 @@ function CallPlayer(props) {
   // we should only set the selectCallId to be the current call when AutoPlay is selected
   // and when there isn't another call already playing
   useEffect(() => {
-    if ( selectCallId && callsData && !isPlaying && autoPlay) {
+    if (selectCallId && callsData && !isPlaying && autoPlay) {
       const call = callsData.entities[selectCallId];
       if (call) {
         setCurrentCall(call);
@@ -129,7 +129,7 @@ function CallPlayer(props) {
             style={{ minHeight: '100vh' }}
           >
             <div ref={loadNewerRef} />
-            <ListCalls callsData={callsData} activeCallId={isPlaying?currentCallId:false} talkgroups={talkgroupsData?talkgroupsData.talkgroups:false} playCall={playCall} />
+            <ListCalls callsData={callsData} activeCallId={isPlaying ? currentCallId : false} talkgroups={talkgroupsData ? talkgroupsData.talkgroups : false} playCall={playCall} />
             <div ref={loadOlderRef} style={{ height: 50 }} />
           </Sidebar.Pusher>
         </Sidebar.Pushable>
