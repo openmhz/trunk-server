@@ -44,20 +44,5 @@ export const apiSlice = createApi({
     })
 })
 
-export const selectSystemsResult = apiSlice.endpoints.getSystems.select();
-
-const emptySystems = []
-
-export const selectAllSystems = createSelector(
-    selectSystemsResult,
-    systemsResult => systemsResult?.data ?? emptySystems
-) 
-
-export const selectActiveSystems = createSelector(
-    selectAllSystems,
-    (state, userId) => userId,
-    (systems, userId) => systems.find(system => system.active === true)
-)
-
 // Export the auto-generated hook for the `getPosts` query endpoint
 export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetEventsQuery, useGetEventQuery, useAddNewEventMutation } = apiSlice

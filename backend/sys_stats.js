@@ -17,39 +17,43 @@ function updateActiveSystems() {
 
             // While there are still Systems to work with
             if (item) {
-                var active = false;
-                var callAvg = 0;
-
                 // if you have recieved some calls during that last period, make the system active
                 if ((callTotals[item.shortName] != undefined) && (callTotals[item.shortName][0] > 0)) {
-                    active = true;
-                    callAvg = callTotals[item.shortName][0] / timePeriod;
+                    const active = true;
+                    const callAvg = callTotals[item.shortName][0] / timePeriod;
+                    sysCollection.update({
+                        shortName: item.shortName
+                    }, {
+                        $set: {
+                            "active": active,
+                            "callAvg": callAvg,
+                            "lastActive": new Date()
+                        }
+                    }, {
+                        upsert: true
+                    }, function(err, objects) {
+                        if (err) {
+                          console.log("Shortname: " + item.shortName);
+                          console.warn(err.message);
+                        }
+                    });
+                } else {
+                    sysCollection.update({
+                        shortName: item.shortName
+                    }, {
+                        $set: {
+                            "active": false,
+                            "callAvg": 0
+                        }
+                    }, {
+                        upsert: true
+                    }, function(err, objects) {
+                        if (err) {
+                          console.log("Shortname: " + item.shortName);
+                          console.warn(err.message);
+                        }
+                    });
                 }
-
-                if (err) {
-                  console.log(item);
-                  console.log(err);
-                }
-                //console.log();
-
-                // set the Call Average and Active for the System in the DB
-                sysCollection.update({
-                    shortName: item.shortName
-                }, {
-                    $set: {
-                        "active": active,
-                        "callAvg": callAvg
-                    }
-                }, {
-                    upsert: true
-                }, function(err, objects) {
-                    if (err) {
-                      console.log("Shortname: " + item.shortName);
-                      console.warn(err.message);
-                    }
-                    //console.log(util.inspect(objects));
-                });
-
             } 
         });
     });

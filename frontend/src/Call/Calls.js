@@ -8,6 +8,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { setLive, setFilter, setDateFilter } from "../features/callPlayer/callPlayerSlice";
 import { getCalls, addCall, getOlderCalls, getNewerCalls  } from "../features/calls/callsSlice";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
+import { useGetSystemsQuery,  } from "../features/api/apiSlice";
 
 import {
   Container,
@@ -24,9 +25,7 @@ import io from 'socket.io-client';
 
 
 
-
 const socket = io(process.env.REACT_APP_BACKEND_SERVER);
-
 
 // ----------------------------------------------------
 function Calls(props) {
@@ -35,7 +34,6 @@ function Calls(props) {
 
   const { data: groupsData, isSuccess: isGroupsSuccess } = useGetGroupsQuery(shortName);
   const { loading: callsLoading, data: callsData } = useSelector((state) => state.calls);
-
   const [autoPlay, setAutoPlay] = useState(true);
   const [currentCall, setCurrentCall] = useState(false);
   const [urlOptions, setUrlOptions] = useState(false);
