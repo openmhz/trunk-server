@@ -23,11 +23,15 @@ export const apiSlice = createApi({
         }),
         getEvents: builder.query({
             // The URL for the request is '/fakeApi/posts'
-            query: () => ({ url: '/events' })
+            query: () => ({ url: '/events' }),
+            transformResponse: responseData => {
+                return responseData.sort(function compareFn(a, b) { if (a.createdAt < b.createdAt) return 1; else return -1; })
+              }
         }),
         getEvent: builder.query({
             // The URL for the request is '/fakeApi/posts'
-            query: (eventId) => ({ url: `/events/${eventId}` })
+            query: (eventId) => ({ url: `/events/${eventId}` }),
+
         }),
         getTalkgroups: builder.query({
             // The URL for the request is '/fakeApi/posts'

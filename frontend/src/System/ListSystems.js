@@ -1,6 +1,6 @@
-import React, { Component, useRef } from "react";
+import { Component, useRef } from "react";
 import { Link, useNavigate } from 'react-router-dom'
-import SystemCard from "./SystemCard";
+
 import { useSelector, useDispatch } from 'react-redux'
 import {
   Container,
@@ -18,6 +18,9 @@ import {
 import NavBar from "../Common/NavBar"
 import { selectAllSystems, selectActiveSystems, } from "../features/systems/systemsSlice";
 import { useGetSystemsQuery, } from '../features/api/apiSlice'
+import StateLinkList from "./StateLinkList";
+import SystemsByState from "./SystemsByState";
+import InternationList from "./InternationList";
 // ----------------------------------------------------
 
 const ListSystems = (props) => {
@@ -25,6 +28,8 @@ const ListSystems = (props) => {
   const { data: allSystems, isSuccess } = useGetSystemsQuery();
   const systems = useSelector(selectActiveSystems)
   const contextRef = useRef();
+
+  // Sorts the systems by State and also creates an International Arry
   let states = {};
   let other = []
   for (var i = 0; i < systems.length; i++) {
@@ -37,51 +42,12 @@ const ListSystems = (props) => {
     } else {
       other.push(system);
     }
-
-  }
-  let keys = Object.keys(states);
-  keys.sort();
-
-  let stateList = [];
-  for (var i = 0; i < keys.length; ++i) {
-    const state = keys[i];
-    stateList.push((
-
-      <List.Item>
-        <List.Content>
-          <List.Header><a href={"#" + state}>{state}</a></List.Header>
-        </List.Content>
-      </List.Item>
-
-    ))
   }
 
-  let systemsByState = [];
+  const stateList = StateLinkList(states);
+  const systemsByState = SystemsByState(states);
+  const international = InternationList(other);
 
-  for (var i = 0; i < keys.length; ++i) {
-    const state = keys[i];
-
-    systemsByState.push((<Header as="h2" id={state}>{state}</Header>))
-    systemsByState.push((
-      <Card.Group key={state} itemsPerRow={4} stackable={true}>
-        {states[state] &&
-          states[state].map((system) => {
-            return <SystemCard system={system} key={system.shortName} onClick={(e) => navigate("/system/" + system.shortName)} />
-          })}
-      </Card.Group>
-    ))
-  }
-  let international = [];
-  international.push((<Header as="h2" id="international">International</Header>))
-  international.push((
-    <Card.Group itemsPerRow={4} stackable={true}>
-      {other &&
-        other.map((system) => {
-          return <SystemCard system={system} key={system.shortName} onClick={(e) => navigate("/system/" + system.shortName)} />
-        })}
-    </Card.Group>
-  ))
-  const navigate = useNavigate();
   return (
     <div ref={contextRef}>
       <NavBar />

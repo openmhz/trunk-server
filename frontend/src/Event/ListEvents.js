@@ -36,6 +36,7 @@ const ListEvents = (props) => {
   
   const {data:events, isSuccess} = useGetEventsQuery(); 
   const navigate = useNavigate();
+  
     return (
       <div>
         <NavBar/>
