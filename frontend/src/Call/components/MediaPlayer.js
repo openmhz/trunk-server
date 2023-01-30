@@ -18,9 +18,20 @@ const MediaPlayer = (props) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const parentHandlePlayPause = props.onPlayPause
 
-  const handlePause = () => { setIsPlaying(false); parentHandlePlayPause(false); }
-  const handlePlay = () => { setIsPlaying(true); parentHandlePlayPause(true); }
-  const playPause = () => { const audio = audioRef.current.audioEl.current; if (isPlaying) { audio.pause(); } else { audio.play(); } }
+  const handlePause = () => { setIsPlaying(false);  }
+  const handlePlay = () => { setIsPlaying(true);  }
+  const playPause = () => { 
+    const audio = audioRef.current.audioEl.current; 
+    if (isPlaying) { 
+      setIsPlaying(false); 
+      parentHandlePlayPause(false); 
+      audio.pause(); 
+    } else { 
+      setIsPlaying(true); 
+      parentHandlePlayPause(true);
+      audio.play(); 
+    } 
+  }
 
   const call = props.call;
 

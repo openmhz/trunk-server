@@ -6,6 +6,7 @@ import CallInfo from "./components/CallInfo";
 import ListCalls from "./components/ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
 import { useGetTalkgroupsQuery } from '../features/api/apiSlice'
+import { playedCall  } from "../features/calls/callsSlice";
 import { useInView } from 'react-intersection-observer';
 import {
   Container,
@@ -72,6 +73,7 @@ function CallPlayer(props) {
 
   const playCall = (data) => {
     setCurrentCall(data.call);
+    dispatch(playedCall(data.call._id));
     setIsPlaying(true);
   }
 
@@ -83,6 +85,7 @@ function CallPlayer(props) {
         const nextCall = callsData.entities[nextCallId];
 
         setCurrentCall(nextCall);
+        dispatch(playedCall(nextCall._id));
         setIsPlaying(true);
       } else {
         setIsPlaying(false);
@@ -93,7 +96,7 @@ function CallPlayer(props) {
   }
 
   useEffect(() => {
-    if (loadNewerInView && callsData && (callsData.ids.length > 0)) {
+    if (!live && loadNewerInView && callsData && (callsData.ids.length > 0)) {
       handleNewer();
     }
   }, [loadNewerInView]);
@@ -115,7 +118,9 @@ function CallPlayer(props) {
     if (selectCallId && callsData && !isPlaying && autoPlay) {
       const call = callsData.entities[selectCallId];
       if (call) {
+        setIsPlaying(true);
         setCurrentCall(call);
+        dispatch(playedCall(call._id));
       }
     }
   }, [selectCallId, callsData])

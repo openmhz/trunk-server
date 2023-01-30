@@ -24,3 +24,9 @@ export const selectActiveSystems = createSelector(
   (state) => null,
   (systems) => systems.filter(system => system.active === true)
 )
+
+export const selectSystem = createSelector(
+  selectAllSystems,
+  (state) => null,
+  (systems, shortName) => systems.find(system => system.shortName === shortName)
+)

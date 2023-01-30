@@ -7,8 +7,8 @@ import CallPlayer from "./CallPlayer";
 import { useSelector, useDispatch } from 'react-redux'
 import { setLive, setFilter, setDateFilter } from "../features/callPlayer/callPlayerSlice";
 import { getCalls, addCall, getOlderCalls, getNewerCalls  } from "../features/calls/callsSlice";
-import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../features/api/apiSlice'
-
+import { useGetGroupsQuery, useGetSystemsQuery, } from '../features/api/apiSlice'
+import { selectSystem } from "../features/systems/systemsSlice";
 import {
   Container,
   Label,
@@ -30,9 +30,10 @@ const socket = io(process.env.REACT_APP_BACKEND_SERVER);
 function Calls(props) {
 
   const { shortName } = useParams();
-
+  const { data: allSystems, isSuccess } = useGetSystemsQuery();
   const { data: groupsData, isSuccess: isGroupsSuccess } = useGetGroupsQuery(shortName);
   const { loading: callsLoading, data: callsData } = useSelector((state) => state.calls);
+
   const [autoPlay, setAutoPlay] = useState(true);
   const [currentCall, setCurrentCall] = useState(false);
   const [urlOptions, setUrlOptions] = useState(false);
@@ -61,12 +62,15 @@ function Calls(props) {
   const pathname = useLocation().pathname;
 
   let currentCallId = false;
-
+  let system = false;
 
   if (currentCall) {
     currentCallId = currentCall._id;
   }
 
+  if (allSystems) {
+    system = allSystems.systems.find( (system) => system.shortName === shortName)
+  }
 
   const handlePusherClick = () => {
     if (sidebarOpened) setSidebarOpened(false);
@@ -210,8 +214,10 @@ useLayoutEffect(() => {
   if (pageYOffset.current) {
   const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current.position);
     if (pageYOffset.current.direction == "top") {
-    window.scrollBy({left: 0, top: scrollAmount, behavior: "auto"});
+      window.scrollBy({left: 0, top: scrollAmount, behavior: "auto"});
+      pageYOffset.current = {direction: "bottom", position: positionRef.current.clientHeight}; // reset PageY to be the current height incase callsData changes for other reasons
     } else {
+      pageYOffset.current = {direction: "bottom", position: positionRef.current.clientHeight};
       //window.scrollBy(0, -1 * scrollAmount);
     }
   }
@@ -381,7 +387,7 @@ useLayoutEffect(() => {
           <Label horizontal={true} color="grey" className="desktop-only">{filterLabel}</Label>
         </Menu.Item>
         <Container className="desktop-only" textAlign='center' style={{ fontSize: '1.5rem', paddingLeft: '1em', paddingTop: '.5em' }}>
-          {/*system && system.name*/}
+          {system && system.name}
         </Container>
         <Menu.Menu position="right">
           <Menu.Item name='archive-btn' onClick={handleCalendarToggle} active={!live}>

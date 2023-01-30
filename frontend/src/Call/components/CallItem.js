@@ -89,11 +89,21 @@ const CallItem = (props) => {
   } else {
     talkgroup = talkgroups.talkgroups[call.talkgroupNum].description;
   }
+
+  let playStatus = (<></>)
+  if (activeCall) {
+    playStatus = (<Icon name="play"  size='small' color="green"/>)
+    
+  } else if (!call.played) {
+    playStatus = (<Icon name="chevron right" size='small' disabled/>)
+  } 
+
   return (
     <Table.Row draggable="true" onClick={(e) => props.onClick({ call: call }, e)} {...rowSelected} onDragStart={onDragStart} data-callid={call._id}>
-      <Table.Cell>  {call.len} </Table.Cell>
-      <Table.Cell> {talkgroup} </Table.Cell>
-      <Table.Cell> {time.toLocaleTimeString()} </Table.Cell>
+      <Table.Cell>{playStatus}</Table.Cell>
+      <Table.Cell>{call.len}</Table.Cell>
+      <Table.Cell>{talkgroup}</Table.Cell>
+      <Table.Cell>{time.toLocaleTimeString()}</Table.Cell>
       <Table.Cell onMouseEnter={() => setStarVisible(true)} onMouseLeave={() => setStarVisible(false)} onClick={handleStarClicked}>{starButton}</Table.Cell>
     </Table.Row>
   );
