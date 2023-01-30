@@ -65,8 +65,7 @@ const initialState = {
     loading: false,
     data: callsAdapter.getInitialState(),
     oldestCallTime: now,
-    newestCallTime: now,
-    adjustCallScroll: false
+    newestCallTime: now
   }
 
   function buildUrlParams(a) {
@@ -201,9 +200,12 @@ export const callsSlice = createSlice({
   initialState,
   reducers: {
     addCall: (state, action) => {
-      state.data = callsAdapter.addOne(state.data, action.payload)
-      state.adjustCallScroll = true;
+      const call = {...action.payload, played: false}
+      state.data = callsAdapter.addOne(state.data, call)
     },
+    playedCall: (state,action) => {
+      state.data = callsAdapter.updateOne(state.data,{id: action.payload, changes: {played: true}});
+    }
   },
   extraReducers: {
     [getCalls.pending]: (state) => {
@@ -214,7 +216,8 @@ export const callsSlice = createSlice({
     },
     [getCalls.fulfilled]: (state, {payload}) => {
       state.loading = false;
-      state.data = callsAdapter.setAll(state.data, payload.calls)
+      const calls = payload.calls.map( (call) => ({...call, played: false}));
+      state.data = callsAdapter.setAll(state.data, calls)
       if (state.data && (state.data.ids.length > 0)) {
         const first = state.data.ids[0]
         const firstTime = state.data.entities[first].time;
@@ -232,7 +235,8 @@ export const callsSlice = createSlice({
     }, 
     [getOlderCalls.fulfilled]: (state, {payload}) => {
       state.loading = false;
-      state.data = callsAdapter.addMany(state.data, payload.calls)
+      const calls = payload.calls.map( (call) => ({...call, played: false}));
+      state.data = callsAdapter.addMany(state.data, calls)
       if (state.data && (state.data.ids.length > 0)) {
         const first = state.data.ids[0]
         const firstTime = state.data.entities[first].time;
@@ -250,7 +254,8 @@ export const callsSlice = createSlice({
     }, 
     [getNewerCalls.fulfilled]: (state, {payload}) => {
       state.loading = false;
-      state.data = callsAdapter.addMany(state.data, payload.calls)
+      const calls = payload.calls.map( (call) => ({...call, played: false}));
+      state.data = callsAdapter.addMany(state.data, calls)
       if (state.data && (state.data.ids.length > 0)) {
         const first = state.data.ids[0]
         const firstTime = state.data.entities[first].time;
@@ -268,5 +273,5 @@ export const callsSlice = createSlice({
     }
   }
 })
-export const { addCall } = callsSlice.actions
+export const { addCall, playedCall } = callsSlice.actions
 export const callsReducer = callsSlice.reducer;
