@@ -66,7 +66,7 @@ const ListSystems = (props) => {
             {systemsByState}
             {international}
           </Grid.Column>
-          <Grid.Column width="1">
+          <Grid.Column width="1" only='computer'>
             <Sticky offset={60} context={contextRef}>
               <Segment>
                 <List >
