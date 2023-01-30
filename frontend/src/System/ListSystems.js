@@ -52,33 +52,30 @@ const ListSystems = (props) => {
     <div ref={contextRef}>
       <NavBar />
       <Container >
-
         <Divider horizontal style={{ paddingTop: "5em", paddingBottom: "2em" }}><Header as="h1">Radio Systems<Icon name='rss' /></Header></Divider>
-        
         <Grid centered columns={2}>
-    <Grid.Column width="15">
-        <List horizontal>
-          {stateList}
-          <List.Item>
-            <List.Content>
-              <List.Header><a href="#international">International</a></List.Header>
-            </List.Content>
-          </List.Item>
-        </List>
-        {systemsByState}
-        {international}
-      
-        </Grid.Column>
-        <Grid.Column width="1">
-        <Sticky offset={60} context={contextRef}>
-        <Segment>
-          <List >
-            {stateList}
-          </List>
-        </Segment>
-        </Sticky>
-      </Grid.Column>
-      </Grid>
+          <Grid.Column width="15">
+            <List horizontal>
+              {stateList}
+              <List.Item>
+                <List.Content>
+                  <List.Header><a href="#international">International</a></List.Header>
+                </List.Content>
+              </List.Item>
+            </List>
+            {systemsByState}
+            {international}
+          </Grid.Column>
+          <Grid.Column width="1" only='computer'>
+            <Sticky offset={60} context={contextRef}>
+              <Segment>
+                <List >
+                  {stateList}
+                </List>
+              </Segment>
+            </Sticky>
+          </Grid.Column>
+        </Grid>
       </Container>
     </div>
   );
