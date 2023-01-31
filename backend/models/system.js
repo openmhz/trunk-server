@@ -16,6 +16,7 @@ var systemSchema = mongoose.Schema({
   callCount: Number,
   ignoreUnknownTalkgroup : Boolean,
   active: {type: Boolean, default: false},
+  lastActive: Date,
   planType: {type: Number, default: 0},
   userId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
   key: String

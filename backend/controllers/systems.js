@@ -33,7 +33,6 @@ exports.get_systems = function (req, res) {
         lastActive: results[result].lastActive,
         callAvg: results[result].callAvg,
         description: results[result].description,
-        planType: results[result].planType,
         clientCount: clientCount
       }
       if (results[result].showScreenName && results[result].userId) {

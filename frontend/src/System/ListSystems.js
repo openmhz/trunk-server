@@ -25,15 +25,16 @@ import InternationList from "./InternationList";
 
 const ListSystems = (props) => {
 
-  const { data: allSystems, isSuccess } = useGetSystemsQuery();
-  const systems = useSelector(selectActiveSystems)
+  const { data: systems, isSuccess } = useGetSystemsQuery();
+  //const systems = useSelector(selectActiveSystems)
   const contextRef = useRef();
 
   // Sorts the systems by State and also creates an International Arry
   let states = {};
   let other = []
-  for (var i = 0; i < systems.length; i++) {
-    const system = systems[i];
+  if (isSuccess && systems.systems)
+  for (var i = 0; i < systems.systems.length; i++) {
+    const system = systems.systems[i];
     if (system.hasOwnProperty("state")) {
       if (!states.hasOwnProperty(system.state)) {
         states[system.state] = [];
