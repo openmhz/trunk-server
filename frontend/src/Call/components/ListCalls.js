@@ -8,24 +8,27 @@ import {
 } from "semantic-ui-react";
 import "../CallPlayer.css";
 import { useGetTalkgroupsQuery } from '../../features/api/apiSlice'
+import { useSelector } from 'react-redux'
 
 // ----------------------------------------------------
 const ListCalls = (props) => {
     const activeCallRef  = useRef();
+    const activeCallId = props.activeCallId;
     const { shortName } = useParams();
+    const centerCall = useSelector((state) => state.callPlayer.centerCall);
     const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
   //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
   //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
 
 
-  /*
-    useEffect(() => {
-      if (activeCallRef.current) {
+  
+  useEffect(() => {
+      if (activeCallRef.current && centerCall) {
         activeCallRef.current.scrollIntoView({
           block: "center",
         });
     }
-  });*/
+  },[activeCallId]);
 
     const callsData = props.callsData;
     return (
@@ -45,7 +48,7 @@ const ListCalls = (props) => {
             
             {
               props.callsData.ids.map((callId, index) => {
-              if (callId === props.activeCallId) {
+              if (callId === activeCallId) {
                 return (<Ref innerRef={activeCallRef} key={index} ><CallItem activeCall={true}  call={props.callsData.entities[callId]} talkgroups={talkgroupsData} key={index} onClick={props.playCall}/></Ref>)
               } else {
                 return <CallItem activeCall={false} call={props.callsData.entities[callId]} talkgroups={talkgroupsData} key={index} onClick={props.playCall}/>

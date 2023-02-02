@@ -90,12 +90,18 @@ const CallItem = (props) => {
     talkgroup = talkgroups.talkgroups[call.talkgroupNum].description;
   }
 
+  const cirlceStyle = {width:"4px",
+              margin:"6px",
+              height: "4px",
+              borderRadius:"50%",
+              background: "#09f"}
+
   let playStatus = (<></>)
   if (activeCall) {
     playStatus = (<Icon name="play"  size='small' color="green"/>)
     
   } else if (!call.played) {
-    playStatus = (<Icon name="chevron right" size='small' disabled/>)
+    playStatus = (<div style={cirlceStyle}/>)
   } 
 
   return (
