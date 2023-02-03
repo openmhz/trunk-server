@@ -1,11 +1,11 @@
-import React, { useEffect, useLayoutEffect, useState, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useState, useRef, useCallback } from "react";
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 import FilterModal from "./components/FilterModal";
 import GroupModal from "./components/GroupModal";
 import CalendarModal from "./components/CalendarModal";
 import CallPlayer from "./CallPlayer";
 import { useSelector, useDispatch } from 'react-redux'
-import { setLive, setFilter, setDateFilter } from "../features/callPlayer/callPlayerSlice";
+import { setFilter, setDateFilter } from "../features/callPlayer/callPlayerSlice";
 import { getCalls, addCall, getOlderCalls, getNewerCalls  } from "../features/calls/callsSlice";
 import { useGetGroupsQuery, useGetSystemsQuery, } from '../features/api/apiSlice'
 import { selectSystem } from "../features/systems/systemsSlice";
@@ -21,6 +21,7 @@ import {
 import "./CallPlayer.css";
 import queryString from '../query-string';
 import io from 'socket.io-client';
+import { useCallLink } from "./components/CallLinks";
 
 
 
@@ -44,6 +45,7 @@ function Calls(props) {
   const [calendarVisible, setCalendarVisible] = useState(false);
   const [isConnected, setIsConnected] = useState(socket.connected);
   const [selectCallId, setSelectCallId] = useState(false);
+  const [live, setLive] = useState(true);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -57,7 +59,7 @@ function Calls(props) {
   const filterTalkgroups = useSelector((state) => state.callPlayer.filterTalkgroups);
   const filterStarred = useSelector((state) => state.callPlayer.filterStarred);
   const filterDate = useSelector((state) => state.callPlayer.filterDate);
-  const live = useSelector((state) => state.callPlayer.live);
+  //const live = useSelector((state) => state.callPlayer.live);
   const uri = queryString.parse(useLocation().search);
   const pathname = useLocation().pathname;
 
@@ -131,6 +133,7 @@ function Calls(props) {
       shortName: shortName
     });
   }
+
   const stopSocket = () => {
     console.log("Stopping Socket")
     socket.emit("stop");
@@ -172,8 +175,8 @@ function Calls(props) {
   const handleLiveToggle = (currentlyLive) => {
     if (!live) {
       dispatch(setDateFilter(false));
-      dispatch(setLive(true));
       dispatch(getCalls({}));
+      setLive(true);
       startSocket();
     }
   }
@@ -182,7 +185,7 @@ function Calls(props) {
     setCalendarVisible(!calendarVisible);
 
     if (didUpdate) {
-      dispatch(setLive(false));
+      setLive(false);
       stopSocket();
     }
   }
@@ -233,7 +236,6 @@ useLayoutEffect(() => {
       filterTalkgroups: [],
       filterGroupId: false,
       filterStarred: false,
-      live: true,
       shortName: shortName
     };
 
@@ -248,7 +250,8 @@ useLayoutEffect(() => {
     if (uri.hasOwnProperty('time')) {
       const date = new Date(parseInt(uri['time']));
       filter.filterDate = date.getTime();
-      filter.live = false;
+      setLive(false);
+      //filter.live = false;
       if (!urlOptions) setUrlOptions(true);
     }
 
@@ -257,6 +260,7 @@ useLayoutEffect(() => {
       const _id = uri['call-id'];
       setSelectCallId(_id);
       setAutoPlay(false);
+      setLive(false);
       if (!urlOptions) setUrlOptions(true);
     }
 
@@ -289,9 +293,17 @@ useLayoutEffect(() => {
     };
   }, []);
 
+
+
   useEffect(() => {
     socket.on('connect', () => {
       console.log("Socket Connect");
+      setLive( (live) => {
+        if (live) {
+          startSocket();
+        }
+      })
+
       setIsConnected(true);
     });
 
@@ -302,10 +314,11 @@ useLayoutEffect(() => {
 
     socket.on('reconnect', (attempts) => {
       console.log("Socket Reconnected after attempts: " + attempts); // true
-
-      if (live) {
-        this.startSocket();
-      }
+      setLive( (live) => {
+        if (live) {
+          startSocket();
+        }
+      })
     })
 
     socket.on("new message", handleSocketMessage);
