@@ -300,7 +300,7 @@ useLayoutEffect(() => {
       console.log("Socket Connect");
       setLive( (live) => {
         if (live) {
-          startSocket();
+          //startSocket();
         }
       })
 
@@ -316,7 +316,7 @@ useLayoutEffect(() => {
       console.log("Socket Reconnected after attempts: " + attempts); // true
       setLive( (live) => {
         if (live) {
-          startSocket();
+          //startSocket();
         }
       })
     })
