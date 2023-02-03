@@ -298,12 +298,6 @@ useLayoutEffect(() => {
   useEffect(() => {
     socket.on('connect', () => {
       console.log("Socket Connect");
-      setLive( (live) => {
-        if (live) {
-          //startSocket();
-        }
-      })
-
       setIsConnected(true);
     });
 
@@ -314,11 +308,7 @@ useLayoutEffect(() => {
 
     socket.on('reconnect', (attempts) => {
       console.log("Socket Reconnected after attempts: " + attempts); // true
-      setLive( (live) => {
-        if (live) {
-          //startSocket();
-        }
-      })
+      setIsConnected(true);
     })
 
     socket.on("new message", handleSocketMessage);
@@ -332,10 +322,10 @@ useLayoutEffect(() => {
 
   useEffect(() => {
     dispatch(getCalls({}));
-    if (live) {
+    if (live && isConnected) {
       startSocket();
     }
-  }, [shortName, filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred])
+  }, [shortName, filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred, isConnected])
 
 
   // Update the Browser URI when any relevant values change

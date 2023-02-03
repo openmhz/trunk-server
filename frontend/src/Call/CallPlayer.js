@@ -54,7 +54,6 @@ function CallPlayer(props) {
   const stickyRef = useRef(); // lets us get the Y Scroll offset for the Call List
   const positionRef = useRef(); // lets us get the Y Scroll offset for the Call List
   const shouldPlayAddCallRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
-  const live = useSelector((state) => state.callPlayer.live);
   shouldPlayAddCallRef.current = (!isPlaying && autoPlay) ? true : false;
 
   let currentCallId = false;
@@ -96,7 +95,7 @@ function CallPlayer(props) {
   }
 
   useEffect(() => {
-    if (!live && loadNewerInView && callsData && (callsData.ids.length > 0)) {
+    if (loadNewerInView && callsData && (callsData.ids.length > 0)) {
       handleNewer();
     }
   }, [loadNewerInView]);
