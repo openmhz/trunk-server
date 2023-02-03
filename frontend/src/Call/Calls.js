@@ -114,8 +114,8 @@ function Calls(props) {
         }
         setSelectCallId(message._id);
         dispatch(addCall(message));
-
-        console.log("Got Socket Message: " + message._id);
+        const time = new Date(message.time);
+        console.log("Got Socket Message: " + message._id + " Start Time: " + time.toLocaleTimeString() );
         break
       default:
         break
@@ -124,7 +124,7 @@ function Calls(props) {
 
   const startSocket = () => {
     const filter = getFilterDescription();
-    console.log("Starting Socket");
+    console.log("Starting Socket - Filter Code: " + filter.code + " Filter Type: " + filter.type);
     socket.emit("start", {
       filterCode: filter.code,
       filterType: filter.type,
@@ -200,10 +200,12 @@ function Calls(props) {
 
 
 const handleNewer = () => {
-  if (positionRef.current && !live) {
+  if (positionRef.current) {
     pageYOffset.current = {direction: "top", position: positionRef.current.clientHeight};
   }
-  dispatch(getNewerCalls({}));
+  if (!live) {
+    dispatch(getNewerCalls({}));
+  }
 }
 
 const handleOlder = () => {

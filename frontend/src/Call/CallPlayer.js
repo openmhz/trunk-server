@@ -82,11 +82,14 @@ function CallPlayer(props) {
       if (autoPlay && (currentIndex > 0)) {
         const nextCallId = callsData.ids[currentIndex - 1];
         const nextCall = callsData.entities[nextCallId];
-
+        console.log("Autoplaying next call, current Index is: " + currentIndex + " isPlaying is: " + isPlaying )
         setCurrentCall(nextCall);
         dispatch(playedCall(nextCall._id));
         setIsPlaying(true);
       } else {
+        if (!autoPlay) {
+          console.log("Not playing because Autoplay is false - current index is: " + currentIndex)
+        }
         setIsPlaying(false);
       }
     } else {
@@ -114,15 +117,19 @@ function CallPlayer(props) {
   // we should only set the selectCallId to be the current call when AutoPlay is selected
   // and when there isn't another call already playing
   useEffect(() => {
+    console.log("New selected call: " + selectCallId + " IsPlaying: " + isPlaying + " autoPlay: " + autoPlay );
     if (selectCallId && callsData && !isPlaying && autoPlay) {
       const call = callsData.entities[selectCallId];
       if (call) {
+        const time = new Date(call.time);
+
+        console.log("Playing Selected Call: " + call._id + " Start Time: " + time.toLocaleTimeString() );
         setIsPlaying(true);
         setCurrentCall(call);
         dispatch(playedCall(call._id));
       }
     }
-  }, [selectCallId, callsData])
+  }, [selectCallId])
 
 
   return (

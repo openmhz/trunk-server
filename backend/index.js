@@ -37,7 +37,7 @@ const io = require('socket.io')(server, {
   }
 });
 
-var Twitter = require('twitter-lite');
+//var Twitter = require('twitter-lite');
 
 
 //io.origins('*:*');
@@ -273,8 +273,6 @@ app.use(function (err, req, res, next) {
 });
 
 
-app.get('/:shortName/clients', get_clients);
-app.get('/clients', get_clients);
 
 function notify_clients(call) {
   call.type = "calls";
@@ -392,7 +390,7 @@ io.sockets.on('connection', function (client) {
     if (clients[client.id]) {
       clients[client.id].active = false;
     } else {
-      console.error("Error - Socket.io [Stop] either client not found ");
+      console.error("Error - Socket.io [Stop] Client not found ");
     }
   });
   client.on('disconnect', function () {
