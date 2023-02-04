@@ -8,7 +8,8 @@ import {
   Icon,
   Menu,
   Divider,
-  Table
+  Table,
+  List
 } from "semantic-ui-react";
 import NavBar from "../Common/NavBar"
 import { useGetEventsQuery } from "../features/api/apiSlice";
@@ -48,6 +49,7 @@ const ListEvents = (props) => {
             {isSuccess && events.map((event, index) =>
               <Table.Row key={index}>
                 <Table.Cell><Link to={"/events/" + event._id}><Header as='h3'>{event.title}</Header></Link></Table.Cell>
+                <Table.Cell><List>{event.shortNames.map( shortName => <List.Item><Link to={"/system/"+shortName}>{shortName}</Link></List.Item>  )}</List></Table.Cell>
                 <Table.Cell>{event.description}</Table.Cell>
                 <Table.Cell>{event.numCalls} Calls</Table.Cell>
                 <Table.Cell>{dateRange(new Date(event.startTime), new Date(event.endTime))}</Table.Cell>
