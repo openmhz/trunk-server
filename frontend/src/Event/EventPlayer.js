@@ -1,10 +1,9 @@
 import React, { useEffect, useLayoutEffect, useState, useRef } from "react";
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
-import {skipToken} from '@reduxjs/toolkit/query'
+import { skipToken } from '@reduxjs/toolkit/query'
 import MediaPlayer from "../Call/components/MediaPlayer";
 
 import SupportModal from "../Call/components/SupportModal";
-
 import EventCallInfo from "./EventCallInfo";
 import ListEventCalls from "./ListEventCalls";
 import { useSelector, useDispatch } from 'react-redux'
@@ -38,13 +37,13 @@ function EventPlayer(props) {
   const [isPlaying, setIsPlaying] = useState(false);
 
 
-  const {callLink,callDownload,callTweet} = useCallLink(currentCall)
+  const { callLink, callDownload, callTweet } = useCallLink(currentCall)
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const positionRef = useRef(); // lets us get the Y Scroll offset for the Call List
   const shouldPlayAddCallRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
-  shouldPlayAddCallRef.current = (!isPlaying && autoPlay)?true:false;
+  shouldPlayAddCallRef.current = (!isPlaying && autoPlay) ? true : false;
 
   let currentCallId = false;
 
@@ -62,7 +61,9 @@ function EventPlayer(props) {
   }
 
   const playCall = (data) => {
+    //data.call.played = true;
     setCurrentCall(data.call);
+
     setIsPlaying(true);
   }
 
@@ -71,9 +72,9 @@ function EventPlayer(props) {
     if (eventData) {
       const currentIndex = eventData.calls.findIndex(call => call._id === currentCallId);
       if (autoPlay && (currentIndex > 0)) {
-        
-        const nextCall = eventData.calls[currentIndex - 1];
 
+        const nextCall = eventData.calls[currentIndex - 1];
+        //eventData.calls[currentIndex].played = true;
         setCurrentCall(nextCall);
         setIsPlaying(true);
       } else {
@@ -87,8 +88,8 @@ function EventPlayer(props) {
 
 
   useEffect(() => {
-    if ( selectCallId && eventData && !currentCall) {
-      const call = eventData.calls.find( (call) => call._id == selectCallId);
+    if (selectCallId && eventData && !currentCall) {
+      const call = eventData.calls.find((call) => call._id == selectCallId);
       if (call) {
         setCurrentCall(call);
       }
@@ -103,9 +104,7 @@ function EventPlayer(props) {
           <Sidebar.Pusher
             style={{ minHeight: '100vh' }}
           >
-
-            <ListEventCalls eventData={eventData} activeCallId={isPlaying?currentCallId:false} playCall={playCall} />
-
+            <ListEventCalls eventData={eventData} activeCallId={isPlaying ? currentCallId : false} playCall={playCall} />
           </Sidebar.Pusher>
         </Sidebar.Pushable>
         <Rail position='right' className="desktop-only"  >

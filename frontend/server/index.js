@@ -127,7 +127,7 @@ async function getCalls(req, res, next) {
       return;
     }
 
-  
+    try {
     db.get().collection('calls', function (err, transCollection) {
       transCollection.findOne({
         '_id': o_id
@@ -168,7 +168,11 @@ async function getCalls(req, res, next) {
         });
     });
   
-
+  } catch (err) {
+    console.error(err);
+    next()
+    return;
+  }
 
 
   } else {
@@ -179,8 +183,8 @@ async function getCalls(req, res, next) {
 // -------------------------------------------
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/system/:shortName", getCalls)
-app.get("/cards/:id", getCard)
+//app.get("/system/:shortName", getCalls)
+//app.get("/cards/:id", getCard)
 
 app.get("*", (req, res, next) => {
   res.sendFile(__dirname + '/public/index.html');

@@ -25,13 +25,20 @@ export const apiSlice = createApi({
             // The URL for the request is '/fakeApi/posts'
             query: () => ({ url: '/events' }),
             transformResponse: responseData => {
-                return responseData.sort(function compareFn(a, b) { if (a.createdAt < b.createdAt) return 1; else return -1; })
+                return responseData.sort(function compareFn(a, b) { if (a.createdAt < b.createdAt) return 1; else return -1; });
               }
         }),
         getEvent: builder.query({
             // The URL for the request is '/fakeApi/posts'
             query: (eventId) => ({ url: `/events/${eventId}` }),
-
+            transformResponse: responseData => {
+        
+                //let temp = responseData.sort(function compareFn(a, b) { if (a.createdAt < b.createdAt) return 1; else return -1; })
+                responseData.calls.forEach(function (call) {
+                    call.played = false;
+                  });
+                return responseData;
+              }
         }),
         getTalkgroups: builder.query({
             // The URL for the request is '/fakeApi/posts'

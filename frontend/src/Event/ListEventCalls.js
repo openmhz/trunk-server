@@ -28,6 +28,7 @@ const ListEventCalls = (props) => {
         <Table id="calls" unstackable  >
           <Table.Header >
             <Table.Row>
+            <Table.HeaderCell> </Table.HeaderCell>
               <Table.HeaderCell>Len</Table.HeaderCell>
               <Table.HeaderCell>Talkgroup</Table.HeaderCell>
               <Table.HeaderCell>Time</Table.HeaderCell>

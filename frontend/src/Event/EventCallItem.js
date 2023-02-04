@@ -39,8 +39,24 @@ const EventCallItem = (props) => {
   } else {
     talkgroup = talkgroupsData.talkgroups[call.talkgroupNum].description;
   }
+
+  const cirlceStyle = {width:"4px",
+              margin:"6px",
+              height: "4px",
+              borderRadius:"50%"}
+
+
+  let playStatus = (<></>)
+  if (activeCall) {
+    playStatus = (<Icon name="play"  size='small' color="green"/>)
+    
+  } else {
+    playStatus = (<div style={cirlceStyle}/>)
+  } 
+
   return (
     <Table.Row  onClick={(e) => props.onClick({ call: call }, e)} {...rowSelected}>
+      <Table.Cell>{playStatus}</Table.Cell>
       <Table.Cell>  {call.len} </Table.Cell>
       <Table.Cell> {talkgroup} </Table.Cell>
       <Table.Cell> {time.toLocaleTimeString()} </Table.Cell>
