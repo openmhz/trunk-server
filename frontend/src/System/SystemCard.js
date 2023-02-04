@@ -36,7 +36,7 @@ class SystemCard extends Component {
           <Grid.Column width="8">
             {clientCount && <div><Icon name='headphones' />{clientCount}</div>}
           </Grid.Column>
-          <Grid.Column width="8">
+          <Grid.Column width="8" textAlign='right'>
             {callAvg && <div><Icon name='file audio outline' />{callAvg}</div>}
             </Grid.Column>
         </Grid.Row>
