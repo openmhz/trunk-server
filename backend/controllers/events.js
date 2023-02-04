@@ -23,7 +23,7 @@ exports.getEvent = async function (req, res, next) {
 
 exports.getEvents = async function (req, res, next) {
     try {
-        let events = await Event.find({},["title",  "description", "startTime", "endTime", "expireTime", "numCalls", "createdAt"]).exec();
+        let events = await Event.find({},["title",  "description", "startTime", "endTime", "expireTime", "numCalls", "createdAt", "shortNames"]).exec();
         res.contentType('json');
         res.send(JSON.stringify(events));
     }
