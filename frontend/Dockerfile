@@ -8,8 +8,7 @@ ARG REACT_APP_FRONTEND_SERVER
 ARG REACT_APP_GOOGLE_ANALYTICS
 ARG NODE_ENV
 COPY package.json ./
-RUN npm install
-RUN npm install react-scripts@3.4.1 -g --silent
+RUN npm install --also=dev
 COPY . ./
 RUN npm run build
 
