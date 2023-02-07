@@ -10,8 +10,7 @@ ARG REACT_APP_SITE_NAME
 ARG REACT_APP_ADMIN_EMAIL
 ARG NODE_ENV
 COPY package.json ./
-RUN npm install
-RUN npm install react-scripts@3.4.1 -g --silent
+RUN npm install --also=dev
 COPY . ./
 RUN npm run build
 
