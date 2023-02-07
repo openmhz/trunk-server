@@ -14,6 +14,9 @@ There are a bunch of experiments lurking in the code. There is some code for add
 
 I haven't done a great job of keeping all the packages up to date... and I never got around to adding tests. Both of these would be great things for folks to go after.
 
+## PROD vs DEV Env
+The Prod environment expects you to be using HTTPS for your domains. It is pretty easy to use Let's Encrypt to grab Certs for the domains you are using. If not, just run things using the `docker-test.sh` script.
+
 ## Path Forward
 It would be great to get the code to a place where there is base code and people can add customization on top of that. They would probably fork the base code, add additional features and design and then rebaseline the code as new things are added to the mainline. 
 
@@ -27,6 +30,8 @@ There are a lot of different components that make up the system. All of the serv
  - **nginx**: proxies all of the calls to the correct server and handles the HTTPS certs.
 
 ## Easy Install
+
+*NOTE: This may no longers be the easy method... I haven't updated the Ansible scripts in a while. Use at your own peril!! PRs wanted if you fix them up.*
 I put together an [Ansible Script](https://github.com/openmhz/trunk-server-install) to help make it easier to setup an OpenMHz server. You still need to get yourself a Droplet from Digital Ocean, a Domain Name and some storage. The scripts helps download and build everything.
 
 ## Operations
