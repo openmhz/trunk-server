@@ -8,6 +8,7 @@ var eventSchema = mongoose.Schema({
   expireTime: Date,
   startTime: Date,
   endTime: Date,
+  downloadUrl: String,
   shortNames: [String],
   calls: [callSchema],
   numCalls: Number

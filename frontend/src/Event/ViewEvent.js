@@ -65,46 +65,49 @@ function ViewEvent(props) {
       setSelectCallId(_id);
     }
   }
-  
+
   const dateRange = (start, end) => {
     if (start.getYear() != end.getYear()) {
-        return {"part1": start.toLocaleDateString('en-us', { weekday:"short", year:"numeric", month:"short", day:"numeric"}) + " " + start.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'}), "part2":  end.toLocaleDateString('en-us', { weekday:"short", year:"numeric", month:"short", day:"numeric"}) + " " + end.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})}; 
+      return { "part1": start.toLocaleDateString('en-us', { weekday: "short", year: "numeric", month: "short", day: "numeric" }) + " " + start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), "part2": end.toLocaleDateString('en-us', { weekday: "short", year: "numeric", month: "short", day: "numeric" }) + " " + end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) };
     } else if (start.getMonth() != end.getMonth()) {
-        return {"part1": start.toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"}) + " " + start.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'}), "part2": end.toLocaleDateString('en-us', { weekday:"short", month:"short", day:"numeric"}) + " " + end.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})}; 
-    
+      return { "part1": start.toLocaleDateString('en-us', { weekday: "short", month: "short", day: "numeric" }) + " " + start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), "part2": end.toLocaleDateString('en-us', { weekday: "short", month: "short", day: "numeric" }) + " " + end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) };
+
     } else if (start.getDay() != end.getDay()) {
-        return {"part1": start.toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"}) + " " + start.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'}), "part2": end.toLocaleDateString('en-us', { weekday:"short", day:"numeric"}) + " " + end.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})}; 
-    
+      return { "part1": start.toLocaleDateString('en-us', { weekday: "short", month: "short", day: "numeric" }) + " " + start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), "part2": end.toLocaleDateString('en-us', { weekday: "short", day: "numeric" }) + " " + end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) };
+
     } else {
-        return {"part1": start.toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"}) + " " + start.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'}), "part2": end.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'})}; 
-    
+      return { "part1": start.toLocaleDateString('en-us', { weekday: "short", month: "short", day: "numeric" }) + " " + start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), "part2": end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) };
+
     }
-}
-  let dates = {part1: "", part2: ""}
+  }
+  let dates = { part1: "", part2: "" }
   let expirationDate = ""
+  let downloadUrl = false
   if (eventData) {
-   dates = dateRange(new Date(eventData.startTime),new Date(eventData.endTime))
-   expirationDate = new Date(eventData.expireTime).toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"})
+    downloadUrl = eventData.downloadUrl;
+    dates = dateRange(new Date(eventData.startTime), new Date(eventData.endTime))
+    expirationDate = new Date(eventData.expireTime).toLocaleDateString('en-us', { weekday: "short", month: "short", day: "numeric" })
   }
-/*
-  const dateRange = (start, end) => {
-    if (start.getYear() != end.getYear()) {
-        return start.toLocaleDateString('en-us', { weekday:"short", year:"numeric", month:"short", day:"numeric"}) + " " + start.toLocaleTimeString() + " - " + end.toLocaleDateString('en-us', { weekday:"short", year:"numeric", month:"short", day:"numeric"}) + " " + end.toLocaleTimeString(); 
-    } else if (start.getMonth() != end.getMonth()) {
-        return start.toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"}) + " " + start.toLocaleTimeString() + " - " + end.toLocaleDateString('en-us', { weekday:"short", month:"short", day:"numeric"}) + " " + end.toLocaleTimeString(); 
-    
-    } else if (start.getDay() != end.getDay()) {
-        return start.toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"}) + " " + start.toLocaleTimeString() + " - " + end.toLocaleDateString('en-us', { weekday:"short", day:"numeric"}) + " " + end.toLocaleTimeString(); 
-    
-    } else {
-        return start.toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"}) + " " + start.toLocaleTimeString() + " - " + end.toLocaleTimeString(); 
-    
+
+  /*
+    const dateRange = (start, end) => {
+      if (start.getYear() != end.getYear()) {
+          return start.toLocaleDateString('en-us', { weekday:"short", year:"numeric", month:"short", day:"numeric"}) + " " + start.toLocaleTimeString() + " - " + end.toLocaleDateString('en-us', { weekday:"short", year:"numeric", month:"short", day:"numeric"}) + " " + end.toLocaleTimeString(); 
+      } else if (start.getMonth() != end.getMonth()) {
+          return start.toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"}) + " " + start.toLocaleTimeString() + " - " + end.toLocaleDateString('en-us', { weekday:"short", month:"short", day:"numeric"}) + " " + end.toLocaleTimeString(); 
+      
+      } else if (start.getDay() != end.getDay()) {
+          return start.toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"}) + " " + start.toLocaleTimeString() + " - " + end.toLocaleDateString('en-us', { weekday:"short", day:"numeric"}) + " " + end.toLocaleTimeString(); 
+      
+      } else {
+          return start.toLocaleDateString('en-us', { weekday:"short",  month:"short", day:"numeric"}) + " " + start.toLocaleTimeString() + " - " + end.toLocaleTimeString(); 
+      
+      }
     }
-  }
-  let dates = "";
-  if (eventData) {
-    dates = dateRange(new Date(eventData.startTime),new Date(eventData.endTime));
-   }*/
+    let dates = "";
+    if (eventData) {
+      dates = dateRange(new Date(eventData.startTime),new Date(eventData.endTime));
+     }*/
   return (
     <div >
       <Sidebar as={Menu} animation='overlay' inverted vertical visible={sidebarOpened}
@@ -127,27 +130,37 @@ function ViewEvent(props) {
       <Grid style={{ paddingTop: '4em' }}>
         <Grid.Column mobile={1} tablet={1} computer={1} ></Grid.Column>
         <Grid.Column mobile={16} tablet={8} computer={4}>
-          
-            {eventData&& 
+
+          {eventData &&
             <>
-            <p>{eventData.description}</p>
-            <Header size='tiny'>Expires {expirationDate}</Header>
+              <p>{eventData.description}</p>
+              <Header size='tiny'>Expires {expirationDate}</Header>
             </>
           }
-          
+
         </Grid.Column>
-        <Grid.Column mobile={8} tablet={8} computer={4}>
-          <Header as="h2">{dates.part1} <br/>→ {dates.part2}</Header>
+        <Grid.Column mobile={8} tablet={8} computer={3}>
+          <Header as="h2">{dates.part1} <br />→ {dates.part2}</Header>
         </Grid.Column>
         <Grid.Column mobile={8} tablet={8} computer={2}>
-        
+
           <Statistic>
             <Statistic.Value>{eventData && eventData.numCalls}</Statistic.Value>
             <Statistic.Label>Calls</Statistic.Label>
           </Statistic>
-          </Grid.Column>
+        </Grid.Column>
 
-        <Grid.Column mobile={1} tablet={1} computer={5}>
+        <Grid.Column mobile={1} tablet={1} computer={2}>
+          {downloadUrl &&
+            <a href={downloadUrl}>
+              <Statistic small className="desktop-only">
+                <Statistic.Value><Icon name="download" /></Statistic.Value>
+                <Statistic.Label>Download Event</Statistic.Label>
+              </Statistic>
+            </a>
+          }
+        </Grid.Column>
+        <Grid.Column mobile={1} tablet={1} computer={4}>
         </Grid.Column>
       </Grid>
       {eventData && <EventPlayer eventData={eventData} selectCallId={selectCallId} />}
