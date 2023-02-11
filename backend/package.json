@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
+    "adm-zip": "^0.5.10",
     "aws-sdk": "^2.5",
     "axios": "0.18.0",
     "bcrypt-nodejs": "0.0.3",
@@ -31,7 +32,6 @@
     "websocket": "^1.0.24",
     "ws": "^3.1.0"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "mocha --reporter spec"
   },
