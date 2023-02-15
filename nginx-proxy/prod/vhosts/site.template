@@ -17,8 +17,14 @@ server {
 
 
    location / {
-				proxy_pass http://frontend:3000;
-				include /etc/nginx/proxy.conf;
+		proxy_pass http://frontend:3000;
+		include /etc/nginx/proxy.conf;
+		log_format  main  '$http_host '
+			'$remote_addr'
+			'"$request" $status $body_bytes_sent '
+			'"$http_referer" "$http_user_agent" ';
+		access_log /dev/stdout main;
+		#access_log    off;   
     }
 }
 
@@ -47,6 +53,7 @@ server {
 		proxy_set_header Host $host;
 		proxy_cache_bypass $http_upgrade;
 		include /etc/nginx/proxy.conf;
+		access_log    off; 
   }
 }
 
@@ -84,6 +91,7 @@ server {
 		proxy_set_header Host $host;
 		proxy_cache_bypass $http_upgrade;
 		include /etc/nginx/proxy.conf;
+		access_log    off; 
   }
 }
 
@@ -107,6 +115,7 @@ server {
 		proxy_pass http://backend:3005/audio$request_uri;
 		proxy_set_header Host $host;
 		include /etc/nginx/proxy.conf;
+		access_log    off; 
   }
 }
 
@@ -126,17 +135,18 @@ server {
         ssl_stapling_verify on;
         add_header Strict-Transport-Security max-age=15768000;
 
-				server_name account.${DOMAIN_NAME};
+		server_name account.${DOMAIN_NAME};
 
-				location / {
-					proxy_pass http://account:3009;
-					proxy_http_version 1.1;
-					proxy_set_header Upgrade $http_upgrade;
-					proxy_set_header Connection "upgrade";
-					proxy_set_header Host $host;
-					proxy_cache_bypass $http_upgrade;
-					include /etc/nginx/proxy.conf;
-					}
+		location / {
+			proxy_pass http://account:3009;
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade $http_upgrade;
+			proxy_set_header Connection "upgrade";
+			proxy_set_header Host $host;
+			proxy_cache_bypass $http_upgrade;
+			include /etc/nginx/proxy.conf;
+			access_log    off; 
+		}
 }
 
 server {
@@ -152,17 +162,18 @@ server {
         ssl_stapling_verify on;
         add_header Strict-Transport-Security max-age=15768000;
 
-				server_name admin.${DOMAIN_NAME};
+		server_name admin.${DOMAIN_NAME};
 
-				location / {
-					proxy_pass http://admin:3008;
-					proxy_http_version 1.1;
-					proxy_set_header Upgrade $http_upgrade;
-					proxy_set_header Connection "upgrade";
-					proxy_set_header Host $host;
-					proxy_cache_bypass $http_upgrade;
-					include /etc/nginx/proxy.conf;
-					}
+		location / {
+			proxy_pass http://admin:3008;
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade $http_upgrade;
+			proxy_set_header Connection "upgrade";
+			proxy_set_header Host $host;
+			proxy_cache_bypass $http_upgrade;
+			include /etc/nginx/proxy.conf;
+			access_log    off; 
+		}
 }
 
 server {
