@@ -73,8 +73,8 @@ function CallInfoPane(props) {
 
       navigator.mediaSession.metadata = new MediaMetadata({
         title: title,
-        artist: 'OpenMHz',
-        album: system ? system.name : "",
+        album: 'OpenMHz',
+        artist: system ? system.name : "",
         artwork: [
           { src: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
           { src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
