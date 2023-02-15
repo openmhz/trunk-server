@@ -1,0 +1,39 @@
+
+
+import { Routes ,Route } from 'react-router-dom';
+import { usePageTracking } from "./tracking";
+
+import 'semantic-ui-css/semantic.min.css'
+
+// Main
+import Main from "./Main/Main"
+
+// System
+import ListSystems from "./System/ListSystems"
+
+// Call
+import Calls from "./Call/Calls"
+
+import AboutComponent from "./About/AboutComponent"
+
+// Event
+import ListEvents from "./Event/ListEvents"
+import ViewEvent from "./Event/ViewEvent"
+
+
+const App = () => {
+usePageTracking();
+
+return (
+        <Routes>
+          <Route exact path="/" element={<Main/>} />
+          <Route exact path="/systems" element={<ListSystems/>} />
+          <Route exact path="/system/:shortName" element={<Calls/>} />
+          <Route exact path="/events" element={<ListEvents/>} />
+          <Route exact path="/events/:id" element={<ViewEvent/>} />
+          <Route exact path="/about" element={<AboutComponent/>} />
+        </Routes>
+)
+}
+
+export default App;

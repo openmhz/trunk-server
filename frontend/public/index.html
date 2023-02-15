@@ -27,7 +27,18 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
+    <!-- with help from: https://javascript.plainenglish.io/the-ultimate-guide-to-google-analytics-ua-ga4-on-react-or-anything-else-ec9dc84c0211-->
     <title>%REACT_APP_SITE_NAME%</title>
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-xxxxxxxxxx" >
+    </script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '%REACT_APP_GOOGLE_ANALYTICS%', { send_page_view: false })
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
