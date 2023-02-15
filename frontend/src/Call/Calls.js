@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useLayoutEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 import FilterModal from "./components/FilterModal";
 import GroupModal from "./components/GroupModal";
@@ -6,7 +6,7 @@ import CalendarModal from "./components/CalendarModal";
 import CallPlayer from "./CallPlayer";
 import { useSelector, useDispatch } from 'react-redux'
 import { setFilter, setDateFilter } from "../features/callPlayer/callPlayerSlice";
-import { getCalls, addCall, getOlderCalls, getNewerCalls  } from "../features/calls/callsSlice";
+import { getCalls, addCall, getOlderCalls, getNewerCalls } from "../features/calls/callsSlice";
 import { useGetGroupsQuery, useGetSystemsQuery, } from '../features/api/apiSlice'
 import { selectSystem } from "../features/systems/systemsSlice";
 import {
@@ -64,15 +64,19 @@ function Calls(props) {
   const pathname = useLocation().pathname;
 
   let currentCallId = false;
-  let system = false;
+  //let system = false;
 
   if (currentCall) {
     currentCallId = currentCall._id;
   }
 
-  if (allSystems) {
-    system = allSystems.systems.find( (system) => system.shortName === shortName)
-  }
+  let system = useMemo(() => {
+    if (allSystems) {
+      return allSystems.systems.find((system) => system.shortName === shortName)
+    } else {
+      return false;
+    }
+  }, [allSystems, shortName])
 
   const handlePusherClick = () => {
     if (sidebarOpened) setSidebarOpened(false);
@@ -110,12 +114,12 @@ function Calls(props) {
       case 'calls':
 
         if (positionRef.current) {
-          pageYOffset.current = {direction: "top", position: positionRef.current.clientHeight};
+          pageYOffset.current = { direction: "top", position: positionRef.current.clientHeight };
         }
         setSelectCallId(message._id);
         dispatch(addCall(message));
         const time = new Date(message.time);
-        console.log("Got Socket Message: " + message._id + " Start Time: " + time.toLocaleTimeString() );
+        console.log("Got Socket Message: " + message._id + " Start Time: " + time.toLocaleTimeString());
         break
       default:
         break
@@ -199,34 +203,34 @@ function Calls(props) {
   }
 
 
-const handleNewer = () => {
-  if (positionRef.current) {
-    pageYOffset.current = {direction: "top", position: positionRef.current.clientHeight};
-  }
-  if (!live) {
-    dispatch(getNewerCalls({}));
-  }
-}
-
-const handleOlder = () => {
-  if (positionRef.current) {
-    pageYOffset.current = {direction: "bottom", position: positionRef.current.clientHeight};
-  }
-  dispatch(getOlderCalls({}));
-}
-
-useLayoutEffect(() => {
-  if (pageYOffset.current) {
-  const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current.position);
-    if (pageYOffset.current.direction == "top") {
-      window.scrollBy({left: 0, top: scrollAmount, behavior: "auto"});
-      pageYOffset.current = {direction: "bottom", position: positionRef.current.clientHeight}; // reset PageY to be the current height incase callsData changes for other reasons
-    } else {
-      pageYOffset.current = {direction: "bottom", position: positionRef.current.clientHeight};
-      //window.scrollBy(0, -1 * scrollAmount);
+  const handleNewer = () => {
+    if (positionRef.current) {
+      pageYOffset.current = { direction: "top", position: positionRef.current.clientHeight };
+    }
+    if (!live) {
+      dispatch(getNewerCalls({}));
     }
   }
-}, [callsData])
+
+  const handleOlder = () => {
+    if (positionRef.current) {
+      pageYOffset.current = { direction: "bottom", position: positionRef.current.clientHeight };
+    }
+    dispatch(getOlderCalls({}));
+  }
+
+  useLayoutEffect(() => {
+    if (pageYOffset.current) {
+      const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current.position);
+      if (pageYOffset.current.direction == "top") {
+        window.scrollBy({ left: 0, top: scrollAmount, behavior: "auto" });
+        pageYOffset.current = { direction: "bottom", position: positionRef.current.clientHeight }; // reset PageY to be the current height incase callsData changes for other reasons
+      } else {
+        pageYOffset.current = { direction: "bottom", position: positionRef.current.clientHeight };
+        //window.scrollBy(0, -1 * scrollAmount);
+      }
+    }
+  }, [callsData])
 
 
 
@@ -294,6 +298,7 @@ useLayoutEffect(() => {
       stopSocket();
     };
   }, []);
+
 
 
 
