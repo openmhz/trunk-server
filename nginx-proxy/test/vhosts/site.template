@@ -13,6 +13,11 @@ server {
 		access_log off;
 	}
 
+	location /*.png {
+		proxy_pass http://frontend:3000;
+		access_log off;
+	}
+	
    location / {
 				proxy_pass http://frontend:3000;
 				include /etc/nginx/proxy.conf;
