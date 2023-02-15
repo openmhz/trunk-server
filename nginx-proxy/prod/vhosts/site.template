@@ -15,16 +15,19 @@ server {
 
         server_name ${DOMAIN_NAME} www.${DOMAIN_NAME};
 
+   location /static {
+		proxy_pass http://frontend:3000;
+		access_log off;
+    }
+
+	location /favicon.ico {
+		proxy_pass http://frontend:3000;
+		access_log off;
+	}
 
    location / {
 		proxy_pass http://frontend:3000;
-		include /etc/nginx/proxy.conf;
-		log_format  main  '$http_host '
-			'$remote_addr'
-			'"$request" $status $body_bytes_sent '
-			'"$http_referer" "$http_user_agent" ';
 		access_log /dev/stdout main;
-		#access_log    off;   
     }
 }
 
