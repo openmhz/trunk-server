@@ -1,6 +1,6 @@
 import React, { Component, useState, useEffect } from "react";
 import { useGetGroupsQuery, useGetSystemsQuery, } from '../../features/api/apiSlice'
-import { setGroupFilter, setCenterCall } from "../../features/callPlayer/callPlayerSlice";
+import { setGroupFilter, setCenterCall, setBackgroundAutoplay } from "../../features/callPlayer/callPlayerSlice";
 import { useSelector, useDispatch } from 'react-redux'
 
 import {
@@ -15,11 +15,14 @@ import "./FilterModal.css";
 
 function GroupModal(props) {
   const shortName = useSelector((state) => state.callPlayer.shortName);
+  const backgroundAutoplay = useSelector((state) => state.callPlayer.backgroundAutoplay);
+  const centerCall = useSelector((state) => state.callPlayer.centerCall);
   const { data: groupData, isSuccess } = useGetGroupsQuery(props.shortName);
   const { data: allSystems } = useGetSystemsQuery();
   const [selectedGroup, setSelectedGroup] = useState(false);
   const [groupOptions, setGroupOptions] = useState([]);
-  const [centerCall, setLocalCenterCall] = useState(true);
+  const [localCenterCall, setLocalCenterCall] = useState(centerCall);
+  const [localBackgroundAutoplay, setLocalBackgroundAutoplay] = useState(backgroundAutoplay);
   const dispatch = useDispatch()
   const onClose = props.onClose;
   let system = false;
@@ -30,7 +33,8 @@ function GroupModal(props) {
   }
 
   function handleDone(onClose) {
-    dispatch(setCenterCall(centerCall));
+    dispatch(setCenterCall(localCenterCall));
+    dispatch(setBackgroundAutoplay(localBackgroundAutoplay));
     if (selectedGroup && (selectedGroup!="all")) {
       dispatch(setGroupFilter(selectedGroup))
       
@@ -83,7 +87,8 @@ function GroupModal(props) {
                 <p>Choose the type of calls you want to listen to</p>
                 <Form>
                 <Form.Select placeholder='All Calls' fluid selection options={groupOptions} name='selectedGroup' onChange={(e, data) => setSelectedGroup(data.value)} />
-                <Form.Checkbox label='Center playing call ' checked={centerCall} onChange={(e, data) => setLocalCenterCall(data.value)} />
+                <Form.Checkbox label='Focus on call playing' checked={localCenterCall} onChange={(e, data) => setLocalCenterCall(data.checked)} />
+                <Form.Checkbox label='Background autoplay' checked={localBackgroundAutoplay} onChange={(e, data) => setLocalBackgroundAutoplay(data.checked)} />
                 </Form>
               </Grid.Column>
             </Grid.Row>

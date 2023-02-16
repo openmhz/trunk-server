@@ -17,6 +17,7 @@ const MediaPlayer = (props) => {
   const [playTime, setPlayTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const parentHandlePlayPause = props.onPlayPause
+  const playSilence = props.playSilence;
 
   const handlePause = () => { setIsPlaying(false);  }
   const handlePlay = () => { setIsPlaying(true);  }
@@ -60,6 +61,38 @@ const MediaPlayer = (props) => {
       }
     }
   }, [call]);
+
+  useEffect(() => {
+    const audio = audioRef.current.audioEl.current;
+
+    setSourceIndex(0);
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: "Waiting for Call...",
+      album: 'OpenMHz',
+      artwork: [
+        { src: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+        { src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/android-chrome-192x192.png', sizes: '512x512', type: 'image/png' },
+      ]
+    });
+      audio.src = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV////////////////////////////////////////////AAAAAExhdmM1OC4xMwAAAAAAAAAAAAAAACQDkAAAAAAAAAGw9wrNaQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/+MYxAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxDsAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxHYAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV";
+      const playPromise = audio.play();
+
+      // In browsers that don’t yet support this functionality,
+      // playPromise won’t be defined.
+      if (playPromise !== undefined) {
+        playPromise.then(function () {
+
+        }).catch(function (error) {
+          console.log("Automatic playback failed: " + error);
+          // Show a UI element to let the user manually start playback.
+        });
+      } else {
+        audio.src = false;
+      }
+    
+  }, [playSilence]);
+
 
   const updatePlayProgress = () => {
     const audio = audioRef.current.audioEl.current;

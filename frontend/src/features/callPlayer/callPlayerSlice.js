@@ -15,7 +15,8 @@ const initialState = {
   currentCallId: false,
   playlist: [],
   live: false,
-  centerCall: true
+  centerCall: true,
+  backgroundAutoplay: false
 }
 
 const compareCalls = (a, b) => {
@@ -77,6 +78,9 @@ export const callPlayerSlice = createSlice({
     setCenterCall: (state,action) => {
       state.centerCall = action.payload;
     },
+    setBackgroundAutoplay: (state,action) => {
+      state.backgroundAutoplay = action.payload;
+    },
     setShortName: (state, action) => {
       state.shortName = action.payload;
     },
@@ -106,7 +110,7 @@ export const callPlayerSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setCurrentCallId, setCallTime, setFilter, setLive, setCenterCall, setPlaylist, removeFromPLaylist, addToPlaylist, setShortName, setDateFilter, setStarredFilter, setAllFilter, setGroupFilter, setTalkgroupFilter } = callPlayerSlice.actions
+export const { setCurrentCallId, setCallTime, setFilter, setLive, setCenterCall, setBackgroundAutoplay, setPlaylist, removeFromPLaylist, addToPlaylist, setShortName, setDateFilter, setStarredFilter, setAllFilter, setGroupFilter, setTalkgroupFilter } = callPlayerSlice.actions
 
 export default callPlayerSlice.reducer
 

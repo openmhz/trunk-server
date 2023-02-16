@@ -43,11 +43,12 @@ function CallPlayer(props) {
     threshold: 0.5
   });
 
+  const backgroundAutoplay = useSelector((state) => state.callPlayer.backgroundAutoplay);
   const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
   const [autoPlay, setAutoPlay] = useState(true);
   const [currentCall, setCurrentCall] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-
+  const [silenceCount, setSilenceCount] = useState(0);
   const { callLink, callDownload, callTweet } = useCallLink(currentCall)
 
   const dispatch = useDispatch();
@@ -76,16 +77,27 @@ function CallPlayer(props) {
     setIsPlaying(true);
   }
 
+
+  /* This function gets called whenever the currently playing call ends.*/
+
   const callEnded = () => {
     if (callsData) {
       const currentIndex = callsData.ids.findIndex(callId => callId === currentCallId);
-      if (autoPlay && (currentIndex > 0)) {
-        const nextCallId = callsData.ids[currentIndex - 1];
-        const nextCall = callsData.entities[nextCallId];
-        console.log("Autoplaying next call, current Index is: " + currentIndex + " isPlaying is: " + isPlaying )
-        setCurrentCall(nextCall);
-        dispatch(playedCall(nextCall._id));
-        setIsPlaying(true);
+      if (autoPlay) {
+        if (currentIndex > 0) {
+          const nextCallId = callsData.ids[currentIndex - 1];
+          const nextCall = callsData.entities[nextCallId];
+          console.log("Autoplaying next call, current Index is: " + currentIndex + " isPlaying is: " + isPlaying )
+          setCurrentCall(nextCall);
+          dispatch(playedCall(nextCall._id));
+          setIsPlaying(true);
+        } else if (backgroundAutoplay) {
+          // there are no more calls to play, but we want to keep playing something so the webpage is not put to sleep, so we play silence!
+          setSilenceCount(silenceCount+1);
+        } else {
+          // there are no more calls to play and backgroundAutoplay is disabled
+          setIsPlaying(false);
+        }
       } else {
         if (!autoPlay) {
           console.log("Not playing because Autoplay is false - current index is: " + currentIndex)
@@ -153,7 +165,7 @@ function CallPlayer(props) {
 
       <Menu fixed="bottom" compact inverted >
         <Menu.Item active={autoPlay} onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
-        <MediaPlayer call={currentCall} onEnded={callEnded} onPlayPause={handlePlayPause} />
+        <MediaPlayer call={currentCall} playSilence={silenceCount} onEnded={callEnded} onPlayPause={handlePlayPause} />
         <Menu.Menu position="right" className="desktop-only">
           <Menu.Item><SupportModal /></Menu.Item>
           <Menu.Item><a href={callDownload}><Icon name="download" />Download</a></Menu.Item>
