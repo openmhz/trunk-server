@@ -50,7 +50,7 @@ export const callPlayerSlice = createSlice({
       if (call) {
         const found = state.playlist.findIndex(c => c._id == call._id);
         if (found != -1) {
-          state.playlist = state.playlist.splice(found, 1)
+          state.playlist.splice(found, 1)
         }
       }
     },
@@ -110,7 +110,7 @@ export const callPlayerSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setCurrentCallId, setCallTime, setFilter, setLive, setCenterCall, setBackgroundAutoplay, setPlaylist, removeFromPLaylist, addToPlaylist, setShortName, setDateFilter, setStarredFilter, setAllFilter, setGroupFilter, setTalkgroupFilter } = callPlayerSlice.actions
+export const { setCurrentCallId, setCallTime, setFilter, setLive, setCenterCall, setBackgroundAutoplay, setPlaylist, removeFromPlaylist, addToPlaylist, setShortName, setDateFilter, setStarredFilter, setAllFilter, setGroupFilter, setTalkgroupFilter } = callPlayerSlice.actions
 
 export default callPlayerSlice.reducer
 

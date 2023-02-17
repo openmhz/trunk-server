@@ -19,7 +19,7 @@ import {
   Message
 } from "semantic-ui-react";
 import { useAddNewEventMutation, useGetTalkgroupsQuery } from '../../features/api/apiSlice'
-import { setPlaylist, addToPlaylist, removeFromPLaylist } from '../../features/callPlayer/callPlayerSlice';
+import { setPlaylist, addToPlaylist, removeFromPlaylist } from '../../features/callPlayer/callPlayerSlice';
 import PlaylistItem from "./PlaylistItem"
 
 function PlaylistBuilder(props) {
@@ -59,7 +59,7 @@ function PlaylistBuilder(props) {
   }
 
   const removeItem = (call) => {
-    dispatch(removeFromPLaylist(call))
+    dispatch(removeFromPlaylist(call))
   }
 
   const onDrop = (event) => {
