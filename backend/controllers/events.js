@@ -1,10 +1,14 @@
 var ObjectID = require('mongodb').ObjectID;
+const { spawn, spawnSync } = require('node:child_process');
 const https = require('https');
 var db = require('../db');
 var mongoose = require("mongoose");
 var Event = require("../models/event");
+var System = require("../models/system");
+var Talkgroup = require("../models/talkgroup");
 const AdmZip = require("adm-zip");
-var { callModel: Call, callSchema } = require("../models/call");
+var { callModel: Call, frozenCallModel: FrozenCall } = require("../models/call");
+
 var frontend_server = process.env['REACT_APP_FRONTEND_SERVER'] != null ? process.env['REACT_APP_FRONTEND_SERVER'] : 'https://openmhz.com';
 const os = require('os');
 var fs = require('fs');
@@ -61,6 +65,7 @@ exports.getEvents = async function (req, res, next) {
 
 async function downloadFile(folderName, url) {
     return new Promise((resolve, reject) => {
+        console.log("Trying to download: " + url)
         https.get(url, (response) => {
             const filename = new URL(url).pathname.split('/').pop();
             const filePath = `${folderName}/${filename}`;
@@ -98,10 +103,8 @@ const createEventZip = async (folder, filename, zipFolder) => {
     }
 }
 
+
 const uploadEventZip = (zipFile, s3File) => {
-
-    // If not a pro plan, use S3 storage
-
     var s3Src = fs.createReadStream(zipFile);
     return new Promise((resolve, reject) => {
         const s3Params = {
@@ -124,6 +127,103 @@ const uploadEventZip = (zipFile, s3File) => {
     });
 }
 
+
+const ffmpeg = async (command) => {
+// https://stackoverflow.com/questions/68101810/how-to-execute-ffmpeg-commands-synchronously
+    return new Promise((resolve, reject) => {
+        const ffmpeg = spawn("/usr/bin/ffmpeg", command);
+        //ffmpeg.once('error', reject);
+        ffmpeg.stderr.on("data", (data) => {
+            console.error(data.toString()); //I'm not sure what debug is
+          });
+        ffmpeg.stdout.on("data", (data) => {
+            console.log(data.toString()); //I'm not sure what debug is
+          });
+        ffmpeg.on("exit", (code, signal) => {
+            if (signal)
+                code = signal;
+            if (code != 0) {
+                reject(`Returned exit code ${code}`);
+                console.log('Error');
+            }
+            else {
+                resolve(); // Call resolve here
+                console.log('DONE');
+            }
+        });
+    });
+};
+
+const escapeMetadata = (input) => {
+    let result = input.replace(/(\\)/g, '\\\\');
+    result=result.replace(/(\;)/g, '\\;');
+    result=result.replace(/(\#)/g, '\\#');
+    result=result.replace(/(\=)/g, '\\=');
+    return result;
+}
+const createChapters = (event) => {
+    let chapters = ";FFMETADATA1\n";
+    let totalTime = 0;
+    chapters = chapters + "title=" + escapeMetadata(event.title) + "\n";
+    chapters = chapters + "artist=OpenMHz\n";
+    for (const call of event.calls) {
+        chapters = chapters + "[CHAPTER]\nTIMEBASE=1/1000\nSTART=" + (totalTime * 1000) + "\n";
+        totalTime = totalTime + call.len;
+        chapters = chapters + "END=" + (totalTime * 1000) + "\n";
+        chapters = chapters + "title=" + escapeMetadata(call.talkgroupDescription) + "\n";
+    }
+    console.log("Chapters: \n" + chapters);
+    return chapters;
+}
+
+const createPodcast = async (tmpEventFolder, podcastFile, event) => {
+    let inputs = [];
+    let command = [];
+    let concat = "";
+    let tmpFile = tmpEventFolder + "/tmp.m4a"
+    for (const call of event.calls) {
+        const filename = tmpEventFolder + "/" + new URL(call.url).pathname.split('/').pop();
+        console.log("Adding to podcast: " + filename)
+        inputs.push(filename);
+
+    }
+    inputs.forEach((value, i) => {
+        concat = concat + "file '" + value + "'\n";
+    });
+    const concatFile = tmpEventFolder + "/FILES.txt"
+    fs.writeFileSync(concatFile, concat, "utf8");
+    // https://video.stackexchange.com/questions/21315/concatenating-split-media-files-using-concat-protocol
+    //ffmpeg -f concat -safe 0 -i mylist.txt -c copy output
+    command.push("-f");
+    command.push("concat");
+    command.push("-safe");
+    command.push("0");
+    command.push("-i");
+    command.push(concatFile);
+    command.push("-acodec");
+    command.push("copy");
+    command.push(tmpFile);
+    console.log("Running command: " + command);
+    await ffmpeg(command);
+
+
+    const chapters = createChapters(event);
+    const chaptersFile = tmpEventFolder + "/CHAPTERS.txt"
+    fs.writeFileSync(chaptersFile, chapters, "utf8");
+    command = [];
+    command.push("-i");
+    command.push(tmpFile)
+    command.push("-i");
+    command.push(chaptersFile)
+    command.push("-map_metadata")
+    command.push("1")
+    command.push("-codec");
+    command.push("copy");
+    command.push(podcastFile)
+    console.log("Running command: " + command);
+    await ffmpeg(command);
+}
+
 const cleanupEvent = (folder, filename) => {
     fs.rmSync(folder, { recursive: true, force: true });
     fs.rmSync(filename);
@@ -143,12 +243,15 @@ const packageEvent = (eventId) => {
             eventFolder = eventFolder + "_" + shortName;
         });
         const tmpEventFolder = tmpdir + "/" + eventFolder
-        const zipFile = tmpdir + "/" + eventFolder + ".zip"
-        const s3File = "events/" + eventFolder + ".zip"
+        const zipFile = tmpdir + "/" + eventFolder + ".zip";
+        const podcastFile = tmpEventFolder + "/" + eventFolder + ".m4a";
+        const s3ZipFile = "events/" + eventFolder + ".zip";
+        const s3PodcastFile = "podcasts/" + eventFolder + ".m4a";
         console.log("Using tmp " + tmpEventFolder);
 
         try {
             if (!fs.existsSync(tmpEventFolder)) {
+                console.log("Creating tmp Folder");
                 fs.mkdirSync(tmpEventFolder);
             }
 
@@ -159,16 +262,22 @@ const packageEvent = (eventId) => {
 
             exportEventJson(tmpEventFolder, event);
             createEventZip(tmpEventFolder, zipFile, eventFolder);
-            await uploadEventZip(zipFile, s3File);
-            var url = 'https://' + s3_endpoint + "/" + s3_bucket + "/" + s3File;
-            event.downloadUrl = url;
+            await uploadEventZip(zipFile, s3ZipFile);
+            
+            var downloadUrl = 'https://' + s3_endpoint + "/" + s3_bucket + "/" + s3ZipFile;
+            var podcastUrl = 'https://' + s3_endpoint + "/" + s3_bucket + "/" + s3PodcastFile;
+            event.downloadUrl = downloadUrl;
             await event.save();
+            await createPodcast(tmpEventFolder, podcastFile, event);
+            await uploadEventZip(podcastFile,s3PodcastFile);
+            console.log("uploaded to: " + podcastUrl);
+
 
         } catch (e) {
             console.error("Failed processing event " + e);
             reject(e);
         }
-        cleanupEvent(tmpEventFolder, zipFile);
+        //cleanupEvent(tmpEventFolder, zipFile);
         resolve('resolved');
 
     });
@@ -184,6 +293,51 @@ const compareCalls = (a, b) => {
         return 1
     }
 }
+
+const freezeCalls = async (calls) => {
+    let talkgroups = {}
+    let systems = {}
+    let frozenCalls = []
+
+    const getSystem = async (shortName) => {
+        if (!systems.hasOwnProperty(shortName)) {
+            systems[shortName] = await System.findOne({ "shortName": shortName });
+        }
+        return systems[shortName];
+    }
+
+    const getTalkgroup = async (shortName, tgNum) => {
+
+        if (!talkgroups.hasOwnProperty(shortName)) {
+            talkgroups[shortName] = {};
+        }
+        if (!talkgroups[shortName][tgNum]) {
+            talkgroups[shortName][tgNum] = await Talkgroup.findOne({ "shortName": shortName, "num": tgNum });
+        }
+        return talkgroups[shortName][tgNum];
+    }
+
+    for (const i in calls) {
+        const call = calls[i];
+        const talkgroup = await getTalkgroup(call.shortName, call.talkgroupNum);
+        const system = await getSystem(call.shortName);
+
+        // we do this so we can copy the object data to a new Model that has some additional fields.
+        let frozenCall = call.toObject();
+        delete frozenCall._id;
+        if (system) {
+            frozenCall["systemName"] = system.name;
+            frozenCall.systemDescription = system.description;
+        }
+        if (talkgroup) {
+            frozenCall.talkgroupAlpha = talkgroup.alpha;
+            frozenCall.talkgroupDescription = talkgroup.description;
+        }
+        frozenCalls.push(frozenCall);
+    };
+    return frozenCalls;
+}
+
 exports.addNewEvent = async function (req, res, next) {
     process.nextTick(async function () {
         let event = new Event();
@@ -219,14 +373,16 @@ exports.addNewEvent = async function (req, res, next) {
                     event.shortNames.push(call.shortName);
                 }
             });
-            event.calls = calls;
-            event.numCalls = calls.length;
+            event.calls = await freezeCalls(calls);
+
             const savedEvent = await event.save();
             console.log("Event ID " + savedEvent._id);
-            await packageEvent(savedEvent._id);
             const url = "/events/" + event._id;
             res.contentType('json');
             res.send(JSON.stringify({ url: url }));
+
+            await packageEvent(savedEvent._id);
+
         }
         catch (err) {
             console.error(err);

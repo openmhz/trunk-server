@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
-var {callSchema} = require('./call');
-console.log(callSchema)
+var {frozenCallSchema} = require('./call');
+
 
 var eventSchema = mongoose.Schema({
   title: String,
@@ -10,7 +10,7 @@ var eventSchema = mongoose.Schema({
   endTime: Date,
   downloadUrl: String,
   shortNames: [String],
-  calls: [callSchema],
+  calls: [frozenCallSchema],
   numCalls: Number
 },
 {
