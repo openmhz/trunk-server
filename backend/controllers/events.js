@@ -278,12 +278,12 @@ const packageEvent = (eventId) => {
             createEventZip(tmpEventFolder, zipFile, eventFolder);
             await uploadFile(zipFile, s3ZipFile);
             
-            var downloadUrl = 'https://' + s3_endpoint + "/" + s3_bucket + "/" + s3ZipFile;
-            var podcastUrl = 'https://' + s3_endpoint + "/" + s3_bucket + "/" + s3PodcastFile;
+            const downloadUrl = 'https://' + s3_endpoint + "/" + s3_bucket + "/" + s3ZipFile;
+            const podcastUrl = 'https://' + s3_endpoint + "/" + s3_bucket + "/" + s3PodcastFile;
             event.downloadUrl = downloadUrl;
             await event.save();
             await createPodcast(tmpEventFolder, podcastFile, event);
-            await uploadFile(podcastFile,podcastUrl);
+            await uploadFile(podcastFile,s3PodcastFile);
             await savePodcast(event,podcastUrl);
             console.log("uploaded to: " + podcastUrl);
 
