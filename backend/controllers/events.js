@@ -292,7 +292,7 @@ const packageEvent = (eventId) => {
             console.error("Failed processing event " + e);
             reject(e);
         }
-        //cleanupEvent(tmpEventFolder, zipFile);
+        cleanupEvent(tmpEventFolder, zipFile);
         resolve('resolved');
 
     });
