@@ -4,7 +4,7 @@ const express = require("express");
 const path = require("path");
 const secrets = require("./config/secrets");
 const configureExpress = require("./config/express");
-
+const {   Podcast,Item,FeedOptions } = require('podcast');
 
 // -------------------------------------------
 
@@ -24,12 +24,6 @@ db.connect(function (err) {
 // -------------------------------------------
 
 const isDev = process.env.NODE_ENV === "development"
-
-
-
-
-
-
 
 
 // -------------------------------------------
@@ -115,6 +109,59 @@ exports.get_card = function(req, res) {
 }
 */
 
+
+async function getPodcast(req, res, next) {
+  const now = new Date();
+  try {
+    const podcastsCollection = db.get().collection('podcasts');
+      podcastsCollection.find().toArray(function(err, podcasts) {
+        const feed = new Podcast({
+          title: 'OpenMHz',
+          description: 'Real public safety radio recordings, from across the U.S - Interesting events, curated by the OpenMHz community.',
+          feedUrl: 'https://openmhz.com/rss.xml',
+          siteUrl: 'https://openmhz.com',
+          imageUrl: 'https://openmhz.com/podcast/cover.png',
+          author: 'OpenMHz',
+          copyright: '&#169; 2022 Robotastic',
+          language: 'en',
+          pubDate: 'May 20, 2012 04:00:00 GMT',
+          ttl: 60,
+          itunesAuthor: 'OpenMHz',
+          itunesSubtitle: 'I am a sub title',
+          itunesSummary: 'Real public safety radio recordings, from across the U.S - Interesting events, curated by the OpenMHz community.',
+          itunesOwner: { name: 'Luke Berndt', email: 'luke@robotastic.com' },
+          itunesExplicit: false,
+          itunesCategory: [{
+              text: 'Government'
+          }, { text: "Daily News"}, {text: "True Crime"}],
+          itunesImage: 'https://openmhz.com/podcast/cover.png'
+      });
+      for (const podcast of podcasts) {
+        feed.addItem({
+          title:  podcast.title,
+          description: podcast.description,
+          enclosure: {
+            url: podcast.downloadUrl, // link to the item
+          }, 
+          author: 'OpenMHz', // optional - defaults to feed author property
+          date: podcast.startTime, // any format that js Date can parse.
+          itunesAuthor: 'OpenMHz',
+          itunesExplicit: false,
+          itunesSummary: podcast.description,
+          itunesDuration: podcast.len
+        });
+      }
+      const xml = feed.buildXml();
+      res.set('Content-Type', 'text/xml');
+      res.send(xml);
+      });
+
+  } catch (err) {
+    console.error(err);
+    return;
+  }
+}
+
 async function getCalls(req, res, next) {
 
   if (req.query && req.query["call-id"]) {
@@ -185,6 +232,9 @@ app.use(express.static(path.join(__dirname, "public")));
 
 //app.get("/system/:shortName", getCalls)
 //app.get("/cards/:id", getCard)
+
+
+app.get("/rss.xml", getPodcast);
 
 app.get("*", (req, res, next) => {
   res.sendFile(__dirname + '/public/index.html');

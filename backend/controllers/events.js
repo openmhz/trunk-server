@@ -4,6 +4,7 @@ const https = require('https');
 var db = require('../db');
 var mongoose = require("mongoose");
 var Event = require("../models/event");
+var Podcast = require("../models/podcast");
 var System = require("../models/system");
 var Talkgroup = require("../models/talkgroup");
 const AdmZip = require("adm-zip");
@@ -104,7 +105,7 @@ const createEventZip = async (folder, filename, zipFolder) => {
 }
 
 
-const uploadEventZip = (zipFile, s3File) => {
+const uploadFile = (zipFile, s3File) => {
     var s3Src = fs.createReadStream(zipFile);
     return new Promise((resolve, reject) => {
         const s3Params = {
@@ -137,7 +138,7 @@ const ffmpeg = async (command) => {
             console.error(data.toString()); //I'm not sure what debug is
           });
         ffmpeg.stdout.on("data", (data) => {
-            console.log(data.toString()); //I'm not sure what debug is
+            //console.log(data.toString()); //I'm not sure what debug is
           });
         ffmpeg.on("exit", (code, signal) => {
             if (signal)
@@ -229,8 +230,21 @@ const cleanupEvent = (folder, filename) => {
     fs.rmSync(filename);
 }
 
+const savePodcast = (event, podcastUrl) => {
+    let podcast = new Podcast(event.toObject());
+    podcast.downloadUrl = podcastUrl;
+    let totalTime = 0;
+    event.calls.forEach((call) => {
+        totalTime = totalTime + call.len;
+        if (podcast.systems.indexOf(call.systemName) === -1) {
+            podcast.systems.push(call.systemName);
+        }
+    });
+    podcast.len = totalTime;
+    podcast.save();
+}
+
 const packageEvent = (eventId) => {
-    const event = "tst"
     const tmpdir = os.tmpdir();
     return new Promise(async (resolve, reject) => {
         var objectId = eventId;
@@ -262,14 +276,15 @@ const packageEvent = (eventId) => {
 
             exportEventJson(tmpEventFolder, event);
             createEventZip(tmpEventFolder, zipFile, eventFolder);
-            await uploadEventZip(zipFile, s3ZipFile);
+            await uploadFile(zipFile, s3ZipFile);
             
             var downloadUrl = 'https://' + s3_endpoint + "/" + s3_bucket + "/" + s3ZipFile;
             var podcastUrl = 'https://' + s3_endpoint + "/" + s3_bucket + "/" + s3PodcastFile;
             event.downloadUrl = downloadUrl;
             await event.save();
             await createPodcast(tmpEventFolder, podcastFile, event);
-            await uploadEventZip(podcastFile,s3PodcastFile);
+            await uploadFile(podcastFile,podcastUrl);
+            await savePodcast(event,podcastUrl);
             console.log("uploaded to: " + podcastUrl);
 
 
@@ -282,7 +297,6 @@ const packageEvent = (eventId) => {
 
     });
 };
-
 
 const compareCalls = (a, b) => {
     const aTimestamp = new Date(a.time).getTime()
