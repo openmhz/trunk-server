@@ -243,7 +243,7 @@ async function getPodcast(req, res, next) {
       });
       for (const podcast of podcasts) {
         let dates = dateRange(new Date(podcast.startTime), new Date(podcast.endTime))
-        let description = dates.part1 + "→" + dates.part2 + " \n" + podcast.description + `
+        let description = dates.part1 + "  →  " + dates.part2 + " \n" + podcast.description + `
 
 Radio Systems:
 `;
