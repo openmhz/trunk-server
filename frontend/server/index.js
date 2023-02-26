@@ -137,9 +137,9 @@ async function getPodcast(req, res, next) {
           itunesImage: 'https://openmhz.com/podcast/cover.png'
       });
       for (const podcast of podcasts) {
-        let description = podcast.description +"\n\nRadio Systems:\n";
+        let description = podcast.description +"\\n\\nRadio Systems:\\n";
         for (const system of podcast.systems) {
-          description = description + " - " + system + "\n"
+          description = description + " - " + system + "\\n"
         }
         feed.addItem({
           title:  podcast.title,
