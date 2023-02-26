@@ -200,7 +200,20 @@ async function getPodcast(req, res, next) {
     return;
   }
 }*/
+const dateRange = (start, end) => {
+  if (start.getYear() != end.getYear()) {
+    return { "part1": start.toLocaleDateString('en-us', { weekday: "short", year: "numeric", month: "short", day: "numeric" }) + " " + start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), "part2": end.toLocaleDateString('en-us', { weekday: "short", year: "numeric", month: "short", day: "numeric" }) + " " + end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) };
+  } else if (start.getMonth() != end.getMonth()) {
+    return { "part1": start.toLocaleDateString('en-us', { weekday: "short", month: "short", day: "numeric" }) + " " + start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), "part2": end.toLocaleDateString('en-us', { weekday: "short", month: "short", day: "numeric" }) + " " + end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) };
 
+  } else if (start.getDay() != end.getDay()) {
+    return { "part1": start.toLocaleDateString('en-us', { weekday: "short", month: "short", day: "numeric" }) + " " + start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), "part2": end.toLocaleDateString('en-us', { weekday: "short", day: "numeric" }) + " " + end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) };
+
+  } else {
+    return { "part1": start.toLocaleDateString('en-us', { weekday: "short", month: "short", day: "numeric" }) + " " + start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), "part2": end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) };
+
+  }
+}
 
 async function getPodcast(req, res, next) {
   const now = new Date();
@@ -229,7 +242,8 @@ async function getPodcast(req, res, next) {
         itunesImage: 'https://openmhz.com/podcast/cover.png'
       });
       for (const podcast of podcasts) {
-        let description = podcast.description + `
+        let dates = dateRange(new Date(podcast.startTime), new Date(podcast.endTime))
+        let description = dates.part1 + "→" + dates.part2 + " \n" + podcast.description + `
 
 Radio Systems:
 `;
