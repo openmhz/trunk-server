@@ -382,6 +382,7 @@ exports.addNewEvent = async function (req, res, next) {
             event.startTime = new Date(calls[calls.length - 1].time);
             event.expireTime = new Date();
             event.expireTime.setDate(event.startTime.getDate() + 29);
+            event.numCalls = calls.length;
             calls.forEach((call) => {
                 if (event.shortNames.indexOf(call.shortName) === -1) {
                     event.shortNames.push(call.shortName);
