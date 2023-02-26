@@ -241,6 +241,7 @@ const savePodcast = (event, podcastUrl) => {
         }
     });
     podcast.len = totalTime;
+    podcast.eventUrl = frontend_server + "/events/" + event._id;
     podcast.save();
 }
 

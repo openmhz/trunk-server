@@ -137,6 +137,10 @@ async function getPodcast(req, res, next) {
           itunesImage: 'https://openmhz.com/podcast/cover.png'
       });
       for (const podcast of podcasts) {
+        let description = podcast.description +"\n\nRadio Systems:\n";
+        for (const system of podcast.systems) {
+          description = description + " - " + system + "\n"
+        }
         feed.addItem({
           title:  podcast.title,
           description: podcast.description,
@@ -144,6 +148,7 @@ async function getPodcast(req, res, next) {
             url: podcast.downloadUrl, // link to the item
           }, 
           author: 'OpenMHz', // optional - defaults to feed author property
+          url: podcast.eventUrl,
           date: podcast.startTime, // any format that js Date can parse.
           itunesAuthor: 'OpenMHz',
           itunesExplicit: false,

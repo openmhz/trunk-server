@@ -11,6 +11,7 @@ var podcastSchema = mongoose.Schema({
   downloadUrl: String,
   systems: [String],
   numCalls: Number,
+  eventUrl: String,
   len: Number
 },
 {
