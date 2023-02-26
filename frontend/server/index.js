@@ -143,7 +143,7 @@ async function getPodcast(req, res, next) {
         }
         feed.addItem({
           title:  podcast.title,
-          description: podcast.description,
+          description: description,
           enclosure: {
             url: podcast.downloadUrl, // link to the item
           }, 
