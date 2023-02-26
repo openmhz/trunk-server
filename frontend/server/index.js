@@ -117,7 +117,7 @@ async function getPodcast(req, res, next) {
       podcastsCollection.find().toArray(function(err, podcasts) {
         const feed = new Podcast({
           title: 'OpenMHz',
-          description: 'Real public safety radio recordings, from across the U.S - Interesting events, curated by the OpenMHz community.',
+          description: 'Real public safety radio recordings, from across the country. OpenMHz is a website that makes it easy to share recordings of public safety radio system. This podcast is a collection of interesting events that has been curated by the OpenMHz community.',
           feedUrl: 'https://openmhz.com/rss.xml',
           siteUrl: 'https://openmhz.com',
           imageUrl: 'https://openmhz.com/podcast/cover.png',
@@ -128,7 +128,7 @@ async function getPodcast(req, res, next) {
           ttl: 60,
           itunesAuthor: 'OpenMHz',
           itunesSubtitle: 'I am a sub title',
-          itunesSummary: 'Real public safety radio recordings, from across the U.S - Interesting events, curated by the OpenMHz community.',
+          itunesSummary: 'Real public safety radio recordings, from across the country. OpenMHz is a website that makes it easy to share recordings of public safety radio system. This podcast is a collection of interesting events that has been curated by the OpenMHz community.',
           itunesOwner: { name: 'Luke Berndt', email: 'luke@robotastic.com' },
           itunesExplicit: false,
           itunesCategory: [{
