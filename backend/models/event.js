@@ -9,6 +9,7 @@ var eventSchema = mongoose.Schema({
   startTime: Date,
   endTime: Date,
   downloadUrl: String,
+  podcastUrl: String,
   shortNames: [String],
   calls: [frozenCallSchema],
   numCalls: Number

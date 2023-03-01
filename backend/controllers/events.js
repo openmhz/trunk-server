@@ -282,6 +282,7 @@ const packageEvent = (eventId) => {
             const downloadUrl = 'https://' + s3_endpoint + "/" + s3_bucket + "/" + s3ZipFile;
             const podcastUrl = 'https://' + s3_endpoint + "/" + s3_bucket + "/" + s3PodcastFile;
             event.downloadUrl = downloadUrl;
+            event.podcastUrl = podcastUrl;
             await event.save();
             await createPodcast(tmpEventFolder, podcastFile, event);
             await uploadFile(podcastFile,s3PodcastFile);
