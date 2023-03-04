@@ -3,7 +3,8 @@
 
 import { createBrowserHistory } from 'history'
 import { applyMiddleware, compose, createStore } from 'redux'
-import { routerMiddleware } from 'connected-react-router'
+import { createRouterMiddleware } from '@lagunovsky/redux-react-router'
+//import { routerMiddleware } from 'connected-react-router'
 import createRootReducer from './reducers'
 import { apiSlice } from '../features/api/apiSlice'
 
@@ -18,7 +19,7 @@ export default function configureStore(preloadedState) {
     preloadedState,  
     composeEnhancers(
       applyMiddleware(
-        routerMiddleware(history), // for dispatching history actions
+        createRouterMiddleware(history), // for dispatching history actions
         thunk,
         apiSlice.middleware,
         // ... other middlewares ...

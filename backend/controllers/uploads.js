@@ -179,7 +179,7 @@ exports.upload = function (req, res, next) {
 
       try {
         if (req.body.call_length) {
-          call.len = parseInt(req.body.call_length);
+          call.len = parseFloat(req.body.call_length);
         } else {
           call.len = (stopTime - time) / 1000; //await callLength(req.file.path);
         }
