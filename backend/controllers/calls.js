@@ -2,7 +2,7 @@
 var ObjectID = require('mongodb').ObjectID;
 var db = require('../db');
 var mongoose = require("mongoose");
-var Call = require("../models/call");
+var {callModel:Call} = require("../models/call");
 var Star = require("../models/star");
 
 var defaultNumResults = 50;
@@ -21,6 +21,7 @@ function get_calls(query, numResults, res) {
         name: true,
         time: true,
         srcList: true,
+        freq: true,
         star: true,
         len: true,
         url: true
@@ -43,6 +44,7 @@ function get_calls(query, numResults, res) {
                         time: item.time,
                         srcList: item.srcList,
                         star: item.star,
+                        freq: item.freq,
                         len: Math.round(item.len)
                     };
                     calls.push(call);
@@ -239,7 +241,39 @@ function package_call(item) {
     return call;
 }
 
-
+exports.remove_star = function(req, res, next) {
+    var objectId = req.params.id;
+    try {
+        var o_id = ObjectID.createFromHexString(objectId);
+    } catch (err) {
+        console.warn("[" + req.params.shortName + "] Error - /remove_star/:id generating ObjectID " + err);
+        res.status(500);
+        res.send(JSON.stringify({
+            success: false,
+            message: err,
+            "_id": objectId
+        }));
+        return;
+    }
+    Call.findOneAndUpdate({ _id: objectId }, { $inc: { star: -1 } }, {new: true },function(err, item) {
+        if (err) {
+            res.status(500);
+            res.send(JSON.stringify({
+                success: false,
+                message: err,
+                "_id": objectId
+            }));
+       } else {
+            var call = package_call(item);
+            req.call = call;
+            res.send(JSON.stringify({
+                success: true,
+                call: call
+            }));
+            next();      
+       }
+    })
+}
 
 
 exports.add_star = function(req, res, next) {
@@ -247,7 +281,7 @@ exports.add_star = function(req, res, next) {
     try {
         var o_id = ObjectID.createFromHexString(objectId);
     } catch (err) {
-        console.warn("[" + req.params.shortName + "] Error - /:shortName/call/:id generating ObjectID " + err);
+        console.warn("[" + req.params.shortName + "] Error - /add_star/:id generating ObjectID " + err);
         res.status(500);
         res.send(JSON.stringify({
             success: false,

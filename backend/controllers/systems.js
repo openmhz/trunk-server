@@ -3,7 +3,8 @@ var User = require("../models/user");
 var System = require("../models/system");
 
 exports.get_systems = function (req, res) {
-  System.find().populate('userId', "screenName").
+  let fromDate = new Date(Date.now() - 60 * 60 * 24 * 30 * 1000);
+  System.find({lastActive: {$gte: fromDate}}).populate('userId', "screenName").
   exec(function (err, results) {
     if (err) {
       console.error("Error - get_systems: " + err.message);
@@ -29,9 +30,9 @@ exports.get_systems = function (req, res) {
         city: results[result].city,
         state: results[result].state,
         active: results[result].active,
+        lastActive: results[result].lastActive,
         callAvg: results[result].callAvg,
         description: results[result].description,
-        planType: results[result].planType,
         clientCount: clientCount
       }
       if (results[result].showScreenName && results[result].userId) {

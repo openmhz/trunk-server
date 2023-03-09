@@ -26,4 +26,19 @@ var callSchema = mongoose.Schema({
 });
 
 
-module.exports = mongoose.model('Call', callSchema);
+var frozenCallSchema = mongoose.Schema();
+frozenCallSchema.add(callSchema).add({
+  systemName: String,
+  systemDescription: String,
+  talkgroupDescription: String,
+  talkgroupAlpha: String,
+
+});
+
+
+exports.frozenCallSchema = frozenCallSchema;
+exports.frozenCallModel = mongoose.model('FrozenCall', frozenCallSchema);
+
+
+exports.callSchema = callSchema;
+exports.callModel = mongoose.model('Call', callSchema);

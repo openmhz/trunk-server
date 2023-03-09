@@ -3,9 +3,25 @@ server {
 
   server_name ${DOMAIN_NAME} www.${DOMAIN_NAME};
 
+   location /static {
+		proxy_pass http://frontend:3000;
+		access_log off;
+    }
+
+	location /favicon.ico {
+		proxy_pass http://frontend:3000;
+		access_log off;
+	}
+
+	location /*.png {
+		proxy_pass http://frontend:3000;
+		access_log off;
+	}
+	
    location / {
 				proxy_pass http://frontend:3000;
 				include /etc/nginx/proxy.conf;
+				access_log /dev/stdout main;
     }
 }
 
@@ -17,6 +33,7 @@ server {
    location / {
 				proxy_pass http://account:3009;
 				include /etc/nginx/proxy.conf;
+				access_log    off; 
     }
 }
 
@@ -28,6 +45,7 @@ server {
    location / {
 				proxy_pass http://admin:3008;
 				include /etc/nginx/proxy.conf;
+				access_log    off; 
     }
 }
 
@@ -44,6 +62,7 @@ server {
 			proxy_set_header Connection "upgrade";
 			proxy_set_header Host $host;
 			proxy_cache_bypass $http_upgrade;
+			access_log    off; 
   }
 }
 
@@ -62,6 +81,7 @@ server {
 		proxy_set_header Connection "upgrade";
 		proxy_set_header Host $host;
 		proxy_cache_bypass $http_upgrade;
+		access_log    off; 
   }
 }
 
@@ -74,5 +94,6 @@ server {
 		proxy_pass http://backend:3005/audio$request_uri;
 		proxy_set_header Host $host;
 		include /etc/nginx/proxy.conf;
+		access_log    off; 
   }
 }

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>OpenMHz</title>
+    <script src="https://unpkg.com/wavesurfer.js"></script>
+
+  </head>
+
+  <body>
+    <div id="demo">
+      <div id="waveform" style="height: 200px;">
+        <!-- Here be the waveform -->
+      </div>
+      <script>
+        // Create an instance
+        let wavesurfer;
+        var call_url="<%- url%>";
+        // Init & load audio file
+        document.addEventListener("DOMContentLoaded", function () {
+          // Init
+          wavesurfer = WaveSurfer.create({
+            container: document.querySelector("#waveform"),
+            waveColor: "#BF938F",
+            progressColor: "#BF1000",
+            backend: "MediaElement",
+            mediaControls: true,
+          });
+  
+          wavesurfer.once("ready", function () {
+            console.log("Using wavesurfer.js " + WaveSurfer.VERSION);
+          });
+  
+          wavesurfer.on("error", function (e) {
+            console.warn(e);
+          });
+  
+          // Load audio from URL
+          wavesurfer.load(call_url);
+  
+        });
+      </script>
+
+    </div>
+  </body>
+</html>

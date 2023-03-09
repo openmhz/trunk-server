@@ -15,21 +15,24 @@ server {
 
         server_name ${DOMAIN_NAME} www.${DOMAIN_NAME};
 
-   location /apple-touch-*.png {
-    return 444;
-   }
+   location /static {
+		proxy_pass http://frontend:3000;
+		access_log off;
+    }
 
-    location /favicon.ico {
-    return 444;
-   }
+	location /favicon.ico {
+		proxy_pass http://frontend:3000;
+		access_log off;
+	}
 
-	location /apple-touch-icon-precomposed.png {
-    return 444;
-   }
+	location /*.png {
+		proxy_pass http://frontend:3000;
+		access_log off;
+	}
 
    location / {
-				proxy_pass http://frontend:3000;
-				include /etc/nginx/proxy.conf;
+		proxy_pass http://frontend:3000;
+		access_log /dev/stdout main;
     }
 }
 
@@ -58,6 +61,7 @@ server {
 		proxy_set_header Host $host;
 		proxy_cache_bypass $http_upgrade;
 		include /etc/nginx/proxy.conf;
+		access_log    off; 
   }
 }
 
@@ -82,6 +86,10 @@ server {
                 deny all;
         }
 
+		location /bergennj/upload {
+                deny all;
+        }
+
 
 	location / {
 		proxy_pass http://backend:3005;
@@ -91,6 +99,7 @@ server {
 		proxy_set_header Host $host;
 		proxy_cache_bypass $http_upgrade;
 		include /etc/nginx/proxy.conf;
+		access_log    off; 
   }
 }
 
@@ -114,6 +123,7 @@ server {
 		proxy_pass http://backend:3005/audio$request_uri;
 		proxy_set_header Host $host;
 		include /etc/nginx/proxy.conf;
+		access_log    off; 
   }
 }
 
@@ -133,17 +143,18 @@ server {
         ssl_stapling_verify on;
         add_header Strict-Transport-Security max-age=15768000;
 
-				server_name account.${DOMAIN_NAME};
+		server_name account.${DOMAIN_NAME};
 
-				location / {
-					proxy_pass http://account:3009;
-					proxy_http_version 1.1;
-					proxy_set_header Upgrade $http_upgrade;
-					proxy_set_header Connection "upgrade";
-					proxy_set_header Host $host;
-					proxy_cache_bypass $http_upgrade;
-					include /etc/nginx/proxy.conf;
-					}
+		location / {
+			proxy_pass http://account:3009;
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade $http_upgrade;
+			proxy_set_header Connection "upgrade";
+			proxy_set_header Host $host;
+			proxy_cache_bypass $http_upgrade;
+			include /etc/nginx/proxy.conf;
+			access_log    off; 
+		}
 }
 
 server {
@@ -159,17 +170,18 @@ server {
         ssl_stapling_verify on;
         add_header Strict-Transport-Security max-age=15768000;
 
-				server_name admin.${DOMAIN_NAME};
+		server_name admin.${DOMAIN_NAME};
 
-				location / {
-					proxy_pass http://admin:3008;
-					proxy_http_version 1.1;
-					proxy_set_header Upgrade $http_upgrade;
-					proxy_set_header Connection "upgrade";
-					proxy_set_header Host $host;
-					proxy_cache_bypass $http_upgrade;
-					include /etc/nginx/proxy.conf;
-					}
+		location / {
+			proxy_pass http://admin:3008;
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade $http_upgrade;
+			proxy_set_header Connection "upgrade";
+			proxy_set_header Host $host;
+			proxy_cache_bypass $http_upgrade;
+			include /etc/nginx/proxy.conf;
+			access_log    off; 
+		}
 }
 
 server {
