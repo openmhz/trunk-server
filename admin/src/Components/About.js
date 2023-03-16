@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 import { Container, Header } from "semantic-ui-react";
 
-class About extends Component {
+const About = () => {
 
 
-  render() {
+
     return (
       <Container text>
         <Header size='large'>Share the Air</Header>
@@ -18,7 +18,7 @@ class About extends Component {
         <p> - Luke  <a href="mailto:{process.env.REACT_APP_ADMIN_EMAIL}?Subject={process.env.REACT_APP_SITE_NAME}" target="_top">{process.env.REACT_APP_ADMIN_EMAIL}</a>  </p>
       </Container>
     );
-  }
+  
 }
 
 export default About;

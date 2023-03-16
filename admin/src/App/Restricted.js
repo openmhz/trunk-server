@@ -1,12 +1,46 @@
 // in src/restricted.js
-import React, { Component } from 'react';
-import { withRouter } from 'react-router-dom';
+//import React, { Component } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useRef, useCallback, useMemo } from "react";
+import { useSelector, useDispatch } from 'react-redux'
 import * as types from "../User/user-constants";
 import axios from "axios";
+import {
+  Routes,
+  Route,
+  Link,
+  Navigate,
+  Outlet,
+} from 'react-router-dom';
+import { authenticateUser  } from "../features/user/userSlice";
 /**
  * Higher-order component (HOC) to wrap restricted pages
  */
+
+
+const Restricted = ({children }) => {
+  const { authenticated, hasAuthenticated } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  
+  useEffect(() => {
+    dispatch(authenticateUser({}));
+  },[]);
+
+  useEffect(() => {
+    if (!authenticated) {
+      console.log("I loaded things and it is not good")
+    }
+  }, [hasAuthenticated])
+
+  if (authenticated) {
+    return children;;
+  }
+  return <div/>
+  
+};
+
+/*
 const restricted = (BaseComponent, store) => {
+  
   class Restricted extends Component {
     componentDidMount() {
       this.checkAuthentication(this.props);
@@ -32,8 +66,6 @@ const restricted = (BaseComponent, store) => {
               });
             } else {
               window.location = process.env.REACT_APP_ACCOUNT_SERVER + "/login?nextLocation=admin";
-              /*history.replace({ pathname: '/login',
-              state: { nextPathname: params.location.pathname } });*/
             }
           })
           .catch(response => {
@@ -51,4 +83,6 @@ const restricted = (BaseComponent, store) => {
   }
   return withRouter(Restricted);
 }
-export default restricted
+*/
+
+export default Restricted

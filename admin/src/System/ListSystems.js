@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { Component, useRef } from "react";
 import SystemCard from "./SystemCard";
 import {
   Container,
@@ -8,37 +8,40 @@ import {
   Icon,
   Button,
 } from "semantic-ui-react";
+import { useGetSystemsQuery, } from '../features/api/apiSlice'
+import { useDispatch } from 'react-redux'
+import {  push } from '@lagunovsky/redux-react-router'
 
 
 // ----------------------------------------------------
-class ListSystems extends Component {
+const ListSystems = (props) => {
+  const { data, isSuccess } = useGetSystemsQuery();
+  const dispatch = useDispatch();
 
-  state = {
-
+  let systems = false;
+  if (isSuccess) {
+    systems = data.systems;
   }
-  componentDidMount() {
-  		this.props.fetchSystems();
-  	}
 
 //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
 //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
-  render() {
-    const systems = this.props.system.items;
+
     return (
       <div>
         <Container>
           <Header as="h1">Radio Systems</Header>
-            <Button onClick={(e) => this.props.changeUrl("/create-system")}><Icon name='plus' />Add System</Button>
+            <Button onClick={(e) => dispatch(push("/create-system"))}><Icon name='plus' />Add System</Button>
             <Divider />
           <Card.Group itemsPerRow={4}>
-          {systems.map((system) =>
-            <SystemCard system={system} key={system.shortName} onClick={(e) => this.props.changeUrl("/system/" + system.shortName)}/>
+          {systems &&
+            systems.map((system) =>
+            <SystemCard system={system} key={system.shortName} onClick={(e) => dispatch(push("/system/" + system.shortName))}/>
           )}
           </Card.Group>
         </Container>
       </div>
     );
-  }
+
 }
 
 export default ListSystems;

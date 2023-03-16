@@ -1,7 +1,7 @@
 import axios from "axios";
 //import { browserHistory } from "react-router"
 import * as types from "./error-constants";
-import { push } from  'connected-react-router';
+import { push } from  '@lagunovsky/redux-react-router';
 
 
 function beginFetch() {

@@ -42,13 +42,7 @@ async function connect() {
 
   // Connect to a MongoDB server running on 'localhost:27017' and use the
   // 'test' database.
-  await mongoose.connect(secrets.db, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }, (err, res) => {
-    if (err) {
-      console.log(`Mongoose - Error connecting to ${secrets.db}. ${err}`)
-    } else {
-      console.log(`Mongoose Successfully connected to ${secrets.db}.`)
-    }
-  })
+  await mongoose.connect(secrets.db, { useNewUrlParser: true, useUnifiedTopology: true });
   console.log("All Done");
 }
 connect();

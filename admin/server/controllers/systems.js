@@ -12,91 +12,76 @@ exports.isLoggedIn = function (req, res, next) {
 
 // -------------------------------------------
 
-exports.listSystems = function (req, res, next) {
+exports.listSystems = async function (req, res, next) {
   console.log("Listing Systems for: " + req.user._id);
-  System.find({
-      userId: mongoose.Types.ObjectId(req.user._id)
-    },
-    function (err, systems) {
-      if (err) {
-        console.error("Error - ListSystems: " + err);
-        res.json({
-          success: false,
-          message: err
-        });
-        return;
-      }
+  const userId = new mongoose.Types.ObjectId(req.user._id);
+  const systems = await System.find({ userId: userId }).exec();
+  if (systems == null) {
+    res.status(400);
+    res.json({ success: false, message: err });
+    return;
+  }
 
-      var shortNames = new Array();
-      for (var i = 0; i < systems.length; i++) {
-        shortNames.push(systems[i].shortName);
-      }
+  let shortNames = new Array();
+  for (var i = 0; i < systems.length; i++) {
+    shortNames.push(systems[i].shortName);
+  }
 
-      SystemStat.find({
-          shortName: {
-            $in: shortNames
-          }
-        },
-        function (err, stats) {
-          var returnSys = systems.map(obj => {
-            var rObj = (({
-              name,
-              shortName,
-              description,
-              systemType,
-              city,
-              state,
-              county,
-              country,
-              userId,
-              key,
-              showScreenName,
-              ignoreUnknownTalkgroup 
-            }) => ({
-              name,
-              shortName,
-              description,
-              systemType,
-              city,
-              state,
-              county,
-              country,
-              userId,
-              key,
-              showScreenName,
-              ignoreUnknownTalkgroup 
-            }))(obj);
-            if (obj.showScreenName) {
-              rObj.screenName = req.user.screenName;
-            } else {
-              rObj.screenName = null;
-            }
-            rObj.id = obj._id;
-            return rObj;
-          });
-          var sys_stats = {}
-          var MS_PER_MINUTE = 60000;
-          var now = new Date();
-          for (var i = 0; i < stats.length; i++) {
-            sys_stats[stats[i].shortName] = {};
+  const stats = await SystemStat.find({ shortName: { $in: shortNames } }).exec();
 
-            sys_stats[stats[i].shortName].callTotals = stats[i].callTotals;
-            sys_stats[stats[i].shortName].errorTotals = stats[i].errorTotals;
-            sys_stats[stats[i].shortName].errorStats = stats[i].errorStats;
-            sys_stats[stats[i].shortName].usageBytes = stats[i].usageBytes;
-            sys_stats[stats[i].shortName].usageMb = stats[i].usageMb;
-          }
-
-          res.json({
-            success: true,
-            systems: returnSys,
-            stats: sys_stats
-          });
-          return;
-        }
-      );
+  let returnSys = systems.map(obj => {
+    var rObj = (({
+      name,
+      shortName,
+      description,
+      systemType,
+      city,
+      state,
+      county,
+      country,
+      userId,
+      key,
+      showScreenName,
+      ignoreUnknownTalkgroup
+    }) => ({
+      name,
+      shortName,
+      description,
+      systemType,
+      city,
+      state,
+      county,
+      country,
+      userId,
+      key,
+      showScreenName,
+      ignoreUnknownTalkgroup
+    }))(obj);
+    if (obj.showScreenName) {
+      rObj.screenName = req.user.screenName;
+    } else {
+      rObj.screenName = null;
     }
-  );
+    rObj.id = obj._id;
+    return rObj;
+  });
+  var sys_stats = {}
+  for (var i = 0; i < stats.length; i++) {
+    sys_stats[stats[i].shortName] = {};
+
+    sys_stats[stats[i].shortName].callTotals = stats[i].callTotals;
+    sys_stats[stats[i].shortName].errorTotals = stats[i].errorTotals;
+    sys_stats[stats[i].shortName].errorStats = stats[i].errorStats;
+    sys_stats[stats[i].shortName].usageBytes = stats[i].usageBytes;
+    sys_stats[stats[i].shortName].usageMb = stats[i].usageMb;
+  }
+
+  res.json({
+    success: true,
+    systems: returnSys,
+    stats: sys_stats
+  });
+  return;
 };
 
 function remove_system(shortName) {
@@ -115,8 +100,8 @@ function remove_system(shortName) {
     });
 */
   System.remove({
-      shortName: shortName
-    },
+    shortName: shortName
+  },
     function (err) {
       if (err) return console.error(err);
       // removed!
@@ -124,8 +109,8 @@ function remove_system(shortName) {
   );
 
   Talkgroup.remove({
-      shortName: shortName
-    },
+    shortName: shortName
+  },
     function (err) {
       if (err) return console.error(err);
       // removed!
@@ -133,8 +118,8 @@ function remove_system(shortName) {
   );
 
   Group.remove({
-      shortName: shortName
-    },
+    shortName: shortName
+  },
     function (err) {
       if (err) return console.error(err);
       // removed!
@@ -145,8 +130,8 @@ function remove_system(shortName) {
 exports.deleteSystem = function (req, res, next) {
   //router.get('/delete_system/:shortName', isLoggedIn, function(req, res) {
   System.findOne({
-      shortName: req.params.shortName.toLowerCase()
-    },
+    shortName: req.params.shortName.toLowerCase()
+  },
     function (err, system) {
       if (err) {
         res.json({
@@ -224,7 +209,7 @@ exports.uniqueShortName = async function (req, res, next) {
 
   var shortName = res.locals.shortName;
   if (typeof shortName == 'undefined') {
-    console.error("locals: " + res.locals.shortName + " body: " + req.body.shortName )
+    console.error("locals: " + res.locals.shortName + " body: " + req.body.shortName)
     console.error("ShortName is not in res.local, pulling from req.body instead")
     shortName = req.body.shortName;
   }
@@ -299,7 +284,7 @@ exports.updateSystem = async function (req, res, next) {
         userId,
         key,
         showScreenName,
-        ignoreUnknownTalkgroup 
+        ignoreUnknownTalkgroup
       }) => ({
         name,
         shortName,
@@ -312,7 +297,7 @@ exports.updateSystem = async function (req, res, next) {
         userId,
         key,
         showScreenName,
-        ignoreUnknownTalkgroup 
+        ignoreUnknownTalkgroup
       }))(res.locals.system);
       returnSys.id = res.locals.system._id;
       res.json({
@@ -329,7 +314,7 @@ exports.updateSystem = async function (req, res, next) {
 exports.validateSystem = async function (req, res, next) {
   try {
     res.locals.showScreenName = req.body.showScreenName;
-    res.locals.ignoreUnknownTalkgroup = req.body.ignoreUnknownTalkgroup ;
+    res.locals.ignoreUnknownTalkgroup = req.body.ignoreUnknownTalkgroup;
     if (!req.body.name || (req.body.name.length < 2)) {
       console.error("ERROR: Validate System - req.body.name");
       res.json({
@@ -457,7 +442,7 @@ exports.createSystem = async function (req, res, next) {
     county,
     country,
     showScreenName,
-    ignoreUnknownTalkgroup 
+    ignoreUnknownTalkgroup
   }) => ({
     name,
     shortName,
@@ -468,10 +453,10 @@ exports.createSystem = async function (req, res, next) {
     county,
     country,
     showScreenName,
-    ignoreUnknownTalkgroup 
+    ignoreUnknownTalkgroup
   }))(res.locals);
   system.key = key;
-  system.userId = mongoose.Types.ObjectId(req.user._id);
+  system.userId = new mongoose.Types.ObjectId(req.user._id);
   System.create(system, function (err, newSys) {
     if (err) {
       console.error(err);
@@ -492,7 +477,7 @@ exports.createSystem = async function (req, res, next) {
       country,
       userId,
       showScreenName,
-      ignoreUnknownTalkgroup ,
+      ignoreUnknownTalkgroup,
       key
     }) => ({
       name,
@@ -505,7 +490,7 @@ exports.createSystem = async function (req, res, next) {
       country,
       userId,
       showScreenName,
-      ignoreUnknownTalkgroup ,
+      ignoreUnknownTalkgroup,
       key
     }))(newSys);
     returnSys.id = newSys._id;

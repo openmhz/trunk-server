@@ -1,7 +1,7 @@
-import axios, { post } from 'axios';
+import axios from 'axios';
 //import { browserHistory } from "react-router"
 import * as types from "./talkgroup-constants";
-import { push } from  'connected-react-router';
+import { push } from  '@lagunovsky/redux-react-router';
 
 // "Log In" action creators
 function beginImportTalkgroup() {
@@ -58,7 +58,7 @@ function fileUpload(shortName, file){
         },
         withCredentials: true 
     }
-    return  post(url, formData,config)
+    return  axios.post(url, formData,config)
   }
 
 // Example of an Async Action Creator
