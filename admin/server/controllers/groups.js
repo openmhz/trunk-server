@@ -41,7 +41,7 @@ exports.getGroups = async function (req, res, next) {
         return;
       }
     } else {
-      const group = await Group.findOne(
+      const group = await Group.find(
         {
           shortName: req.params.shortName.toLowerCase()
         }).sort("position").exec();
@@ -63,57 +63,56 @@ exports.getGroups = async function (req, res, next) {
   );
 };
 
-exports.deleteGroup = function (req, res, next) {
-  //router.get('/system/:shortName/remove_group/:groupId', isLoggedIn, function(req, res) {
-  System.findOne({
-    'shortName': req.params.shortName.toLowerCase()
-  }, function (err, system) {
-    if (err) {
-      console.error(err);
-      res.json({ success: false, message: err });
-      return;
-    }
-    if (!system) {
-      console.error(err);
-      res.json({
-        success: false,
-        message: "That Short Name does not exist."
-      });
-      return;
-    }
-    if (!system.userId.equals(req.user._id)) {
-      res.json({
-        success: false,
-        message: "You are not the user associated with this system."
-      });
-      return;
-    }
-    Group.findOneAndRemove({
-      shortName: req.params.shortName.toLowerCase(),
-      '_id': new mongoose.Types.ObjectId(req.params.groupId)
-    }, function (err) {
+exports.deleteGroup = async function (req, res, next) {
+  const system = await System.findOne({ 'shortName': req.params.shortName.toLowerCase() }).catch(err => {
 
-      if (err) {
-        res.json({
-          success: false,
-          message: err
-        });
-        return;
-      } else {
-        res.json({
-          success: true
-        });
-        return;
-      }
-      // removed!
-    });
-
+    console.error(err);
+    res.status(500);
+    res.json({ success: false, message: err });
+    return;
   });
-};
+  if (!system) {
+    console.error(err);
+    res.status(404);
+    res.json({
+      success: false,
+      message: "That Short Name does not exist."
+    });
+    return;
+  }
+  if (!system.userId.equals(req.user._id)) {
+    res.status(401);
+    res.json({
+      success: false,
+      message: "You are not the user associated with this system."
+    });
+    return;
+  }
+  await Group.findOneAndRemove({
+    shortName: req.params.shortName.toLowerCase(),
+    '_id': new mongoose.Types.ObjectId(req.params.groupId)
+  }).catch(err => {
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
+  });
 
-exports.reorderGroups = function (req, res, next) {
+
+  res.json({
+    success: true
+  });
+  return;
+}
+
+
+
+exports.reorderGroups =  function (req, res, next) {
+  console.log(req.body)
   //router.post('/system/:shortName/group_order', isLoggedIn, function(req, res) {
-  process.nextTick(async function () {
+    process.nextTick(async function () {
     const system = await System.findOne({ shortName: req.params.shortName.toLowerCase() });
 
     if (!system) {
@@ -132,7 +131,15 @@ exports.reorderGroups = function (req, res, next) {
       });
       return;
     }
-
+    console.log(req.body)
+    if (!req.body.groupOrder) {
+      res.status(500);
+      res.json({
+        success: false,
+        message: "Order data is wrong."
+      });
+      return;
+    }
     var groupOrder = JSON.parse(req.body.groupOrder);
     for (var i = 0; i < groupOrder.length; i++) {
 
@@ -166,14 +173,15 @@ exports.reorderGroups = function (req, res, next) {
     res.json({
       success: true
     });
-  }
-  );
+  });
 };
 
 exports.upsertGroup = function (req, res, next) {
+  console.log(req.body)
   //router.post('/system/:shortName/group/:groupId?', isLoggedIn, function(req, res) {
   process.nextTick(async function () {
-    let system = System.findOne({ shortName: req.params.shortName.toLowerCase() });
+    console.log(req.body)
+    let system = await System.findOne({ shortName: req.params.shortName.toLowerCase() });
 
     if (!system) {
       res.status(404);
@@ -213,7 +221,7 @@ exports.upsertGroup = function (req, res, next) {
 
     var groupId = req.params.groupId;
 
-    let group = Group.findOneAndUpdate(
+    let group = await Group.findOneAndUpdate(
       {
         _id: new mongoose.Types.ObjectId(groupId),
         shortName: req.params.shortName.toLowerCase()
@@ -225,20 +233,17 @@ exports.upsertGroup = function (req, res, next) {
       {
         new: true,
         upsert: true
+      }).catch(err => {
+        res.status(500);
+        res.json({
+          success: false,
+          message: err
+        });
+        return;
       });
+    res.json(group);
+    return;
 
-
-    if (!group) {
-      res.status(500);
-      res.json({
-        success: false,
-        message: err
-      });
-      return;
-    } else {
-      res.json(group);
-      return;
-    }
   }
   );
 }

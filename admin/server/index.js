@@ -128,6 +128,7 @@ function isAdmin(req, res, next) {
 }
 
 function isLoggedIn(req, res, next) {
+  console.log(req.body);
   if (req.isAuthenticated()) return next();
   res.status(401).send({
     success: false,

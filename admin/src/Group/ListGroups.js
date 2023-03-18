@@ -19,18 +19,15 @@ import {
 
 
 // ----------------------------------------------------
-class ListGroups extends Component {
-  constructor(props) {
-    super(props);
-
-  }
+const ListGroups = (props) => {
 
 
 //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
 //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
-  render() {
-    const groups = this.props.groups;
+
+    const groups = props.groups;
     if (groups) {
+      let groupsDisplay = props.order.map( id => props.groups.find( group => group._id == id ));
     return (
 
       <Table >
@@ -42,7 +39,7 @@ class ListGroups extends Component {
     </Table.Row>
   </Table.Header>
   <Table.Body>
-    {groups.map((group, i) => (
+    {groupsDisplay.map((group, i) => (
       <Table.Row key={ "Group-" + i}>
         <Table.Cell>{group.groupName}</Table.Cell>
         <Table.Cell>{group.talkgroups.length}</Table.Cell>
@@ -50,19 +47,21 @@ class ListGroups extends Component {
           <Icon
           name="pencil alternate"
           link={true}
-          onClick={e => this.props.editGroup(group._id)}
+          onClick={e => props.editGroup(group._id)}
         /><Icon
           name="up arrow"
-          link={true}
-          onClick={e => this.props.reorderGroup(i, i-1)}
+          link={i==0?false:true}
+          disabled={i==0?true:false}
+          onClick={e => props.reorderGroup(i, i-1)}
         /><Icon
           name="down arrow"
-          link={true}
-          onClick={e => this.props.reorderGroup(i, i+1)}
+          link={i==groupsDisplay.length-1?false:true}
+          disabled={i==groupsDisplay.length-1?true:false}
+          onClick={e => props.reorderGroup(i, i+1)}
         /><Icon
           name="remove"
           link={true}
-          onClick={e => this.props.deleteGroup(group._id)}
+          onClick={e => props.deleteGroup(group._id)}
         />
         </Table.Cell>
       </Table.Row>
@@ -76,7 +75,6 @@ class ListGroups extends Component {
       <div/>
     );
   }
-}
 }
 
 export default ListGroups;

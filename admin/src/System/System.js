@@ -8,7 +8,7 @@ import UpdatePermissionModal from "../Permission/UpdatePermissionModalContainer.
 import AddPermissionModal from "../Permission/AddPermissionModalContainer.js";
 import ErrorChart from "./ResponsiveErrorChart"
 import CallChart from "./ResponsiveCallChart"
-import { useGetSystemsQuery, useGetTalkgroupsQuery, useGetGroupsQuery, useGetErrorsQuery} from '../features/api/apiSlice'
+import { useGetSystemsQuery, useGetTalkgroupsQuery, useGetGroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useSaveGroupOrderMutation } from '../features/api/apiSlice'
 import {
   Button,
   Confirm,
@@ -31,6 +31,8 @@ const System = (props) => {
   const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
   const { data: groupsData, isSuccess: isGroupsSuccess } = useGetGroupsQuery(shortName);
   const { data: errorsData, isSuccess: isErrorsSuccess } = useGetErrorsQuery(shortName);
+  const [deleteGroupAPI, { isLoading: isDeleting }] = useDeleteGroupMutation();
+  const [reorderGroupsAPI, { isLoading: isReordering }] = useSaveGroupOrderMutation();
   const [openSystemDeleteConfirm, setOpenSystemDeleteConfirm] = useState(false);
   const [openPermissionDeleteConfirm, setOpenPermissionDeleteConfirm] = useState(false);
   const [openMessage, setOpenMessage] = useState(false);
@@ -39,6 +41,7 @@ const System = (props) => {
   const [editGroupId, setEditGroupId] = useState(false);
   const [errorData, setErrorData] = useState({});
   const [callData, setCallData] = useState({});
+  const [groupOrder, setGroupOrder] = useState([]);
 
 
   const processErrors = (errors) => {
@@ -149,109 +152,123 @@ const System = (props) => {
       }
     }
   */
-  
-    const editGroup = (groupId) => {
-      setEditGroupId(groupId)
-      setGroupVisible((state)=> !state)
-    }
-  
-    const deleteGroup = (groupId) => {
-      //this.props.groupActions.deleteGroup(this.props.shortName, groupId);
-    }
-  
-    const reorderGroup = (oldIndex, newIndex) => {
-      /*this.props.groupActions.reorderGroup(
-        this.props.shortName,
-        oldIndex,
-        newIndex
-      );*/
-    }
-  
-  
 
-    
+  const editGroup = (groupId) => {
+    setEditGroupId(groupId)
+    setGroupVisible((state) => !state)
+  }
 
-    const handleGroupClose = () => {
-      setEditGroupId(false)
-      setGroupVisible(false)
+  const deleteGroup = async (groupId) => {
+    for (const num in groupsData) {
+      if (groupsData[num]._id == groupId) {
+        await deleteGroupAPI(groupsData[num])
+      }
     }
- 
-    const handleGroupToggle = () => {
-      setEditGroupId(false)
-      setGroupVisible((state)=> !state)
+  }
+
+  const reorderGroup =  (oldIndex, newIndex) => {
+    if ((newIndex < 0) || (newIndex > (groupOrder.length - 1))) {
+      return
     }
- 
-  
-  
-    const handleExport = () => {
-     /* this.props.talkgroupActions
-        .exportTalkgroups(this.props.system.shortName)
-        .then(requestMessage => {
-          if (requestMessage) {
-            // report to the user is there was a problem during registration
-            this.setState({ requestMessage });
-          }
-        });*/
-    }
-  
-    const saveGroupOrder = () => {
-      /*const order = this.props.groups.map(x => x._id);
-      const data = {
-        groupOrder: JSON.stringify(order)
-      };
-      this.props.groupActions
-        .saveGroupOrder(this.props.system.shortName, data)
-        .then(requestMessage => {
-          if (requestMessage) {
-          }
-        });*/
-    }
-  
-  
-    const handleUpload = (file) => {
-      /*this.props.talkgroupActions
-        .importTalkgroups(this.props.system.shortName, file)
-        .then(requestMessage => {
-          if (requestMessage) {
-            // report to the user is there was a problem during registration
-            this.setState({ requestMessage });
-          }
-        });*/
-    }
-  
-  
-  
-   const handleSystemDeleteConfirm = () => {
-      setOpenSystemDeleteConfirm(false);
-      /*
-      this.props.systemActions
-        .deleteSystem(this.props.system.shortName)
-        .then(requestMessage => {
-          if (requestMessage) {
-            // report to the user is there was a problem during login
-            this.setState({ requestMessage: requestMessage, openMessage: true });
-          }
-        });*/
+    const moveOrder = groupOrder.slice();
+    moveOrder.splice(newIndex, 0, moveOrder.splice(oldIndex, 1)[0]);
+    setGroupOrder(moveOrder);
+  }
+
+  const handleGroupClose = () => {
+    setEditGroupId(false)
+    setGroupVisible(false)
+  }
+
+  const handleGroupToggle = () => {
+    setEditGroupId(false)
+    setGroupVisible((state) => !state)
+  }
+
+
+
+  const handleExport = () => {
+    /* this.props.talkgroupActions
+       .exportTalkgroups(this.props.system.shortName)
+       .then(requestMessage => {
+         if (requestMessage) {
+           // report to the user is there was a problem during registration
+           this.setState({ requestMessage });
+         }
+       });*/
+  }
+
+  const saveGroupOrder = async () => {
+    await reorderGroupsAPI({shortName: shortName, order: {groupOrder: JSON.stringify(groupOrder)}});
+
+    /*const order = this.props.groups.map(x => x._id);
+    const data = {
+      groupOrder: JSON.stringify(order)
     };
-    const handleSystemDeleteCancel = () => setOpenSystemDeleteConfirm(false); 
+    this.props.groupActions
+      .saveGroupOrder(this.props.system.shortName, data)
+      .then(requestMessage => {
+        if (requestMessage) {
+        }
+      });*/
+  }
 
 
-  let system = false; 
+  const handleUpload = (file) => {
+    /*this.props.talkgroupActions
+      .importTalkgroups(this.props.system.shortName, file)
+      .then(requestMessage => {
+        if (requestMessage) {
+          // report to the user is there was a problem during registration
+          this.setState({ requestMessage });
+        }
+      });*/
+  }
+
+
+
+  const handleSystemDeleteConfirm = () => {
+    setOpenSystemDeleteConfirm(false);
+    /*
+    this.props.systemActions
+      .deleteSystem(this.props.system.shortName)
+      .then(requestMessage => {
+        if (requestMessage) {
+          // report to the user is there was a problem during login
+          this.setState({ requestMessage: requestMessage, openMessage: true });
+        }
+      });*/
+  };
+  const handleSystemDeleteCancel = () => setOpenSystemDeleteConfirm(false);
+
+
+  let system = false;
   if (isSystemsSuccess) {
-    system = systemsData.systems.find(sys=>sys.shortName == shortName);
+    system = systemsData.systems.find(sys => sys.shortName == shortName);
   }
 
   useEffect(() => {
-  if (isSystemsSuccess) {
-    processStatistics(systemsData.stats[shortName])
-  }
-  },[isSystemsSuccess]);
+    if (groupsData) {
+      let newOrder = [];
+      groupsData.forEach(group => {
+
+        newOrder.push(group._id);
+      });
+      setGroupOrder(newOrder);
+    }
+  }, [groupsData])
+
+  useEffect(() => {
+    if (isSystemsSuccess) {
+      processStatistics(systemsData.stats[shortName])
+    }
+  }, [isSystemsSuccess]);
 
   useEffect(() => {
     if (isErrorsSuccess) {
       processErrors(errorData)
     }
-    },[isErrorsSuccess]);
+  }, [isErrorsSuccess]);
 
   let fileInput = null;
   var location = "";
@@ -266,6 +283,7 @@ const System = (props) => {
           <Button onClick={saveGroupOrder} > Save Order</Button>
           <ListGroups
             groups={groupsData}
+            order={groupOrder}
             reorderGroup={reorderGroup}
             deleteGroup={deleteGroup}
             editGroup={editGroup}
@@ -333,7 +351,7 @@ const System = (props) => {
               <Segment clearing={true}>
                 <Button
                   color="red"
-                  onClick={ ()=>setOpenSystemDeleteConfirm(true)}
+                  onClick={() => setOpenSystemDeleteConfirm(true)}
                   disabled={!isSystemsSuccess}
                   content="Delete"
                   floated="right"
@@ -515,7 +533,7 @@ const System = (props) => {
 
 
       <GroupModal
-        shortName={system.shortName}
+        shortName={shortName}
         editGroupId={editGroupId}
         open={groupVisible}
         onClose={handleGroupClose}
@@ -548,7 +566,7 @@ const System = (props) => {
               pointing: true
             }}
             panes={panes}
-            //defaultActiveIndex={activeTab}
+          //defaultActiveIndex={activeTab}
           />
         </Container>
       }
