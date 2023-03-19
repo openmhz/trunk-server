@@ -128,13 +128,28 @@ function isAdmin(req, res, next) {
 }
 
 function isLoggedIn(req, res, next) {
-  console.log(req.body);
   if (req.isAuthenticated()) return next();
   res.status(401).send({
     success: false,
     message: "Not Authenticated."
   });
 };
+
+function uploadFile(req, res, next) {
+  const upload = multer({dest: 'uploads/'}).single('file');
+
+  upload(req, res, function (err) {
+      if (err instanceof multer.MulterError) {
+          console.error("Multer Error: " + err)
+      } else if (err) {
+          console.error(err);
+          // An unknown error occurred when uploading.
+      }
+      console.log("Things look good for Multer")
+      // Everything went fine. 
+      next()
+  })
+}
 
 // -------------------------------------------
 
@@ -145,13 +160,8 @@ configureExpress(app, passport)
 app.use(express.static(path.join(__dirname, "public")));
 app.get("")
 
-//app.get("/permissions/:shortname", isOwner, permissions.fetchPermissions)
-/*app.get("/permissions/:shortName", permissions.fetchPermissions);
-app.delete("/permissions/:shortName/:permissionId", isAdmin, permissions.deletePermission);
-app.post("/permissions/:shortName/:permissionId", isAdmin, permissions.updatePermission);
-app.post("/permissions/:shortName", isAdmin, permissions.addPermission);*/
 app.get("/talkgroups/:shortName", isLoggedIn, talkgroups.fetchTalkgroups)
-app.post("/talkgroups/:shortName/import", isLoggedIn, upload.single('file'), talkgroups.importTalkgroups)
+app.post("/talkgroups/:shortName/import", isLoggedIn, uploadFile, talkgroups.importTalkgroups)
 app.get("/talkgroups/:shortName/export", isLoggedIn, talkgroups.exportTalkgroups)
 app.post("/groups/:shortName/reorder", isLoggedIn, groups.reorderGroups);
 app.post("/groups/:shortName/:groupId?", isLoggedIn, groups.upsertGroup);

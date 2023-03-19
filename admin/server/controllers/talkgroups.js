@@ -1,9 +1,7 @@
 const Talkgroup = require("../models/talkgroup");
 const System = require("../models/system");
 const fs = require('fs-extra');
-
-const crypto = require("crypto");
-var parse = require('csv-parse');
+const {parse} = require('csv-parse');
 
 exports.isLoggedIn = function (req, res, next) {
   if (req.isAuthenticated()) return next();
@@ -148,7 +146,7 @@ async function csv_import(shortName, filename, callback) {
 //router.post("/tg_import/:shortName", isLoggedIn, upload.single('file'), function(req, res, next) {
 exports.importTalkgroups = function (req, res, next) {
   process.nextTick(async function () {
-    const system = System.findOne({ shortName: req.params.shortName.toLowerCase() }).catch(err => {
+    const system = await System.findOne({ shortName: req.params.shortName.toLowerCase() }).catch(err => {
       res.status(500);
       console.error("Error - importTalkgroups: " + err);
       res.json({ success: false, message: err });
@@ -174,6 +172,7 @@ exports.importTalkgroups = function (req, res, next) {
       return;
     }
     if (!req.file || req.file.size === 0) {
+      console.error("Error - File is bad. Size");
       res.status(500);
       res.json({ success: false, message: "Please select a file." });
       return;

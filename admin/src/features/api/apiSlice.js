@@ -85,6 +85,27 @@ export const apiSlice = createApi({
 
       //invalidatesTags: (result, error, group) => ['Group'],
     }),
+    importTalkgroups: builder.mutation({
+      query: ({shortName,file}) => ({
+        url: `${process.env.REACT_APP_ADMIN_SERVER}/talkgroups/${shortName}/import`,
+        method: 'POST',
+        credentials: "include",
+        body: file,
+      }),
+      
+      async onQueryStarted({shortName,file}, { dispatch, queryFulfilled }) {
+        try {
+          const { data: newTalkgroups } = await queryFulfilled;
+          const patchResult = dispatch(
+            apiSlice.util.updateQueryData('getTalkgroups', shortName, (talkgroups) => {
+              talkgroups.length = 0; // Clear your array
+              talkgroups.push(...newTalkgroups);
+            })
+          )
+        } catch { }
+      },
+      //invalidatesTags: (result, error, group) => ['Group'],
+    }),
     getSystems: builder.query({
       // The URL for the request is '/fakeApi/posts'
       query: () => ({ url: `/systems`, credentials: "include" })
@@ -94,4 +115,4 @@ export const apiSlice = createApi({
 })
 
 // Export the auto-generated hook for the `getPosts` query endpoint
-export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useSaveGroupOrderMutation, useUpdateGroupMutation } = apiSlice
+export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation } = apiSlice

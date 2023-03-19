@@ -8,7 +8,7 @@ import UpdatePermissionModal from "../Permission/UpdatePermissionModalContainer.
 import AddPermissionModal from "../Permission/AddPermissionModalContainer.js";
 import ErrorChart from "./ResponsiveErrorChart"
 import CallChart from "./ResponsiveCallChart"
-import { useGetSystemsQuery, useGetTalkgroupsQuery, useGetGroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useSaveGroupOrderMutation } from '../features/api/apiSlice'
+import { useGetSystemsQuery, useGetTalkgroupsQuery, useGetGroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useImportTalkgroupsMutation, useSaveGroupOrderMutation } from '../features/api/apiSlice'
 import {
   Button,
   Confirm,
@@ -33,6 +33,7 @@ const System = (props) => {
   const { data: errorsData, isSuccess: isErrorsSuccess } = useGetErrorsQuery(shortName);
   const [deleteGroupAPI, { isLoading: isDeleting }] = useDeleteGroupMutation();
   const [reorderGroupsAPI, { isLoading: isReordering }] = useSaveGroupOrderMutation();
+  const [importTalkgroupsAPI, { isLoading: isImporting}] = useImportTalkgroupsMutation();
   const [openSystemDeleteConfirm, setOpenSystemDeleteConfirm] = useState(false);
   const [openPermissionDeleteConfirm, setOpenPermissionDeleteConfirm] = useState(false);
   const [openMessage, setOpenMessage] = useState(false);
@@ -185,44 +186,14 @@ const System = (props) => {
     setGroupVisible((state) => !state)
   }
 
-
-
-  const handleExport = () => {
-    /* this.props.talkgroupActions
-       .exportTalkgroups(this.props.system.shortName)
-       .then(requestMessage => {
-         if (requestMessage) {
-           // report to the user is there was a problem during registration
-           this.setState({ requestMessage });
-         }
-       });*/
-  }
-
   const saveGroupOrder = async () => {
     await reorderGroupsAPI({shortName: shortName, order: {groupOrder: JSON.stringify(groupOrder)}});
-
-    /*const order = this.props.groups.map(x => x._id);
-    const data = {
-      groupOrder: JSON.stringify(order)
-    };
-    this.props.groupActions
-      .saveGroupOrder(this.props.system.shortName, data)
-      .then(requestMessage => {
-        if (requestMessage) {
-        }
-      });*/
   }
 
-
-  const handleUpload = (file) => {
-    /*this.props.talkgroupActions
-      .importTalkgroups(this.props.system.shortName, file)
-      .then(requestMessage => {
-        if (requestMessage) {
-          // report to the user is there was a problem during registration
-          this.setState({ requestMessage });
-        }
-      });*/
+  const handleUpload = async (file) => {
+    const formData = new FormData();
+    formData.append('file',file)
+    await importTalkgroupsAPI({shortName:shortName, file:formData});
   }
 
 
