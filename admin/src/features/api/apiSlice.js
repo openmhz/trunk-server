@@ -2,6 +2,23 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { createSelector } from '@reduxjs/toolkit'
 
+/*
+const axiosBaseQuery =
+  ({ baseUrl } = { baseUrl: '' }) =>
+  async ({ url, method, data, params }) => {
+    try {
+      const result = await axios({ url: baseUrl + url, method, data, params })
+      return { data: result.data }
+    } catch (axiosError) {
+      let err = axiosError
+      return {
+        error: {
+          status: err.response?.status,
+          data: err.response?.data || err.message,
+        },
+      }
+    }
+  }*/
 
 // Define our single API slice object
 export const apiSlice = createApi({
@@ -109,10 +126,28 @@ export const apiSlice = createApi({
     getSystems: builder.query({
       // The URL for the request is '/fakeApi/posts'
       query: () => ({ url: `/systems`, credentials: "include" })
-    })
+    }),
+    createSystem: builder.mutation({
+      query: (system) => ({
+        url: `/systems`,
+        method: 'POST',
+        credentials: "include",
+        body: system,
+      }),
+      async onQueryStarted(system, { dispatch, queryFulfilled }) {
+        try {
+          const { data: newSystem } = await queryFulfilled
+          const patchResult = dispatch(
+            apiSlice.util.updateQueryData('getSystems', system.shortName, (systems) => {
+              systems.push(newSystem);
+            })
+          )
+        } catch {}
+      },
+    }),
 
   })
 })
 
 // Export the auto-generated hook for the `getPosts` query endpoint
-export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation } = apiSlice
+export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useCreateSystemMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation } = apiSlice

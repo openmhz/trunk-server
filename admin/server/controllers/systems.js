@@ -174,6 +174,7 @@ exports.ownSystem = async function (req, res, next) {
 
     if (!system) {
       console.error("ERROR: OwnSystem - system does not exist: " + req.body.shortName.toLowerCase());
+      res.status(500)
       res.json({
         success: false,
         message: "That System does not exist."
@@ -182,7 +183,7 @@ exports.ownSystem = async function (req, res, next) {
     }
     if (!system.userId.equals(req.user._id)) {
       console.error("ERROR: OwnSystem - not users system " + req.body.shortName.toLowerCase());
-
+      res.status(500)
       res.json({
         success: false,
         message: "You are not the user associated with this system."
@@ -195,6 +196,7 @@ exports.ownSystem = async function (req, res, next) {
 
   } catch (err) {
     console.error("ERROR: ownSystem - caught: " + err);
+    res.status(500)
     res.json({
       success: false,
       message: err
@@ -215,6 +217,7 @@ exports.uniqueShortName = async function (req, res, next) {
   }
   if (typeof shortName == 'undefined') {
     console.error("ShortName is not in req.body instead")
+    res.status(500)
     res.json({
       success: false,
       message: "Short Name not provided in form"
@@ -228,6 +231,7 @@ exports.uniqueShortName = async function (req, res, next) {
 
     if (system) {
       console.error("ERROR: Unique Shortname already in use: " + req.body.shortName.toLowerCase());
+      res.status(500)
       res.json({
         success: false,
         message: "Short Name already in use"
@@ -240,10 +244,8 @@ exports.uniqueShortName = async function (req, res, next) {
 
   } catch (err) {
     console.error("ERROR: Unique ShortName - caught: " + err);
-    res.json({
-      success: false,
-      message: err
-    });
+    res.status(500);
+    res.json({ message: "ERROR: Unique ShortName - caught: " + err});
     return;
   }
 
@@ -300,10 +302,7 @@ exports.updateSystem = async function (req, res, next) {
         ignoreUnknownTalkgroup
       }))(res.locals.system);
       returnSys.id = res.locals.system._id;
-      res.json({
-        success: true,
-        system: returnSys
-      });
+      res.json(returnSys);
       return;
     }
   });
@@ -317,6 +316,7 @@ exports.validateSystem = async function (req, res, next) {
     res.locals.ignoreUnknownTalkgroup = req.body.ignoreUnknownTalkgroup;
     if (!req.body.name || (req.body.name.length < 2)) {
       console.error("ERROR: Validate System - req.body.name");
+      res.status(500)
       res.json({
         success: false,
         message: "System Name is Required"
@@ -327,6 +327,7 @@ exports.validateSystem = async function (req, res, next) {
 
     if (!req.body.description || (req.body.description.length < 2)) {
       console.error("ERROR: Validate System - req.body.description");
+      res.status(500)
       res.json({
         success: false,
         message: "System Description is Required"
@@ -337,6 +338,7 @@ exports.validateSystem = async function (req, res, next) {
 
     if (!req.body.shortName || (req.body.shortName.length < 2)) {
       console.error("ERROR: Validate System - req.body.shortName");
+      res.status(500)
       res.json({
         success: false,
         message: "System ShortName is Required"
@@ -352,6 +354,7 @@ exports.validateSystem = async function (req, res, next) {
     // make sure it is one of the expected types
     if ((req.body.systemType != "state") && (req.body.systemType != "city") && (req.body.systemType != "county") && (req.body.systemType != "international")) {
       console.error("ERROR: Validate System - req.body.systemType: " + req.body.systemType);
+      res.status(500)
       res.json({
         success: false,
         message: "Select system location"
@@ -368,6 +371,7 @@ exports.validateSystem = async function (req, res, next) {
       req.body.systemType === "county") {
       if (!req.body.state || (req.body.state === "") || (req.body.state.length < 2)) {
         console.error("ERROR: Validate System - req.body.state: " + req.body.state);
+        res.status(500)
         res.json({
           success: false,
           message: "Select the State for the System"
@@ -380,6 +384,7 @@ exports.validateSystem = async function (req, res, next) {
     if (req.body.systemType === "city") {
       if (!req.body.city || (req.body.city === "") || (req.body.city.length < 2)) {
         console.error("ERROR: Validate System - req.body.systemType: " + req.body.systemType);
+        res.status(500)
         res.json({
           success: false,
           message: "Enter the city for the System"
@@ -392,6 +397,7 @@ exports.validateSystem = async function (req, res, next) {
     if (req.body.systemType === "county") {
       if (!req.body.county || (req.body.county === "") || (req.body.county.length < 2)) {
         console.error("ERROR: Validate System - req.body.county: " + req.body.county);
+        res.status(500)
         res.json({
           success: false,
           message: "Enter the county for the System"
@@ -404,6 +410,7 @@ exports.validateSystem = async function (req, res, next) {
     if (req.body.systemType === "international") {
       if (!req.body.country || (req.body.country === "") || (req.body.country.length < 2)) {
         console.error("ERROR: Validate System - req.body.country: " + req.body.country);
+        res.status(500)
         res.json({
           success: false,
           message: "Enter the country for the System"
@@ -416,6 +423,7 @@ exports.validateSystem = async function (req, res, next) {
 
   } catch (err) {
     console.error("ERROR: Validate System - caught: " + err);
+    res.status(500)
     res.json({
       success: false,
       message: err
@@ -457,15 +465,17 @@ exports.createSystem = async function (req, res, next) {
   }))(res.locals);
   system.key = key;
   system.userId = new mongoose.Types.ObjectId(req.user._id);
-  System.create(system, function (err, newSys) {
-    if (err) {
+  const newSys = await System.create(system).catch( err => {
+
       console.error(err);
+      res.status(500)
       res.json({
         success: false,
         message: err
       });
       return;
-    }
+  });
+
     var returnSys = (({
       name,
       shortName,
@@ -494,10 +504,7 @@ exports.createSystem = async function (req, res, next) {
       key
     }))(newSys);
     returnSys.id = newSys._id;
-    res.json({
-      success: true,
-      system: returnSys
-    });
+    res.json( returnSys);
     return;
-  });
+
 }
