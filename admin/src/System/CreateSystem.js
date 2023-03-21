@@ -39,8 +39,6 @@ const CreateSystem = (props) => {
         console.log(message);
         setRequestMessage(message);
       }
-
-
   }
 
     return (

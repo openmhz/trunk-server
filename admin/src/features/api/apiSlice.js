@@ -145,9 +145,27 @@ export const apiSlice = createApi({
         } catch {}
       },
     }),
-
+    updateSystem: builder.mutation({
+      query: (system) => ({
+        url: `/systems/${system.shortName}`,
+        method: 'POST',
+        credentials: "include",
+        body: system,
+      }),
+      async onQueryStarted(system, { dispatch, queryFulfilled }) {
+        try {
+          const { data: updatedSystem } = await queryFulfilled
+          const patchResult = dispatch(
+            apiSlice.util.updateQueryData('getSystems', system.shortName, (systems) => {
+              const systemIndex = systems.findIndex((obj => obj.shortName == updatedSystem.shortName));
+              systems[systemIndex] = updatedSystem;
+            })
+          )
+        } catch {}
+      },
+    }),
   })
 })
 
 // Export the auto-generated hook for the `getPosts` query endpoint
-export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useCreateSystemMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation } = apiSlice
+export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useCreateSystemMutation, useUpdateSystemMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation } = apiSlice

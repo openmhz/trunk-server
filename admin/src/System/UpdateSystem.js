@@ -1,47 +1,47 @@
-import React, { Component }  from "react"
+import React, { useEffect, useLayoutEffect, useState, useRef, useCallback, useMemo } from "react";
 import SystemForm from "./SystemForm";
 import {
   Container,
   Header
 } from "semantic-ui-react";
+import { useUpdateSystemMutation, useGetSystemsQuery, } from '../features/api/apiSlice'
+import { useSelector, useDispatch } from 'react-redux'
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-class UpdateSystem extends Component {
-  constructor(props) {
-    super(props);
-    this.handleSystemSubmit = this.handleSystemSubmit.bind(this);
+const UpdateSystem = (props) => {
+
+  const { screenName } = useSelector((state) => state.user);
+  const { shortName } = useParams();
+  const { data: systemsData, isSuccess: isSystemsSuccess } = useGetSystemsQuery();
+  const [updateSystem, { error }] = useUpdateSystemMutation();
+  const [requestMessage, setRequestMessage] = useState("");
+
+  const navigate = useNavigate();
+  let system = false;
+  if (isSystemsSuccess) {
+    system = systemsData.systems.find(sys => sys.shortName == shortName);
   }
 
-  state = {
-    requestMessage: ""
+
+  const handleSystemSubmit = async (system) => {
+    try {
+      const originalPromiseResult = await updateSystem(system).unwrap();
+      navigate("/system/" + shortName)
+    } catch (error) {
+      const message = error.data.message;
+      console.log(message);
+      setRequestMessage(message);
+    }
   }
 
-  componentDidMount() {
-     this.props.fetchSystems()
-   }
 
-  handleSystemSubmit(system) {
-    this.props
-      .updateSystem(system)
-      .then(requestMessage => {
-        if (requestMessage) {
-          // report to the user is there was a problem during registration
-          this.setState({
-            requestMessage
-          });
-        } else {
-            this.props.changeUrl("/system/"+system.shortName)
-        }
-      });
-  }
+  return (
+    <Container text>
+      <Header as="h1">Update System</Header>
+      <SystemForm onSubmit={handleSystemSubmit} system={system} isEditing={true} requestMessage={requestMessage} screenName={screenName} />
+    </Container>
+  )
 
-	render() {
-		return(
-			<Container text>
-        <Header as="h1">Update System</Header>
-      <SystemForm onSubmit={this.handleSystemSubmit} system={this.props.system} isEditing={true} requestMessage={this.state.requestMessage} screenName={this.props.user.screenName}/>
-			</Container>
-		)
-	}
 }
 
 export default UpdateSystem

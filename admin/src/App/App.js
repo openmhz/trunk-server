@@ -7,7 +7,7 @@ import Restricted from "./Restricted"
 import About from "../Components/About"
 import System from "../System/System"
 import ListSystems from "../System/ListSystems"
-import UpdateSystemContainer from "../System/UpdateSystemContainer"
+import UpdateSystem from "../System/UpdateSystem"
 import CreateSystem from "../System/CreateSystem"
 
 
@@ -19,7 +19,7 @@ const App = (params) => {
 				<Routes>
 					<Route path="/about"  element={ <Restricted><About/></Restricted>} />
 					<Route path="/system/:shortName" element={ <Restricted><System/></Restricted>} />
-					<Route path="/update-system/:shortName" component={Restricted(UpdateSystemContainer, store)} />
+					<Route path="/update-system/:shortName" element={ <Restricted><UpdateSystem/></Restricted>} />
 					<Route path="/create-system" element={ <Restricted><CreateSystem/></Restricted>}  />
 					<Route path="/list-systems" element={ <Restricted><ListSystems/></Restricted>}  />
 					<Route path="/" element={ <Restricted><ListSystems/></Restricted>} />

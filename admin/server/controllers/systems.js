@@ -266,14 +266,15 @@ exports.updateSystem = async function (req, res, next) {
   res.locals.system.showScreenName = res.locals.showScreenName;
   res.locals.system.ignoreUnknownTalkgroup = res.locals.ignoreUnknownTalkgroup;
 
-  res.locals.system.save(function (err) {
-    if (err) {
+
+  await res.locals.system.save().catch( err => {
+      res.status(500);
       res.json({
         success: false,
         message: err
       });
       return;
-    } else {
+    });
       var returnSys = (({
         name,
         shortName,
@@ -305,8 +306,8 @@ exports.updateSystem = async function (req, res, next) {
       res.json(returnSys);
       return;
     }
-  });
-}
+
+
 
 // -------------------------------------------
 
