@@ -90,7 +90,17 @@ export const apiSlice = createApi({
         credentials: "include"
       }),
 
-      invalidatesTags: (result, error, group) => [{ type: 'Group', id: group._id }],
+      async onQueryStarted(group, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled
+          const patchResult = dispatch(
+            apiSlice.util.updateQueryData('getGroups', group.shortName, (groups) => {
+              const groupIndex = groups.findIndex((obj => obj.groupId == group.groupId));
+              groups.splice(groupIndex,1);
+            })
+          )
+        } catch { }
+      },
     }),
     saveGroupOrder: builder.mutation({
       query: ({shortName, order}) => ({
@@ -138,7 +148,8 @@ export const apiSlice = createApi({
         try {
           const { data: newSystem } = await queryFulfilled
           const patchResult = dispatch(
-            apiSlice.util.updateQueryData('getSystems', system.shortName, (systems) => {
+            apiSlice.util.updateQueryData('getSystems', undefined, (systemsData) => {
+              const systems = systemsData.systems;
               systems.push(newSystem);
             })
           )
@@ -156,9 +167,29 @@ export const apiSlice = createApi({
         try {
           const { data: updatedSystem } = await queryFulfilled
           const patchResult = dispatch(
-            apiSlice.util.updateQueryData('getSystems', system.shortName, (systems) => {
+            apiSlice.util.updateQueryData('getSystems', undefined, (systemsData) => {
+              const systems = systemsData.systems;
               const systemIndex = systems.findIndex((obj => obj.shortName == updatedSystem.shortName));
               systems[systemIndex] = updatedSystem;
+            })
+          )
+        } catch {}
+      },
+    }),
+    deleteSystem: builder.mutation({
+      query: (shortName) => ({
+        url: `/systems/${shortName}`,
+        method: 'DELETE',
+        credentials: "include"
+      }),
+      async onQueryStarted(shortName, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled
+          const patchResult = dispatch(
+            apiSlice.util.updateQueryData('getSystems', undefined, (systemsData) => {
+              const systems = systemsData.systems;
+              const systemIndex = systems.findIndex((obj => obj.shortName == shortName));
+              systems.splice(systemIndex, 1);
             })
           )
         } catch {}
@@ -168,4 +199,4 @@ export const apiSlice = createApi({
 })
 
 // Export the auto-generated hook for the `getPosts` query endpoint
-export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useCreateSystemMutation, useUpdateSystemMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation } = apiSlice
+export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useCreateSystemMutation, useUpdateSystemMutation, useDeleteSystemMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation } = apiSlice

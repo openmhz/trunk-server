@@ -8,7 +8,7 @@ import UpdatePermissionModal from "../Permission/UpdatePermissionModalContainer.
 import AddPermissionModal from "../Permission/AddPermissionModalContainer.js";
 import ErrorChart from "./ResponsiveErrorChart"
 import CallChart from "./ResponsiveCallChart"
-import { useGetSystemsQuery, useGetTalkgroupsQuery, useGetGroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useImportTalkgroupsMutation, useSaveGroupOrderMutation } from '../features/api/apiSlice'
+import { useGetSystemsQuery, useGetTalkgroupsQuery, useGetGroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useDeleteSystemMutation, useImportTalkgroupsMutation, useSaveGroupOrderMutation } from '../features/api/apiSlice'
 import {
   Button,
   Confirm,
@@ -27,13 +27,15 @@ import {
 
 const System = (props) => {
   const { shortName } = useParams();
+  const navigate = useNavigate();
   const { data: systemsData, isSuccess: isSystemsSuccess } = useGetSystemsQuery();
   const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
   const { data: groupsData, isSuccess: isGroupsSuccess } = useGetGroupsQuery(shortName);
   const { data: errorsData, isSuccess: isErrorsSuccess } = useGetErrorsQuery(shortName);
   const [deleteGroupAPI, { isLoading: isDeleting }] = useDeleteGroupMutation();
   const [reorderGroupsAPI, { isLoading: isReordering }] = useSaveGroupOrderMutation();
-  const [importTalkgroupsAPI, { isLoading: isImporting}] = useImportTalkgroupsMutation();
+  const [importTalkgroupsAPI, { isLoading: isImporting }] = useImportTalkgroupsMutation();
+  const [deleteSystemAPI ] = useDeleteSystemMutation();
   const [openSystemDeleteConfirm, setOpenSystemDeleteConfirm] = useState(false);
   const [openPermissionDeleteConfirm, setOpenPermissionDeleteConfirm] = useState(false);
   const [openMessage, setOpenMessage] = useState(false);
@@ -98,32 +100,34 @@ const System = (props) => {
     var minValue = 0;
     var maxValue = 0;
     var MS_PER_MINUTE = 60000;
-    for (var j = 0; j < statistic.callTotals.length; j++) {
-      var spotsBack = statistic.callTotals.length - j;
-      var time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
-      if (time < minDate) minDate = time;
-      if (statistic.callTotals[j] > maxValue)
-        maxValue = statistic.callTotals[j];
-      callTotals.push({ y: statistic.callTotals[j], x: time });
-    }
-    for (var j = 0; j < statistic.errorTotals.length; j++) {
-      var spotsBack = statistic.errorTotals.length - j;
-      var time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
-      if (time < minDate) minDate = time;
-      if (statistic.errorTotals[j] > maxValue)
-        maxValue = statistic.errorTotals[j];
-      errorTotals.push({ x: time, y: statistic.errorTotals[j] });
-    }
-    const callData = {
-      minDate: minDate,
-      maxDate: maxDate,
-      minValue: minValue,
-      maxValue: maxValue,
-      callTotals: callTotals,
-      errorTotals: errorTotals
-    };
+    if (statistic) {
+      for (var j = 0; j < statistic.callTotals.length; j++) {
+        var spotsBack = statistic.callTotals.length - j;
+        var time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
+        if (time < minDate) minDate = time;
+        if (statistic.callTotals[j] > maxValue)
+          maxValue = statistic.callTotals[j];
+        callTotals.push({ y: statistic.callTotals[j], x: time });
+      }
+      for (var j = 0; j < statistic.errorTotals.length; j++) {
+        var spotsBack = statistic.errorTotals.length - j;
+        var time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
+        if (time < minDate) minDate = time;
+        if (statistic.errorTotals[j] > maxValue)
+          maxValue = statistic.errorTotals[j];
+        errorTotals.push({ x: time, y: statistic.errorTotals[j] });
+      }
+      const callData = {
+        minDate: minDate,
+        maxDate: maxDate,
+        minValue: minValue,
+        maxValue: maxValue,
+        callTotals: callTotals,
+        errorTotals: errorTotals
+      };
 
-    setCallData(callData);
+      setCallData(callData);
+    }
   }
 
 
@@ -167,7 +171,7 @@ const System = (props) => {
     }
   }
 
-  const reorderGroup =  (oldIndex, newIndex) => {
+  const reorderGroup = (oldIndex, newIndex) => {
     if ((newIndex < 0) || (newIndex > (groupOrder.length - 1))) {
       return
     }
@@ -187,28 +191,28 @@ const System = (props) => {
   }
 
   const saveGroupOrder = async () => {
-    await reorderGroupsAPI({shortName: shortName, order: {groupOrder: JSON.stringify(groupOrder)}});
+    await reorderGroupsAPI({ shortName: shortName, order: { groupOrder: JSON.stringify(groupOrder) } });
   }
 
   const handleUpload = async (file) => {
     const formData = new FormData();
-    formData.append('file',file)
-    await importTalkgroupsAPI({shortName:shortName, file:formData});
+    formData.append('file', file)
+    await importTalkgroupsAPI({ shortName: shortName, file: formData });
   }
 
 
 
-  const handleSystemDeleteConfirm = () => {
+  const handleSystemDeleteConfirm = async () => {
     setOpenSystemDeleteConfirm(false);
-    /*
-    this.props.systemActions
-      .deleteSystem(this.props.system.shortName)
-      .then(requestMessage => {
-        if (requestMessage) {
-          // report to the user is there was a problem during login
-          this.setState({ requestMessage: requestMessage, openMessage: true });
-        }
-      });*/
+    try {
+      const originalPromiseResult = await deleteSystemAPI(shortName).unwrap();
+      navigate("/list-systems")
+    } catch (error) {
+      const message = error.data.message;
+      console.log(message);
+      setRequestMessage(message);
+    }
+
   };
   const handleSystemDeleteCancel = () => setOpenSystemDeleteConfirm(false);
 
@@ -218,7 +222,7 @@ const System = (props) => {
     system = systemsData.systems.find(sys => sys.shortName == shortName);
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (groupsData) {
       let newOrder = [];
       groupsData.forEach(group => {

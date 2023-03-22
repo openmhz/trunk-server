@@ -26,8 +26,15 @@ const ListGroups = (props) => {
 //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
 
     const groups = props.groups;
+    let groupsDisplay = [];
     if (groups) {
-      let groupsDisplay = props.order.map( id => props.groups.find( group => group._id == id ));
+      // if a group gets deleted, it will still be listed in the Order array for a little.
+      for (const id of props.order) {
+        const group = props.groups.find( group => group._id == id );
+        if (group) {
+          groupsDisplay.push(group)
+        }
+      }
     return (
 
       <Table >
@@ -40,6 +47,7 @@ const ListGroups = (props) => {
   </Table.Header>
   <Table.Body>
     {groupsDisplay.map((group, i) => (
+      
       <Table.Row key={ "Group-" + i}>
         <Table.Cell>{group.groupName}</Table.Cell>
         <Table.Cell>{group.talkgroups.length}</Table.Cell>
@@ -65,7 +73,9 @@ const ListGroups = (props) => {
         />
         </Table.Cell>
       </Table.Row>
-    ))}
+      
+    )
+    )}
   </Table.Body>
 </Table>
 

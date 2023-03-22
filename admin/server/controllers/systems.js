@@ -84,86 +84,59 @@ exports.listSystems = async function (req, res, next) {
   return;
 };
 
-function remove_system(shortName) {
-  /*
-    var sysDir = config.mediaDirectory + "/" + shortName + "/"
-    console.log("Removing DIR: " + sysDir);
-    fs.remove(sysDir, function(err) {
-        if (err) return console.error(err)
-    });
+const remove_system = async (shortName) => {
 
-    Transmission.remove({
-        shortName: shortName
-    }, function(err) {
-        if (err) return console.error(err);
-        // removed!
-    });
-*/
-  System.remove({
+  await System.deleteOne({
     shortName: shortName
-  },
-    function (err) {
-      if (err) return console.error(err);
-      // removed!
-    }
-  );
+  }).catch( err => console.error(err));
 
-  Talkgroup.remove({
+  await Talkgroup.deleteMany({
     shortName: shortName
-  },
-    function (err) {
-      if (err) return console.error(err);
-      // removed!
-    }
-  );
+  }).catch( err => console.error(err));
 
-  Group.remove({
+
+  await Group.deleteMany({
     shortName: shortName
-  },
-    function (err) {
-      if (err) return console.error(err);
-      // removed!
-    }
-  );
+  }).catch(err => console.error(err));
 }
 
-exports.deleteSystem = function (req, res, next) {
+exports.deleteSystem = async function (req, res, next) {
   //router.get('/delete_system/:shortName', isLoggedIn, function(req, res) {
-  System.findOne({
+  var system = await System.findOne({
     shortName: req.params.shortName.toLowerCase()
-  },
-    function (err, system) {
-      if (err) {
-        res.json({
-          success: false,
-          message: err
-        });
-        return;
-      }
-      if (!system) {
-        res.json({
-          success: false,
-          message: "That Short Name does not exist."
-        });
-        return;
-      }
-      if (!system.userId.equals(req.user._id)) {
-        console.log("Error deleting syste - Wrong User - sys: " + system.userId + " profile:  " + mongoose.Types.ObjectId(req.user._id));
-        res.json({
-          success: false,
-          message: "You are not the user associated with this system."
-        });
-        return;
-      }
-      console.log("Removing: " + system.name);
-      remove_system(system.shortName);
-      res.json({
-        success: true
-      });
-      return;
-    }
-  );
-};
+  }).catch(err => {
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
+  });
+  if (!system) {
+    res.status(500);
+    res.json({
+      success: false,
+      message: "That Short Name does not exist."
+    });
+    return;
+  }
+  if (!system.userId.equals(req.user._id)) {
+    console.log("Error deleting syste - Wrong User - sys: " + system.userId + " profile:  " + mongoose.Types.ObjectId(req.user._id));
+    res.status(401);
+    res.json({
+      success: false,
+      message: "You are not the user associated with this system."
+    });
+    return;
+  }
+  console.log("Removing: " + system.name);
+  remove_system(system.shortName);
+  res.json({
+    success: true
+  });
+  return;
+}
+
 
 // -------------------------------------------
 exports.ownSystem = async function (req, res, next) {
@@ -245,7 +218,7 @@ exports.uniqueShortName = async function (req, res, next) {
   } catch (err) {
     console.error("ERROR: Unique ShortName - caught: " + err);
     res.status(500);
-    res.json({ message: "ERROR: Unique ShortName - caught: " + err});
+    res.json({ message: "ERROR: Unique ShortName - caught: " + err });
     return;
   }
 
@@ -267,45 +240,45 @@ exports.updateSystem = async function (req, res, next) {
   res.locals.system.ignoreUnknownTalkgroup = res.locals.ignoreUnknownTalkgroup;
 
 
-  await res.locals.system.save().catch( err => {
-      res.status(500);
-      res.json({
-        success: false,
-        message: err
-      });
-      return;
+  await res.locals.system.save().catch(err => {
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
     });
-      var returnSys = (({
-        name,
-        shortName,
-        description,
-        systemType,
-        city,
-        state,
-        county,
-        country,
-        userId,
-        key,
-        showScreenName,
-        ignoreUnknownTalkgroup
-      }) => ({
-        name,
-        shortName,
-        description,
-        systemType,
-        city,
-        state,
-        county,
-        country,
-        userId,
-        key,
-        showScreenName,
-        ignoreUnknownTalkgroup
-      }))(res.locals.system);
-      returnSys.id = res.locals.system._id;
-      res.json(returnSys);
-      return;
-    }
+    return;
+  });
+  var returnSys = (({
+    name,
+    shortName,
+    description,
+    systemType,
+    city,
+    state,
+    county,
+    country,
+    userId,
+    key,
+    showScreenName,
+    ignoreUnknownTalkgroup
+  }) => ({
+    name,
+    shortName,
+    description,
+    systemType,
+    city,
+    state,
+    county,
+    country,
+    userId,
+    key,
+    showScreenName,
+    ignoreUnknownTalkgroup
+  }))(res.locals.system);
+  returnSys.id = res.locals.system._id;
+  res.json(returnSys);
+  return;
+}
 
 
 
@@ -466,46 +439,46 @@ exports.createSystem = async function (req, res, next) {
   }))(res.locals);
   system.key = key;
   system.userId = new mongoose.Types.ObjectId(req.user._id);
-  const newSys = await System.create(system).catch( err => {
+  const newSys = await System.create(system).catch(err => {
 
-      console.error(err);
-      res.status(500)
-      res.json({
-        success: false,
-        message: err
-      });
-      return;
+    console.error(err);
+    res.status(500)
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
   });
 
-    var returnSys = (({
-      name,
-      shortName,
-      description,
-      systemType,
-      city,
-      state,
-      county,
-      country,
-      userId,
-      showScreenName,
-      ignoreUnknownTalkgroup,
-      key
-    }) => ({
-      name,
-      shortName,
-      description,
-      systemType,
-      city,
-      state,
-      county,
-      country,
-      userId,
-      showScreenName,
-      ignoreUnknownTalkgroup,
-      key
-    }))(newSys);
-    returnSys.id = newSys._id;
-    res.json( returnSys);
-    return;
+  var returnSys = (({
+    name,
+    shortName,
+    description,
+    systemType,
+    city,
+    state,
+    county,
+    country,
+    userId,
+    showScreenName,
+    ignoreUnknownTalkgroup,
+    key
+  }) => ({
+    name,
+    shortName,
+    description,
+    systemType,
+    city,
+    state,
+    county,
+    country,
+    userId,
+    showScreenName,
+    ignoreUnknownTalkgroup,
+    key
+  }))(newSys);
+  returnSys.id = newSys._id;
+  res.json(returnSys);
+  return;
 
 }
