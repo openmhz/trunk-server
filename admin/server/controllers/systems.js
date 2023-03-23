@@ -27,7 +27,7 @@ exports.listSystems = async function (req, res, next) {
     shortNames.push(systems[i].shortName);
   }
 
-  const stats = await SystemStat.find({ shortName: { $in: shortNames } }).exec();
+
 
   let returnSys = systems.map(obj => {
     var rObj = (({
@@ -65,6 +65,8 @@ exports.listSystems = async function (req, res, next) {
     rObj.id = obj._id;
     return rObj;
   });
+
+  const stats = await SystemStat.find({ shortName: { $in: shortNames } }).exec();
   var sys_stats = {}
   for (var i = 0; i < stats.length; i++) {
     sys_stats[stats[i].shortName] = {};
@@ -88,11 +90,11 @@ const remove_system = async (shortName) => {
 
   await System.deleteOne({
     shortName: shortName
-  }).catch( err => console.error(err));
+  }).catch(err => console.error(err));
 
   await Talkgroup.deleteMany({
     shortName: shortName
-  }).catch( err => console.error(err));
+  }).catch(err => console.error(err));
 
 
   await Group.deleteMany({
