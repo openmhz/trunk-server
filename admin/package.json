@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@lagunovsky/redux-react-router": "^4.3.0",
     "@visx/axis": "3.0.1",
     "@visx/curve": "3.0.0",
     "@visx/glyph": "3.0.0",

@@ -76,8 +76,6 @@ constructor(props) {
 <AxisLeft scale={yScale} />
 <LinePath
               data={callTotals}
-              xScale={xScale}
-              yScale={yScale}
               x={x}
               y={y}
               strokeWidth={2}
@@ -85,8 +83,6 @@ constructor(props) {
             />
             <LinePath
                           data={errorTotals}
-                          xScale={xScale}
-                          yScale={yScale}
                           x={x}
                           y={y}
                           strokeWidth={2}

@@ -2,12 +2,12 @@ import React from 'react';
 import { Provider } from 'react-redux'
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from "react-router-dom";
-import configureStore, { history } from './redux-router/configureStore'
+import setupStore from './redux-router/configureStore'
 import 'semantic-ui-css/semantic.min.css'
 import App from "./App/App"
 
 
-const store = configureStore(/* provide initial state if any */)
+const store = setupStore(/* provide initial state if any */)
 
 
 
