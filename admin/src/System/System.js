@@ -3,9 +3,7 @@ import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 import ListTalkgroups from "../Talkgroups/ListTalkgroups.js";
 import MessageBox from "../Components/Message.js";
 import ListGroups from "../Group/ListGroups.js";
-import GroupModal from "../Group/GroupModalContainer.js";
-import UpdatePermissionModal from "../Permission/UpdatePermissionModalContainer.js";
-import AddPermissionModal from "../Permission/AddPermissionModalContainer.js";
+import GroupModal from "../Group/GroupModal.js";
 import ErrorChart from "./ResponsiveErrorChart"
 import CallChart from "./ResponsiveCallChart"
 import { useGetSystemsQuery, useGetTalkgroupsQuery, useGetGroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useDeleteSystemMutation, useImportTalkgroupsMutation, useSaveGroupOrderMutation } from '../features/api/apiSlice'

@@ -40,7 +40,9 @@ export const userSlice = createSlice({
         isWaiting: false,
         authenticated: false,
         hasAuthenticated: false,
-        userId: ""
+        userId: "",
+        admin: false,
+        email: "",
     },
     reducers: {
         increment: (state) => {
@@ -58,6 +60,8 @@ export const userSlice = createSlice({
                 state.authenticated = true;
                 state.hasAuthenticated = true;
                 state.userId = payload.user.userId;
+                state.admin = payload.user.admin;
+                state.email = payload.user.email;
             } else {
                 state.authenticated = false;
                 state.hasAuthenticated = true;

@@ -1,16 +1,7 @@
 // in src/restricted.js
 //import React, { Component } from 'react';
-import React, { useEffect, useLayoutEffect, useState, useRef, useCallback, useMemo } from "react";
+import React, { useEffect} from "react";
 import { useSelector, useDispatch } from 'react-redux'
-import * as types from "../User/user-constants";
-import axios from "axios";
-import {
-  Routes,
-  Route,
-  Link,
-  Navigate,
-  Outlet,
-} from 'react-router-dom';
 import { authenticateUser  } from "../features/user/userSlice";
 /**
  * Higher-order component (HOC) to wrap restricted pages

@@ -1,5 +1,5 @@
 import React, { Component } from "react"
-import NavigationContainer from "./NavigationContainer"
+import Navigation from "./Navigation"
 import { Routes, Route } from 'react-router-dom';
 
 import Restricted from "./Restricted"
@@ -15,7 +15,7 @@ const App = (params) => {
 		const {store} = params;
 		return (
 			<div>
-				<NavigationContainer />
+				<Navigation/>
 				<Routes>
 					<Route path="/about"  element={ <Restricted><About/></Restricted>} />
 					<Route path="/system/:shortName" element={ <Restricted><System/></Restricted>} />
