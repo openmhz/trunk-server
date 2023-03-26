@@ -1,5 +1,7 @@
-import React, {  Component } from "react";
-import { Link } from "react-router-dom";
+
+import React, { useEffect, useState, } from "react";
+import { useNavigate, useSearchParams, Link  } from 'react-router-dom';
+import { loginUser  } from "../features/user/userSlice";
 
 import {
   Container,
@@ -26,31 +28,26 @@ const forgotStyle = {
 // ----------------------------------------------------
 
 
-class Login extends Component {
-  constructor(props) {
-    super(props);
-    this._onLoginSubmit = this._onLoginSubmit.bind(this);
-    this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleRegisterClick = this.handleRegisterClick.bind(this);
-  }
+const Login = (props) => {
+  const [loginMessage, setLoginMessage] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  let [searchParams, setSearchParams] = useSearchParams();
+  const nextLocation = searchParams.get("nextLocation");
 
-  state = {
-    loginMessage: "",
-    email: "",
-    password: ""
-  };
-  handleRegisterClick = () => {
-    this.props.changeUrl("/register");
-  };
-  handleInputChange = (e, { name, value }) => this.setState({ [name]: value });
-  _onLoginSubmit(event) {
+
+
+
+
+
+  const handleInputChange = (e, { name, value }) => this.setState({ [name]: value });
+
+  const loginSubmit = (event) => {
     event.preventDefault();
-    const { email, password } = this.state;
+    /*
     var success = { type: "path", nextPathname: "/" };
-    if (this.props.nextPathname) {
-      success.nextPathname = this.props.nextPathname;
-    }
-    if (this.props.nextLocation) {
+    if (nextLocation) {
       success.type = "location";
       switch (this.props.nextLocation) {
         case "frontend":
@@ -81,11 +78,10 @@ class Login extends Component {
             loginMessage
           });
         }
-      });
+      });*/
   }
 
-  render() {
-    var loginMessage = "";
+/*
 
     if (this.state.loginMessage) {
       loginMessage = (
@@ -98,7 +94,7 @@ class Login extends Component {
         </Message>
       );
     }
-
+*/
     return (
       <Container>
         <Header as="h1">{process.env.REACT_APP_SITE_NAME}</Header>
@@ -147,12 +143,12 @@ class Login extends Component {
               <Button
                 size="large"
                 content="Register"
-                onClick={this.handleRegisterClick}
+                onClick={()=>navigate("/register")}
                 fluid
               />
               <Divider style={dividerStyle} horizontal>Or</Divider>
               <Header as="h3">Login</Header>
-              <Form onSubmit={this._onLoginSubmit}>
+              <Form onSubmit={loginSubmit}>
                 <Segment padded>
                   <Form.Field>
                     <Form.Input
@@ -160,7 +156,8 @@ class Login extends Component {
                       iconPosition="left"
                       type="text"
                       name="email"
-                      onChange={this.handleInputChange}
+                      onChange={e => setEmail(e.target.value)}
+                      value={email}
                       placeholder="E-mail address"
                     />
                   </Form.Field>
@@ -170,7 +167,8 @@ class Login extends Component {
                       iconPosition="left"
                       type="password"
                       name="password"
-                      onChange={this.handleInputChange}
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
                       placeholder="Password"
                     />
                   </Form.Field>
@@ -190,6 +188,6 @@ class Login extends Component {
       </Container>
     );
   }
-}
+
 
 export default Login;

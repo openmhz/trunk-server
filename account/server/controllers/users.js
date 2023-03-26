@@ -1,10 +1,7 @@
 const passport = require("passport");
 const User = require("../models/user");
+const Mailjet = require('node-mailjet');
 
-const mailjet = require("node-mailjet").connect(
-process.env['MAILJET_KEY'],
-  process.env['MAILJET_SECRET']
-);
 const crypto = require("crypto");
 
 var admin_email = process.env['REACT_APP_ADMIN_EMAIL'] != null ? process.env['REACT_APP_ADMIN_EMAIL'] : "luke@openmhz.com";
@@ -12,12 +9,21 @@ var site_name = process.env['REACT_APP_SITE_NAME'] != null ? process.env['REACT_
 var account_server = process.env['REACT_APP_ACCOUNT_SERVER'] != null ? process.env['REACT_APP_ACCOUNT_SERVER'] : "https://account.openmhz.com";
 var cookie_domain = process.env['REACT_APP_COOKIE_DOMAIN'] != null ? process.env['REACT_APP_COOKIE_DOMAIN'] : '.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
 
+
+const mailjet = new Mailjet({
+  apiKey: process.env['MAILJET_KEY'],
+  apiSecret: process.env['MAILJET_SECRET']
+});
+
+
+
 exports.isLoggedIn = function(req, res, next) {
   if (req.isAuthenticated()) return next();
   res.redirect("/login");
 };
 
 // -------------------------------------------
+
 
 exports.authenticated = function(req, res, next) {
   res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');

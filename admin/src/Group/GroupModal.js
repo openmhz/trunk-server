@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState, useRef, useCallback, useMemo } from "react";
+import React, { useEffect, useState, } from "react";
 import { useGetSystemsQuery, useGetTalkgroupsQuery, useGetGroupsQuery, useUpdateGroupMutation, useCreateGroupMutation, useDeleteGroupMutation, useSaveGroupOrderMutation} from '../features/api/apiSlice'
 
 import {
@@ -105,7 +105,6 @@ const GroupModal = (props) => {
     setTalkgroups(talkgroups);
   }
 
-  const handleInputChange = (e, { name, value }) => this.setState({ [name]: value });
 
   const addTalkgroup = (event, index) => {
     const item = {

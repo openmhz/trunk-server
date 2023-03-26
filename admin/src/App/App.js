@@ -27,22 +27,6 @@ const App = (params) => {
 				</Routes>
 			</div>
 		)
-		/*
-		return (
-			<div>
-				<NavigationContainer />
-				<Routes>
-					<Route path="/about" element={<About />}   component={Restricted(About, store)} />
-					<Route path="/system/:shortName" component={Restricted(SystemContainer, store)} />
-					<Route path="/update-system/:shortName" component={Restricted(UpdateSystemContainer, store)} />
-					<Route path="/create-system" component={Restricted(CreateSystemContainer, store)} />
-					<Route path="/list-systems" component={Restricted(ListSystemsContainer, store)} />
-					<Route path="/" component={Restricted(ListSystemsContainer, store)} />
-					<Route render={() => (<div>Miss</div>)} />
-				</Routes>
-			</div>
-		)*/
-	
 };
 
 export default App
