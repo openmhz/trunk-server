@@ -2,7 +2,7 @@
 import React, { useEffect, useState, } from "react";
 import { useNavigate, useSearchParams, Link  } from 'react-router-dom';
 import { loginUser  } from "../features/user/userSlice";
-
+import { useSelector, useDispatch } from 'react-redux'
 import {
   Container,
   Header,
@@ -35,66 +35,52 @@ const Login = (props) => {
   const navigate = useNavigate();
   let [searchParams, setSearchParams] = useSearchParams();
   const nextLocation = searchParams.get("nextLocation");
+  const dispatch = useDispatch();
 
-
-
-
-
-
-  const handleInputChange = (e, { name, value }) => this.setState({ [name]: value });
-
-  const loginSubmit = (event) => {
+  const loginSubmit = async (event) => {
     event.preventDefault();
-    /*
-    var success = { type: "path", nextPathname: "/" };
-    if (nextLocation) {
-      success.type = "location";
-      switch (this.props.nextLocation) {
-        case "frontend":
-          success.nextLocation = process.env.REACT_APP_FRONTEND_SERVER;
-          break;
-          default:
-          case "admin":
-            success.nextLocation = process.env.REACT_APP_ADMIN_SERVER;
-            break;
+    const result = await dispatch(loginUser({email,password})).unwrap();
+    if (result.success) {
+
+        if (nextLocation) {
+          switch (this.props.nextLocation) {
+            case "frontend":
+              window.location =  process.env.REACT_APP_FRONTEND_SERVER;
+              break;
+              default:
+              case "admin":
+                window.location =  process.env.REACT_APP_ADMIN_SERVER;
+                break;
+          }
+        } else {
+          navigate("/");
       }
+      console.log(result)
+    } else {
+      console.error(result);
+      setLoginMessage(result.message);
+      if (result.message === "unconfirmed email") {
+        /*data.userId = response.data.userId;
+        dispatch(loginEmailError(data));*/
+        navigate("/wait-confirm-email");
+      } 
     }
-
-    // Passed in via react-redux. Returns a promise.
-    this.props
-      .manualLogin(
-        {
-          // this function is passed in via react-redux
-          email,
-          password
-        },
-        success
-
-      ) // holds the path to redirect to after login (if any)
-      .then(loginMessage => {
-        if (loginMessage) {
-          // report to the user is there was a problem during login
-          this.setState({
-            loginMessage
-          });
-        }
-      });*/
   }
 
-/*
+  let loginMessageDisplay =(<></>)
 
-    if (this.state.loginMessage) {
-      loginMessage = (
+    if (loginMessage) {
+      loginMessageDisplay = (
         <Message icon>
           <Icon name="lemon" />
           <Message.Content>
             <Message.Header>Problems...</Message.Header>
-            {this.state.loginMessage}
+            {loginMessage}
           </Message.Content>
         </Message>
       );
     }
-*/
+
     return (
       <Container>
         <Header as="h1">{process.env.REACT_APP_SITE_NAME}</Header>
@@ -176,7 +162,7 @@ const Login = (props) => {
                   <Button type="submit" size="large" value="Login" fluid>
                     Login
                   </Button>
-                  {loginMessage}
+                  {loginMessageDisplay}
                 </Segment>
               </Form>
               <div style={forgotStyle} >

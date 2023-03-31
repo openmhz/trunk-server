@@ -8,7 +8,7 @@ const configureExpress = require("./config/express");
 const systems = require("./controllers/systems");
 const groups = require("./controllers/groups");
 const talkgroups = require("./controllers/talkgroups");
-const Permission = require("./models/permission");
+
 require("./models/user");
 const multer = require('multer');
 
@@ -60,26 +60,6 @@ mongoose.connection.on('disconnected', () => {
 const isDev = process.env.NODE_ENV === "development"
 
 
-/*
-async function getRole(req) {
-  let promise = new Promise((resolve, reject) => {
-    if (req.params.shortName && req.user) {
-    var short_name = req.params.shortName.toLowerCase();
-    var userId = req.user._id;
-    Permission.findOne({'userId': userId, 'shortName': short_name}, function(err, permission) {
-      if (err) {
-        console.error('Error - getRole userId: ' + userId + ' shortName: ' + short_name + ' error: ' + err);
-        reject(-1);
-      }
-      console.log('Found - getRole userId: ' + userId + ' shortName: ' + short_name + ' role: ' + permission.role);
-
-      resolve(permission.role);
-    });
-  } else {
-    reject(-1);
-  }});
-  return promise;
-}*/
 
 
 
