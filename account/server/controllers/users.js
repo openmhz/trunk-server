@@ -91,10 +91,14 @@ exports.login = function (req, res, next) {
       }
       if (!user.confirmEmail) {
         req.logout();
-        return res.json({
-          success: false,
-          message: "unconfirmed email",
-          userId: user.id
+        req.logout(function (err) {
+          if (err) { return next(err); }
+          res.clearCookie('sessionId', { domain: cookie_domain, path: '/' });
+          return res.json({
+            success: false,
+            message: "unconfirmed email",
+            userId: user.id
+          });
         });
       }
       //console.log("account/server/controllers/users.js - req.login() Authenicated: " + user.email);
@@ -370,20 +374,20 @@ function handleSendConfirmEmail(user) {
         TextPart: "Thanks for signing up for " + site_name + ". We just wanted to check and make sure your email address was real. Copy and paste this addres in your browser to confirm your email address: " + account_server + "/confirm-email/" + user._id + "/" + token,
         HTMLPart: "<h3>Thanks for signing up for " + site_name + "</h3><br />We just wanted to check and make sure your email address was real. Copy and paste this addres in your browser to confirm your email address:<p> " + account_server + "/confirm-email/" + user._id + "/" + token + "</p>"
       }]
-    });
-  }).then(result => {
-    console.log("Confirm email sent to: " + user.email);
-    resolve({
-      success: true,
-      userId: user._id
-    });
-  }).catch(err => {
-    console.error("Admin Email: " + admin_email + " User Email: " + user.email);
-    console.error("Error - Send Confirm Email - caught: " + err);
-    res.status(500);
-    reject({
-      success: false,
-      message: err
+    }).then(result => {
+      console.log("Confirm email sent to: " + user.email);
+      resolve({
+        success: true,
+        userId: user._id
+      });
+    }).catch(err => {
+      console.error("Admin Email: " + admin_email + " User Email: " + user.email);
+      console.error("Error - Send Confirm Email - caught: " + err);
+      res.status(500);
+      reject({
+        success: false,
+        message: err
+      });
     });
   });
 }
@@ -425,10 +429,13 @@ exports.sendConfirmEmail = async function (req, res, next) {
 
 exports.logout = function (req, res, next) {
   // the logout method is added to the request object automatically by Passport
-  req.logout();
-  res.clearCookie('sessionId', { domain: cookie_domain, path: '/' });
-  return res.json({
-    success: true
+  req.logout(function (err) {
+    if (err) { return next(err); }
+
+    res.clearCookie('sessionId', { domain: cookie_domain, path: '/' });
+    return res.json({
+      success: true
+    });
   });
 };
 
@@ -542,6 +549,30 @@ exports.updateProfile = async function (req, res, next) {
     });
     return;
   }
+
+  // Lets make sure someone else isn't using this screenName
+  screenNameUser = await User.findOne({ screenName: req.body.screenName }).catch(err => {
+    console.error(err);
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
+  });
+
+  // Did we find a user with the screeName, is it not us?
+  if (screenNameUser && (screenNameUser.userId != user.userId)) {
+    res.status(500);
+    res.json({
+      success: false,
+      message: "Screen Name already in use"
+    });
+    return;
+  }
+
+
+
   // go ahead and create the new user
   user.firstName = res.locals.firstName
   user.lastName = res.locals.lastName
@@ -608,6 +639,24 @@ exports.register = async function (req, res, next) {
     });
     return;
   }
+  user = await User.findOne({ screenName: req.body.screenName }).catch(err => {
+    console.error(err);
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
+  });
+  // is email address already in use?
+  if (user) {
+    res.status(500);
+    res.json({
+      success: false,
+      message: "Screen Name already in use"
+    });
+    return;
+  }
   // go ahead and create the new user
   user = (({
     firstName,
@@ -628,12 +677,16 @@ exports.register = async function (req, res, next) {
   user.password = req.body.password;
   user.email = req.body.email;
 
-  await User.create(user)
+  let savedUser = await User.create(user)
 
   console.log("Successfully registered: " + user.email + ", now sending confirmation email.");
-  // Since regiestration worked, send a confirmation email.
-  handleSendConfirmEmail(user).then(function (result) {
-    res.json(result);
+  // Since registration worked, send a confirmation email.
+  handleSendConfirmEmail(savedUser).then(function (result) {
+    console.log("Confirmation email sent to: " + user.email);
+    res.json({
+      success: true,
+      message: result
+    });
     return;
   }).catch(function (err) {
     console.error("Error creating user: " + user.email + " Error: " + err);

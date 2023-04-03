@@ -28,6 +28,7 @@ const UserForm = (props) => {
   const [passwordError, setPasswordError] = useState(false);
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
   const [isEditing, setIsEditing] = useState(props.isEditing);
+  const [changed, setChanged] = useState(false);
   const requestMessage = props.requestMessage;
   
   useEffect(() => {
@@ -37,6 +38,7 @@ const UserForm = (props) => {
       setScreenName(props.user.screenName);
       setEmail(props.user.email);
       setLocation(props.user.location);
+      setChanged(false);
     }
   }, [props.isEditing, props.user]);
 
@@ -120,6 +122,7 @@ const UserForm = (props) => {
 
     if (!inputError) {
       const user ={ firstName, lastName, screenName, location, email, password };
+      setChanged(false);
       props.onSubmit(user);
     }
   }
@@ -153,6 +156,7 @@ const UserForm = (props) => {
       </Message>
     );
   }
+  const buttonDisabled = changed?{}:{disabled:true}
   return (
     <div>
       <Form
@@ -168,7 +172,7 @@ const UserForm = (props) => {
             <Form.Input
               type="text"
               name="firstName"
-              onChange={e => setFirstName(e.target.value)}
+              onChange={e => {setFirstName(e.target.value); setChanged(true)}}
               error={firstNameError}
               value={firstName}
               label="First name"
@@ -179,7 +183,7 @@ const UserForm = (props) => {
             <Form.Input
               type="text"
               name="lastName"
-              onChange={e => setLastName(e.target.value)}
+              onChange={e => {setLastName(e.target.value); setChanged(true)}}
               error={lastNameError}
               value={lastName}
               label="Last name"
@@ -192,7 +196,7 @@ const UserForm = (props) => {
             <Form.Input
               type="text"
               name="email"
-              onChange={e => setEmail(e.target.value)}
+              onChange={e => {setEmail(e.target.value); setChanged(true)}}
               error={emailError}
               value={email}
               disabled={isEditing}
@@ -205,7 +209,7 @@ const UserForm = (props) => {
             <Form.Input
               type="text"
               name="screenName"
-              onChange={e => setScreenName(e.target.value)}
+              onChange={e => {setScreenName(e.target.value); setChanged(true)}}
               error={screenNameError}
               value={screenName}
               label="Screen Name"
@@ -221,7 +225,7 @@ const UserForm = (props) => {
             <Form.Input
               type="text"
               name="location"
-              onChange={e => setLocation(e.target.value)}
+              onChange={e => {setLocation(e.target.value); setChanged(true)}}
               error={locationError}
               value={location}
               label="General Location"
@@ -235,7 +239,8 @@ const UserForm = (props) => {
               <Form.Input
                 name="password"
                 type="password"
-                onChange={e => setPassword(e.target.value)}
+                onChange={e => {setPassword(e.target.value); setChanged(true)}}
+                value={password}
                 error={passwordError}
                 disabled={isEditing}
                 label="Password"
@@ -246,7 +251,8 @@ const UserForm = (props) => {
               <Form.Input
                 name="confirmPassword"
                 type="password"
-                onChange={e => setConfirmPassword(e.target.value)}
+                onChange={e => {setConfirmPassword(e.target.value); setChanged(true)}}
+                value={confirmPassword}
                 error={confirmPasswordError}
                 disabled={isEditing}
                 label="Confirm Password"
@@ -256,7 +262,7 @@ const UserForm = (props) => {
           </Form.Group>
         )}
         <div style={floatStyle}>
-          <Button type="submit" size="large" floated="right" value="Login" color='blue'>
+          <Button type="submit" size="large" floated="right" value="Login" color='blue' disabled={!changed}>
             {isEditing !== true ? 'Register' : 'Update'}
           </Button>
         </div>

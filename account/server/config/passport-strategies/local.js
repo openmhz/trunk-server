@@ -26,6 +26,10 @@ const local = new LocalStrategy({
 		console.error("Auth Error - user not found: " + email);
 		return done(null, false, { message: `Invalid email or password` })
 	}
+	if (!user.confirmEmail) {
+		console.error("Auth Error - user has not confirmed email: " + email);
+		return done(null, false, { message: `User's email is not confirmed` })
+	}
 	user.comparePassword(password, (err, isMatch) => {
 		if (isMatch) {
 			return done(null, user)

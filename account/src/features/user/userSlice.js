@@ -90,6 +90,22 @@ export const logoutUser = createAsyncThunk(
     }
 )
 
+
+export const confirmEmail = createAsyncThunk(
+    'user/confirmEmail',
+    async ({userId, token}) => {
+        const url = process.env.REACT_APP_ACCOUNT_SERVER + "/users/" + userId + "/confirm/" + token;
+        const res = await fetch(url, {
+            method: 'POST'
+        }).then(
+            (data) => data.json()
+        )
+        return res;
+    }
+)
+
+
+
 export const sendConfirmEmail = createAsyncThunk(
     'user/sendConfirmEmail',
     async (userId) => {
@@ -111,7 +127,7 @@ export const resetPassword = createAsyncThunk(
     'user/resetPassword',
     async (data) => {
         const {userId, token, password} = data;
-        const url = process.env.REACT_APP_ACCOUNT_SERVER + "/users/" + userId + "/confirm/" + token
+        const url = process.env.REACT_APP_ACCOUNT_SERVER + "/users/" + userId + "/reset-password/" + token
         const res = await fetch(url, {
             method: 'POST',
             credentials: "include",
@@ -192,19 +208,11 @@ export const userSlice = createSlice({
         [updateProfile.fulfilled]: (state, data) => {
             const {payload} = data;
             if (payload.success) {
-                state.authenticated = true;
-                state.hasAuthenticated = true;
-                state.userId = payload.user.userId;
-                state.admin = payload.user.admin;
-                state.email = payload.user.email;
                 state.firstName = payload.user.firstName;
                 state.lastName = payload.user.lastName;
                 state.location = payload.user.location;
                 state.screenName = payload.user.screenName;
-            } else {
-                state.authenticated = false;
-                state.hasAuthenticated = true;
-            }
+            } 
         },
         [loginUser.rejected]: (state, { payload }) => {
             state.authenticated = false;

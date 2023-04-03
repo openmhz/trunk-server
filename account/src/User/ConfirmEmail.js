@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Dimmer,
@@ -7,72 +7,65 @@ import {
   Message,
   Icon
 } from "semantic-ui-react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { confirmEmail } from "../features/user/userSlice";
+import { useDispatch } from 'react-redux'
 
-class ConfirmEmail extends Component {
+const ConfirmEmail = (props) => {
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(true);
+  const [confirmMessage, setConfirmMessage] = useState({ success: false, message: "" });
+  const { userId, token } = useParams();
 
-  state = {
-    loading: true,
-    confirmMessage: { success: false, message:""}
-  };
-  componentDidMount() {
-    const { match: { params } } = this.props;
 
-    this.props
-      .confirmEmail(params.userId, params.token)
-      .then(confirmMessage => {
-        if (confirmMessage) {
-          // report to the user is there was a problem during login
-          this.setState({
-            confirmMessage: confirmMessage, loading: false
-          });
-        }
-      });
+  const checkConfirmation = async(userId, token) => {
+    const result = await dispatch(confirmEmail({ userId, token })).unwrap();
+    if (result) {
+      setConfirmMessage(result);
+      setLoading(false);
+    }
   }
 
-  render() {
-    var dimmerProps = {  };
-    if (this.state.loading) {
-      dimmerProps["active"] = true;
-    }
-    return (
+  useEffect(() => {
+    checkConfirmation(userId, token);
+  }, []);
 
-      <Container text>
+  const dimmerProps = { active: loading };
+
+  return (
+    <Container text>
       <Dimmer {...dimmerProps}>
-            <Loader indeterminate>Confirming Email Address</Loader>
-          </Dimmer>
-        
-          
-        {this.state.confirmMessage.success ? (
-          <Message icon>
-          
-       <Icon name='check'/>
-       <Message.Content>
-         <Message.Header>Success</Message.Header>
-           <p>You have successfully confirmed you email address.</p>
-             <Link to="/">
-              <Button
-                  size="large"
-                  content="Continue to Login"
-                  fluid
-                /></Link>
+        <Loader indeterminate>Confirming Email Address</Loader>
+      </Dimmer>
 
-       </Message.Content>
-       </Message>
-        ) : (
-          <Message icon>
-          <Icon name='exclamation'/>
+      {confirmMessage.success ? (
+        <Message icon>
+          <Icon name='check' />
+          <Message.Content>
+            <Message.Header>Success</Message.Header>
+            <p>You have successfully confirmed you email address.</p>
+            <Link to="/login">
+              <Button
+                size="large"
+                content="Continue to Login"
+                fluid
+              /></Link>
+          </Message.Content>
+        </Message>
+      ) : (
+        <Message icon>
+          <Icon name='exclamation' />
           <Message.Content>
             <Message.Header>Error</Message.Header>
-            <p>{this.state.confirmMessage.message}</p>
+            <p>{confirmMessage.message}</p>
           </Message.Content>
-          
-          </Message>
-        )}
-      
-     </Container>
-    );
-  }
+        </Message>
+      )}
+
+    </Container>
+  );
 }
 
 export default ConfirmEmail;
+
+

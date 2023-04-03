@@ -20,7 +20,7 @@ const Profile = (props) => {
       if (result.success) {
       console.log(result)
     } else {
-      setMessage = result.message;
+      setMessage(result.message);
     }
   }
 

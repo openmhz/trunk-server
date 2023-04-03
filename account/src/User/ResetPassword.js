@@ -43,7 +43,6 @@ const ResetPassword = (props) => {
       setConfirmPasswordError(false);
     }
 
-    const { match: { params } } = props;
     setCheckInputMessages(inputMessages);
     if (!error) {
       const result = await dispatch(resetPassword({ userId, token, password })).unwrap();
