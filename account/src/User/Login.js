@@ -43,7 +43,7 @@ const Login = (props) => {
     if (result.success) {
 
         if (nextLocation) {
-          switch (this.props.nextLocation) {
+          switch (nextLocation) {
             case "frontend":
               window.location =  process.env.REACT_APP_FRONTEND_SERVER;
               break;

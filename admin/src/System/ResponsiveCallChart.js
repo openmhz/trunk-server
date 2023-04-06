@@ -1,4 +1,3 @@
-import React, { Component } from "react"
 import CallChart from "./CallChart"
 import { ParentSize } from "@visx/responsive";
 

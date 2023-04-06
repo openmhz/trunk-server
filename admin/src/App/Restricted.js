@@ -2,7 +2,7 @@
 import React, { useEffect} from "react";
 import { useSelector, useDispatch } from 'react-redux'
 import { authenticateUser  } from "../features/user/userSlice";
-import { useNavigate } from 'react-router-dom';
+
 /**
  * Higher-order component (HOC) to wrap restricted pages
  */
@@ -10,8 +10,6 @@ import { useNavigate } from 'react-router-dom';
 const Restricted = ({children }) => {
   const { authenticated, hasAuthenticated } = useSelector((state) => state.user);
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  
   useEffect(() => {
     dispatch(authenticateUser({}));
   },[]);
@@ -21,8 +19,7 @@ const Restricted = ({children }) => {
       return children;;
     } 
    else {
-    
-    navigate("/list-systems")
+    window.location = process.env.REACT_APP_ACCOUNT_SERVER + "/login?nextLocation=admin";
   } 
 }
   return <div/>

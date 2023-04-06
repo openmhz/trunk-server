@@ -1,5 +1,5 @@
 import React, { useEffect, useState, } from "react";
-import { useGetSystemsQuery, useGetTalkgroupsQuery, useGetGroupsQuery, useUpdateGroupMutation, useCreateGroupMutation, useDeleteGroupMutation, useSaveGroupOrderMutation} from '../features/api/apiSlice'
+import { useGetTalkgroupsQuery, useGetGroupsQuery, useUpdateGroupMutation, useCreateGroupMutation} from '../features/api/apiSlice'
 
 import {
   Grid,
@@ -21,15 +21,15 @@ const GroupModal = (props) => {
     name: "",
     items: []
   }
-  const [editGroup, setEditGroup] = useState(false);
+
   const [groupName, setGroupName] = useState("");
   const [group, setGroup] = useState(emptyGroup)
   const [talkgroups, setTalkgroups] = useState(props.talkgroups ? props.talkgroups : [])
 
-  const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(props.shortName);
-  const { data: groupsData, isSuccess: isGroupsSuccess } = useGetGroupsQuery(props.shortName);
-  const [ updateGroup,{ isLoading: isUpdating } ] = useUpdateGroupMutation();
-  const [ createGroup,{ isLoading: isCreating } ] = useCreateGroupMutation();
+  const { data: talkgroupsData} = useGetTalkgroupsQuery(props.shortName);
+  const { data: groupsData} = useGetGroupsQuery(props.shortName);
+  const [ updateGroup] = useUpdateGroupMutation();
+  const [ createGroup] = useCreateGroupMutation();
 
   useEffect(() => {
     if (talkgroupsData && groupsData && props.editGroupId) {
@@ -66,7 +66,7 @@ const GroupModal = (props) => {
     if (!props.editGroupId && talkgroupsData) {
       setTalkgroups([...talkgroupsData]);
     }
-  },[talkgroupsData]);
+  },[talkgroupsData, props.editGroupId]);
 
 
   useEffect(() => {
@@ -75,15 +75,9 @@ const GroupModal = (props) => {
       setGroup(emptyGroup);
       setTalkgroups( [...props.talkgroups]);
     }
-  },[props.editGroupId]);
+  },[props.editGroupId, props.talkgroups]);
 
-
-
-
-
-
-
-  const removeTalkgroup = (event, index) => {
+  const removeTalkgroup =  (index) => {
     const item = {
       num: group.items[index].num,
       description: group.items[index].description
@@ -106,7 +100,7 @@ const GroupModal = (props) => {
   }
 
 
-  const addTalkgroup = (event, index) => {
+  const addTalkgroup = (index) => {
     const item = {
       num: talkgroupsData[index].num,
       description: talkgroupsData[index].description

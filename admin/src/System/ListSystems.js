@@ -1,4 +1,3 @@
-import { Component, useRef } from "react";
 import SystemCard from "./SystemCard";
 import {
   Container,
@@ -9,15 +8,12 @@ import {
   Button,
 } from "semantic-ui-react";
 import { useGetSystemsQuery, } from '../features/api/apiSlice'
-import { useDispatch } from 'react-redux'
-
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 
 // ----------------------------------------------------
-const ListSystems = (props) => {
+const ListSystems = () => {
   const { data, isSuccess } = useGetSystemsQuery();
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   let systems = false;
   if (isSuccess) {
@@ -31,7 +27,6 @@ const ListSystems = (props) => {
       <div>
         <Container>
           <Header as="h1">Radio Systems</Header>
-          
             <Button onClick={(e) => navigate("/create-system")}><Icon name='plus' />Add System</Button>
             <Divider />
           <Card.Group itemsPerRow={4}>

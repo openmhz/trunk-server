@@ -1,14 +1,10 @@
 import { Link } from "react-router-dom";
 import { Menu, Dropdown } from "semantic-ui-react";
-import React, { useEffect } from "react";
 import { useSelector, useDispatch } from 'react-redux'
 import { logoutUser } from "../features/user/userSlice";
 
 const navStyle = {
   marginBottom: "30px"
-};
-const blankStyle = {
-  marginBottom: "50px"
 };
 
 const Navigation = (props) => {

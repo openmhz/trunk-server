@@ -28,13 +28,11 @@ const SystemForm = (props) => {
   const [nameError, setNameError] = useState(false);
   const [shortNameError, setShortNameError] = useState(false);
   const [descriptionError, setDescriptionError] = useState(false);
-  const [emailError, setEmailError] = useState(false);
-  const [systemTypeError, setSystemTypeError] = useState(false);
   const [systemStateError, setSystemStateError] = useState(false);
   const [cityError, setCityError] = useState(false);
   const [countyError, setCountyError] = useState(false);
   const [countryError, setCountryError] = useState(false);
-  const [isEditing, setIsEditing] = useState(props.isEditing);
+  const [isEditing] = useState(props.isEditing);
 
   useEffect(() => {
     if (props.isEditing && props.system) {
@@ -49,7 +47,7 @@ const SystemForm = (props) => {
       setShowScreenName(props.system.showScreenName);
       setIgnoreUnknownTalkgroup(props.system.ignoreUnknownTalkgroup);
     }
-  }, [props.system]);
+  }, [props.system, props.isEditing]);
 
 
   const checkInputs = () => {

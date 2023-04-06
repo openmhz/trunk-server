@@ -1,4 +1,3 @@
-import React, { Component } from "react"
 import Navigation from "./Navigation"
 import { Routes, Route } from 'react-router-dom';
 
@@ -12,7 +11,6 @@ import CreateSystem from "../System/CreateSystem"
 
 
 const App = (params) => {
-		const {store} = params;
 		return (
 			<div>
 				<Navigation/>

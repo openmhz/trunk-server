@@ -1,4 +1,4 @@
-import React, { Component } from "react"
+import React from "react"
 import Navigation from "./Navigation"
 import { Routes, Route } from 'react-router-dom';
 
@@ -15,7 +15,6 @@ import ResetPassword from "../User/ResetPassword"
 import Terms from "../User/Terms"
 
 const App = (params) => {
-	const { store } = params;
 	return (
 		<div>
 			<Navigation />

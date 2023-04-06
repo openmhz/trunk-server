@@ -10,7 +10,8 @@ var backend_server = process.env['REACT_APP_BACKEND_SERVER'] != null ? process.e
 var frontend_server = process.env['REACT_APP_FRONTEND_SERVER'] != null ? process.env['REACT_APP_FRONTEND_SERVER'] : 'https://openmhz.com';
 var socket_server = process.env['REACT_APP_SOCKET_SERVER'] != null ? process.env['REACT_APP_SOCKET_SERVER'] : 'wss://socket.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
 var account_server = process.env['REACT_APP_ACCOUNT_SERVER'] != null ? process.env['REACT_APP_ACCOUNT_SERVER'] : 'https://account.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
-var dev_server = "http://account.openmhz.test:3000"
+var account_dev_server = "http://account.openmhz.test:3000"
+var admin_dev_server = "http://admin.openmhz.test:3000"
 
 module.exports = function(app, passport) {
 	app.set("port", 3009)
@@ -65,7 +66,8 @@ module.exports = function(app, passport) {
 	    allowedOrigins.push(frontend_server);
 	    allowedOrigins.push(backend_server);
 	    allowedOrigins.push(socket_server);
-		allowedOrigins.push(dev_server);
+		allowedOrigins.push(admin_dev_server);
+		allowedOrigins.push(account_dev_server);
 	    var origin = req.headers.origin;
 
 

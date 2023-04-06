@@ -3,36 +3,24 @@ import React, {   useState } from "react";
 import {
   Container,
   Header,
-  Form,
-  Grid,
-  Segment,
-  Input,
-  Button,
   Divider,
-  Message,
-  Icon
 } from "semantic-ui-react";
 import {  useCreateSystemMutation} from '../features/api/apiSlice'
-import { useSelector, useDispatch } from 'react-redux'
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom';
 import SystemForm from "./SystemForm";
 
 // ----------------------------------------------------
-const requestMessageStyle = {
-  color: "red"
-};
-
-// ----------------------------------------------------
-const CreateSystem = (props) => {
+const CreateSystem = () => {
   const navigate = useNavigate();
-  const [createSystem, { error }] = useCreateSystemMutation();
+  const [createSystem ] = useCreateSystemMutation();
   const { screenName } = useSelector((state) => state.user);
 
   const [requestMessage, setRequestMessage] = useState("");
 
   const handleSubmit = async (system) => {
       try {
-        const originalPromiseResult = await createSystem(system).unwrap();
+        await createSystem(system).unwrap();
         navigate("/list-systems")
       } catch (error) {
         const message = error.data.message;

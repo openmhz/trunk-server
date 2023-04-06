@@ -1,4 +1,3 @@
-import React, { Component } from "react"
 import ErrorChart from "./ErrorChart"
 import { ParentSize } from "@visx/responsive";
 

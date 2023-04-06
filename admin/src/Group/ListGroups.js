@@ -1,15 +1,4 @@
-import React, { Component } from "react";
-import ReactDOM from "react-dom";
-import { Link } from 'react-router-dom'
 import {
-  Container,
-  Header,
-  Form,
-  Grid,
-  Segment,
-  Input,
-  Button,
-  Message,
   Icon,
   Table
 } from "semantic-ui-react";
@@ -30,7 +19,7 @@ const ListGroups = (props) => {
     if (groups) {
       // if a group gets deleted, it will still be listed in the Order array for a little.
       for (const id of props.order) {
-        const group = props.groups.find( group => group._id == id );
+        const group = props.groups.find( group => group._id === id );
         if (group) {
           groupsDisplay.push(group)
         }
@@ -58,13 +47,13 @@ const ListGroups = (props) => {
           onClick={e => props.editGroup(group._id)}
         /><Icon
           name="up arrow"
-          link={i==0?false:true}
-          disabled={i==0?true:false}
+          link={i===0?false:true}
+          disabled={i===0?true:false}
           onClick={e => props.reorderGroup(i, i-1)}
         /><Icon
           name="down arrow"
-          link={i==groupsDisplay.length-1?false:true}
-          disabled={i==groupsDisplay.length-1?true:false}
+          link={i===groupsDisplay.length-1?false:true}
+          disabled={i===groupsDisplay.length-1?true:false}
           onClick={e => props.reorderGroup(i, i+1)}
         /><Icon
           name="remove"

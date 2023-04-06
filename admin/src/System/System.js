@@ -1,5 +1,5 @@
-import React, { useEffect, useLayoutEffect, useState, useRef, useCallback, useMemo } from "react";
-import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useLayoutEffect, useState } from "react";
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import ListTalkgroups from "../Talkgroups/ListTalkgroups.js";
 import MessageBox from "../Components/Message.js";
 import ListGroups from "../Group/ListGroups.js";
@@ -19,23 +19,21 @@ import {
   List,
   Segment,
   Tab,
-  Divider,
-  Label
+  Divider
 } from "semantic-ui-react";
 
-const System = (props) => {
+const System = () => {
   const { shortName } = useParams();
   const navigate = useNavigate();
   const { data: systemsData, isSuccess: isSystemsSuccess } = useGetSystemsQuery();
   const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
-  const { data: groupsData, isSuccess: isGroupsSuccess } = useGetGroupsQuery(shortName);
-  const { data: errorsData, isSuccess: isErrorsSuccess } = useGetErrorsQuery(shortName);
-  const [deleteGroupAPI, { isLoading: isDeleting }] = useDeleteGroupMutation();
-  const [reorderGroupsAPI, { isLoading: isReordering }] = useSaveGroupOrderMutation();
-  const [importTalkgroupsAPI, { isLoading: isImporting }] = useImportTalkgroupsMutation();
+  const { data: groupsData } = useGetGroupsQuery(shortName);
+  const { data: systemErrorData, isSuccess: isErrorsSuccess } = useGetErrorsQuery(shortName);
+  const [deleteGroupAPI] = useDeleteGroupMutation();
+  const [reorderGroupsAPI] = useSaveGroupOrderMutation();
+  const [importTalkgroupsAPI] = useImportTalkgroupsMutation();
   const [deleteSystemAPI ] = useDeleteSystemMutation();
   const [openSystemDeleteConfirm, setOpenSystemDeleteConfirm] = useState(false);
-  const [openPermissionDeleteConfirm, setOpenPermissionDeleteConfirm] = useState(false);
   const [openMessage, setOpenMessage] = useState(false);
   const [requestMessage, setRequestMessage] = useState("");
   const [groupVisible, setGroupVisible] = useState(false);
@@ -99,17 +97,17 @@ const System = (props) => {
     var maxValue = 0;
     var MS_PER_MINUTE = 60000;
     if (statistic) {
-      for (var j = 0; j < statistic.callTotals.length; j++) {
-        var spotsBack = statistic.callTotals.length - j;
-        var time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
+      for (let j = 0; j < statistic.callTotals.length; j++) {
+        let spotsBack = statistic.callTotals.length - j;
+        let time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
         if (time < minDate) minDate = time;
         if (statistic.callTotals[j] > maxValue)
           maxValue = statistic.callTotals[j];
         callTotals.push({ y: statistic.callTotals[j], x: time });
       }
-      for (var j = 0; j < statistic.errorTotals.length; j++) {
-        var spotsBack = statistic.errorTotals.length - j;
-        var time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
+      for (let j = 0; j < statistic.errorTotals.length; j++) {
+        let spotsBack = statistic.errorTotals.length - j;
+        let time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
         if (time < minDate) minDate = time;
         if (statistic.errorTotals[j] > maxValue)
           maxValue = statistic.errorTotals[j];
@@ -163,7 +161,7 @@ const System = (props) => {
 
   const deleteGroup = async (groupId) => {
     for (const num in groupsData) {
-      if (groupsData[num]._id == groupId) {
+      if (groupsData[num]._id === groupId) {
         await deleteGroupAPI(groupsData[num])
       }
     }
@@ -203,7 +201,7 @@ const System = (props) => {
   const handleSystemDeleteConfirm = async () => {
     setOpenSystemDeleteConfirm(false);
     try {
-      const originalPromiseResult = await deleteSystemAPI(shortName).unwrap();
+      await deleteSystemAPI(shortName).unwrap();
       navigate("/list-systems")
     } catch (error) {
       const message = error.data.message;
@@ -217,7 +215,7 @@ const System = (props) => {
 
   let system = false;
   if (isSystemsSuccess) {
-    system = systemsData.systems.find(sys => sys.shortName == shortName);
+    system = systemsData.systems.find(sys => sys.shortName === shortName);
   }
 
   useLayoutEffect(() => {
@@ -239,9 +237,9 @@ const System = (props) => {
 
   useEffect(() => {
     if (isErrorsSuccess) {
-      processErrors(errorData)
+      processErrors(systemErrorData)
     }
-  }, [isErrorsSuccess]);
+  }, [systemErrorData]);
 
   let fileInput = null;
   var location = "";
@@ -289,6 +287,7 @@ const System = (props) => {
       case "state":
         location = system.state;
         break;
+      default:
       case "city":
         location = system.city + ", " + system.state;
         break;
