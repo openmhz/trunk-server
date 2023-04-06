@@ -1,8 +1,8 @@
 
-import React, { useEffect, useState, } from "react";
+import {  useState } from "react";
 import { useNavigate, useSearchParams, Link  } from 'react-router-dom';
 import { loginUser  } from "../features/user/userSlice";
-import { useSelector, useDispatch } from 'react-redux'
+import {  useDispatch } from 'react-redux'
 import {
   Container,
   Header,
@@ -33,7 +33,7 @@ const Login = (props) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  let [searchParams, setSearchParams] = useSearchParams();
+  let [searchParams] = useSearchParams();
   const nextLocation = searchParams.get("nextLocation");
   const dispatch = useDispatch();
 

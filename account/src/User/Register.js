@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { registerUser } from "../features/user/userSlice";
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux'
 import {
   Container,
   Header,

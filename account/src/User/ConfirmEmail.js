@@ -28,7 +28,7 @@ const ConfirmEmail = (props) => {
 
   useEffect(() => {
     checkConfirmation(userId, token);
-  }, []);
+  }, [userId, token]);
 
   const dimmerProps = { active: loading };
 

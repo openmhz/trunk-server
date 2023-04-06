@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { sendConfirmEmail  } from "../features/user/userSlice";
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux'
@@ -9,8 +8,8 @@ const WaitConfirmEmail = () => {
   const navigate = useNavigate();
   const { email, userId } = useSelector((state) => state.user);
 
-  const handleSendConfirmEmail = async (event) => {
-    const message = await dispatch(sendConfirmEmail(userId)).unwrap(); 
+  const handleSendConfirmEmail = async () => {
+    await dispatch(sendConfirmEmail(userId)).unwrap(); 
     navigate("/sent-confirm-email")
   };
 

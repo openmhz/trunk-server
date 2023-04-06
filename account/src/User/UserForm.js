@@ -27,7 +27,7 @@ const UserForm = (props) => {
   const [locationError, setLocationError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
-  const [isEditing, setIsEditing] = useState(props.isEditing);
+  const [isEditing] = useState(props.isEditing);
   const [changed, setChanged] = useState(false);
   const requestMessage = props.requestMessage;
   
@@ -156,7 +156,7 @@ const UserForm = (props) => {
       </Message>
     );
   }
-  const buttonDisabled = changed?{}:{disabled:true}
+
   return (
     <div>
       <Form

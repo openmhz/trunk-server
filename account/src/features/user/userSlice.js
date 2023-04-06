@@ -1,7 +1,5 @@
 import {
     createSlice,
-    createEntityAdapter,
-    createSelector,
     createAsyncThunk
 } from '@reduxjs/toolkit'
 
@@ -145,7 +143,6 @@ export const resetPassword = createAsyncThunk(
 export const sendResetPassword = createAsyncThunk(
     'user/sendResetPassword',
     async (data) => {
-        const {userId, token, password} = data;
         const url = process.env.REACT_APP_ACCOUNT_SERVER + "/api/send-reset-password"
         const res = await fetch(url, {
             method: 'POST',

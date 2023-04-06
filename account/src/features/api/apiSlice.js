@@ -1,24 +1,7 @@
 // Import the RTK Query methods from the React-specific entry point
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { createSelector } from '@reduxjs/toolkit'
 
-/*
-const axiosBaseQuery =
-  ({ baseUrl } = { baseUrl: '' }) =>
-  async ({ url, method, data, params }) => {
-    try {
-      const result = await axios({ url: baseUrl + url, method, data, params })
-      return { data: result.data }
-    } catch (axiosError) {
-      let err = axiosError
-      return {
-        error: {
-          status: err.response?.status,
-          data: err.response?.data || err.message,
-        },
-      }
-    }
-  }*/
+
 
 // Define our single API slice object
 export const apiSlice = createApi({
@@ -56,9 +39,9 @@ export const apiSlice = createApi({
       async onQueryStarted(group, { dispatch, queryFulfilled }) {
         try {
           const { data: updatedGroup } = await queryFulfilled
-          const patchResult = dispatch(
+          dispatch(
             apiSlice.util.updateQueryData('getGroups', updatedGroup.shortName, (groups) => {
-              const groupIndex = groups.findIndex((obj => obj.groupId == updatedGroup.groupId));
+              const groupIndex = groups.findIndex((obj => obj.groupId === updatedGroup.groupId));
               groups[groupIndex] = updatedGroup;
             })
           )
@@ -75,7 +58,7 @@ export const apiSlice = createApi({
       async onQueryStarted(group, { dispatch, queryFulfilled }) {
         try {
           const { data: newGroup } = await queryFulfilled;
-          const patchResult = dispatch(
+          dispatch(
             apiSlice.util.updateQueryData('getGroups', newGroup.shortName, (groups) => {
               groups.push(newGroup);
             })
@@ -93,9 +76,9 @@ export const apiSlice = createApi({
       async onQueryStarted(group, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled
-          const patchResult = dispatch(
+          dispatch(
             apiSlice.util.updateQueryData('getGroups', group.shortName, (groups) => {
-              const groupIndex = groups.findIndex((obj => obj.groupId == group.groupId));
+              const groupIndex = groups.findIndex((obj => obj.groupId === group.groupId));
               groups.splice(groupIndex,1);
             })
           )
@@ -123,7 +106,7 @@ export const apiSlice = createApi({
       async onQueryStarted({shortName,file}, { dispatch, queryFulfilled }) {
         try {
           const { data: newTalkgroups } = await queryFulfilled;
-          const patchResult = dispatch(
+          dispatch(
             apiSlice.util.updateQueryData('getTalkgroups', shortName, (talkgroups) => {
               talkgroups.length = 0; // Clear your array
               talkgroups.push(...newTalkgroups);
@@ -147,7 +130,7 @@ export const apiSlice = createApi({
       async onQueryStarted(system, { dispatch, queryFulfilled }) {
         try {
           const { data: newSystem } = await queryFulfilled
-          const patchResult = dispatch(
+          dispatch(
             apiSlice.util.updateQueryData('getSystems', undefined, (systemsData) => {
               const systems = systemsData.systems;
               systems.push(newSystem);
@@ -166,10 +149,10 @@ export const apiSlice = createApi({
       async onQueryStarted(system, { dispatch, queryFulfilled }) {
         try {
           const { data: updatedSystem } = await queryFulfilled
-          const patchResult = dispatch(
+          dispatch(
             apiSlice.util.updateQueryData('getSystems', undefined, (systemsData) => {
               const systems = systemsData.systems;
-              const systemIndex = systems.findIndex((obj => obj.shortName == updatedSystem.shortName));
+              const systemIndex = systems.findIndex((obj => obj.shortName === updatedSystem.shortName));
               systems[systemIndex] = updatedSystem;
             })
           )
@@ -185,10 +168,10 @@ export const apiSlice = createApi({
       async onQueryStarted(shortName, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled
-          const patchResult = dispatch(
+          dispatch(
             apiSlice.util.updateQueryData('getSystems', undefined, (systemsData) => {
               const systems = systemsData.systems;
-              const systemIndex = systems.findIndex((obj => obj.shortName == shortName));
+              const systemIndex = systems.findIndex((obj => obj.shortName === shortName));
               systems.splice(systemIndex, 1);
             })
           )

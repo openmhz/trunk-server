@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Form,
   Grid,
@@ -9,14 +9,12 @@ import {
 } from "semantic-ui-react";
 import { sendResetPassword } from "../features/user/userSlice";
 import { Link } from "react-router-dom";
-import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux'
 
 
 
-const SendResetPassword = (props) => {
+const SendResetPassword = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const [checkInputMessages, setCheckInputMessages] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState(false);
