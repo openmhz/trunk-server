@@ -9,7 +9,7 @@ var spots = (24*60) / timePeriod; // the number of spots needed to keep track of
 
 function updateActiveSystems() {
 
-    // Go through all of the Syste,s
+    // Go through all of the Systems
     db.get().collection('systems', function(err, sysCollection) {
         var cursor = sysCollection.find();
         cursor.each(function(err, item) {

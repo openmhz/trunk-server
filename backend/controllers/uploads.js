@@ -126,22 +126,10 @@ exports.upload = function (req, res, next) {
       // Add in an API Key check
 
       try {
-
         var srcList = JSON.parse(req.body.source_list);
-
-        // Mongoose does not allow 'errors' to be used in the Schema for call. need to rename to error.
-        var badFreqList = JSON.parse(req.body.freq_list);
-        var freqList = badFreqList.map(obj => {
-          obj.error = obj.errors;
-          delete obj.errors;
-          return obj;
-        });
-
       } catch (err) {
         var srcList = [];
-        var freqList = [];
         console.warn("[" + req.params.shortName + "] Error /:shortName/upload Parsing Source/Freq List -  Error: " + err);
-
         res.status(500);
         res.send("Error parsing sourcelist " + err);
       }
@@ -173,7 +161,6 @@ exports.upload = function (req, res, next) {
         emergency: emergency,
         path: local_path,
         srcList: srcList,
-        freqList: freqList,
         len: -1
       });
 

@@ -234,7 +234,6 @@ function package_call(item) {
         name: item.name,
         freq: item.freq,
         srcList: item.srcList,
-        freqList: item.freqList,
         star: item.star,
         len: Math.round(item.len)
     };
