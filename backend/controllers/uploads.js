@@ -127,11 +127,14 @@ exports.upload = function (req, res, next) {
 
       try {
         var srcList = JSON.parse(req.body.source_list);
+        var errorCount = parseInt(req.body.error_count);
+        var spikeCount = parseInt(req.body.spike_count);
       } catch (err) {
         var srcList = [];
         console.warn("[" + req.params.shortName + "] Error /:shortName/upload Parsing Source/Freq List -  Error: " + err);
         res.status(500);
         res.send("Error parsing sourcelist " + err);
+        return;
       }
 
       var base_path = config.mediaDirectory;
@@ -157,6 +160,8 @@ exports.upload = function (req, res, next) {
         time: time,
         name: talkgroupNum + "-" + startTime + ".m4a",
         freq: freq,
+        errorCount: errorCount,
+        spikeCount: spikeCount,
         url: url,
         emergency: emergency,
         path: local_path,
@@ -244,7 +249,7 @@ exports.upload = function (req, res, next) {
             wasabiSrc.destroy();
             fs.unlink(req.file.path, (err) => {
               if (err) {
-                console.log("[" + call.shortName + "]error deleting: " + req.file.path);
+                console.error("[" + call.shortName + "]error deleting: " + req.file.path);
               }
               call.save();
               sysStats.addCall(call.toObject());
@@ -256,7 +261,7 @@ exports.upload = function (req, res, next) {
               }
             });
             if (err) {
-              console.log("[" + call.shortName + "] " + call.name + " -   content-length: " + req.headers['content-length'] + " Wasabi Error", err);
+              console.error("[" + call.shortName + "] " + call.name + " -   content-length: " + req.headers['content-length'] + " Wasabi Error", err);
             }
           });
         }
