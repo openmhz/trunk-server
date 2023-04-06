@@ -1,5 +1,5 @@
 # build environment
-FROM node:13.12.0-alpine as build
+FROM node:19-alpine3.16 as build
 WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
 ARG REACT_APP_BACKEND_SERVER
@@ -16,7 +16,7 @@ RUN npm run build
 RUN env
 
 # production environment
-FROM node:13.12.0-alpine
+FROM node:19-alpine3.16
 RUN mkdir -p /app/public
 COPY ./package.json /tmp
 RUN cd /tmp && npm install

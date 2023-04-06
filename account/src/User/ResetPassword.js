@@ -1,4 +1,7 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
+import { resetPassword } from "../features/user/userSlice";
+import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux'
 import {
   Container,
   Form,
@@ -6,101 +9,100 @@ import {
   Button,
 } from "semantic-ui-react";
 
-class ResetPassword extends Component {
-  constructor(props) {
-    super(props);
-    this.handleResetPassword = this.handleResetPassword.bind(this);
-    this.handleInputChange = this.handleInputChange.bind(this);
-  }
-  state = {
-    checkInputMessages: [],
-    password: "",
-    confirmPassword: "",
-    passwordError: false,
-    confirmPasswordError: false,
-    sentReset: false
-  };
+const ResetPassword = (props) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState(false);
+  const [confirmPasswordError, setConfirmPasswordError] = useState(false);
+  const [checkInputMessages, setCheckInputMessages] = useState([]);
+  const { userId, token } = useParams();
 
-
-  handleInputChange = (e, { name, value }) => this.setState({ [name]: value });
-
-  handleResetPassword(event) {
+  const handleResetPassword = async () => {
     let error = false;
-    var checkInputMessages = [];
+    var inputMessages = [];
 
-    if (this.state.password === "") {
-      this.setState({ passwordError: true });
-      checkInputMessages.push("Password is required");
+    if (password === "") {
+      setPasswordError(true);
+      inputMessages.push("Password is required");
       error = true;
-    } if (this.state.password.length < 7) {
-      this.setState({ passwordError: true });
-      checkInputMessages.push("Password must be 7 charecters or more");
-      error = true;
-    }else {
-      this.setState({ passwordError: false });
-    }
-
-    if (this.state.password !== this.state.confirmPassword) {
-      this.setState({ confirmPasswordError: true });
-      checkInputMessages.push("The passwords did not match");
+    } else if (password.length < 7) {
+      setPasswordError(true);
+      inputMessages.push("Password must be 7 characters or more");
       error = true;
     } else {
-      this.setState({ confirmPasswordError: false });
+      setPasswordError(false);
     }
 
-    const { match: { params } } = this.props;
-    this.setState({ checkInputMessages: checkInputMessages });
+    if (password !== confirmPassword) {
+      setConfirmPasswordError(true);
+      inputMessages.push("The passwords did not match");
+      error = true;
+    } else {
+      setConfirmPasswordError(false);
+    }
+
+    setCheckInputMessages(inputMessages);
     if (!error) {
-      this.props.resetPassword(params.userId, params.token, this.state.password).then(resetSent => {
-        this.setState({resetSent: true});
-      });
+      const result = await dispatch(resetPassword({ userId, token, password })).unwrap();
+      if (result.success) {
+        navigate("/login");
+      } else {
+        console.error(result);
+      }
+
     }
-  }
+  };
 
-
-  render() {
-    return (
-      <div>
-        <Container text>
+  return (
+    <div>
+      <Container text>
         <Segment>
-        <Form
-          className="raised padding segment"
-          onSubmit={this.handleSubmit}
-        >
-        <Form.Group widths="equal">
-          <Form.Field>
-            <Form.Input
-              name="password"
-              type="password"
-              onChange={this.handleInputChange}
-              error={this.state.passwordError}
-              label="Password"
-              placeholder="Password..."
+          <Form className="raised padding segment">
+            <Form.Group widths="equal">
+              <Form.Field>
+                <Form.Input
+                  name="password"
+                  type="password"
+                  onChange={e => setPassword(e.target.value)}
+                  error={passwordError}
+                  label="Password"
+                  placeholder="Password..."
+                />
+              </Form.Field>
+              <Form.Field>
+                <Form.Input
+                  name="confirmPassword"
+                  type="password"
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  error={confirmPasswordError}
+                  label="Confirm Password"
+                  placeholder="Confirm Password..."
+                />
+              </Form.Field>
+            </Form.Group>
+            <Button
+              size="large"
+              content="Reset Password"
+              onClick={handleResetPassword}
+              fluid
             />
-          </Form.Field>
-          <Form.Field>
-            <Form.Input
-              name="confirmPassword"
-              type="password"
-              onChange={this.handleInputChange}
-              error={this.state.confirmPasswordError}
-              label="Confirm Password"
-              placeholder="Confirm Password..."
-            />
-          </Form.Field>
-        </Form.Group>
-        <Button
-          size="large"
-          content="Reset Password"
-          onClick={this.handleResetPassword}
-          fluid
-        />
-      </Form>
-      </Segment>
+            {checkInputMessages.length > 0 && (
+              <div style={{ marginTop: "10px" }}>
+                {checkInputMessages.map((msg) => (
+                  <p key={msg} style={{ color: "red" }}>
+                    {msg}
+                  </p>
+                ))}
+              </div>
+            )}
+          </Form>
+        </Segment>
       </Container>
-      </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
 export default ResetPassword;
+

@@ -1,55 +1,34 @@
-import React, { Component } from "react";
-import ReactDOM from "react-dom";
+import React, {   useState } from "react";
+
 import {
   Container,
   Header,
-  Form,
-  Grid,
-  Segment,
-  Input,
-  Button,
   Divider,
-  Message,
-  Icon
 } from "semantic-ui-react";
-
+import {  useCreateSystemMutation} from '../features/api/apiSlice'
+import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom';
 import SystemForm from "./SystemForm";
 
 // ----------------------------------------------------
-const requestMessageStyle = {
-  color: "red"
-};
+const CreateSystem = () => {
+  const navigate = useNavigate();
+  const [createSystem ] = useCreateSystemMutation();
+  const { screenName } = useSelector((state) => state.user);
 
-// ----------------------------------------------------
-class CreateSystem extends Component {
-  constructor(props) {
-    super(props);
-    this.handleSubmit = this.handleSubmit.bind(this);
+  const [requestMessage, setRequestMessage] = useState("");
 
+  const handleSubmit = async (system) => {
+      try {
+        await createSystem(system).unwrap();
+        navigate("/list-systems")
+      } catch (error) {
+        const message = error.data.message;
+        console.log(message);
+        setRequestMessage(message);
+      }
   }
 
-  state = {
-    requestMessage: ""
-  }
-
-
-
-  handleSubmit(system) {
-      this.props
-        .createSystem(system)
-        .then(requestMessage => {
-          if (requestMessage) {
-            // report to the user is there was a problem during registration
-            this.setState({
-              requestMessage
-            });
-          } else {
-            this.props.changeUrl("/list-systems")
-          }
-        });
-  }
-
-  render() {
     return (
       <div>
         <Container text>
@@ -72,11 +51,11 @@ class CreateSystem extends Component {
 
         <Container text>
           <Header as="h1">Create System</Header>
-          <SystemForm onSubmit={this.handleSubmit} requestMessage={this.state.requestMessage} screenName={this.props.user.screenName}/>
+          <SystemForm onSubmit={handleSubmit} requestMessage={requestMessage} screenName={screenName}/>
         </Container>
       </div>
     );
-  }
+  
 }
 
 export default CreateSystem;

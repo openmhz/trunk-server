@@ -1,10 +1,7 @@
 const passport = require("passport");
 const User = require("../models/user");
+const Mailjet = require('node-mailjet');
 
-const mailjet = require("node-mailjet").connect(
-process.env['MAILJET_KEY'],
-  process.env['MAILJET_SECRET']
-);
 const crypto = require("crypto");
 
 var admin_email = process.env['REACT_APP_ADMIN_EMAIL'] != null ? process.env['REACT_APP_ADMIN_EMAIL'] : "luke@openmhz.com";
@@ -12,16 +9,25 @@ var site_name = process.env['REACT_APP_SITE_NAME'] != null ? process.env['REACT_
 var account_server = process.env['REACT_APP_ACCOUNT_SERVER'] != null ? process.env['REACT_APP_ACCOUNT_SERVER'] : "https://account.openmhz.com";
 var cookie_domain = process.env['REACT_APP_COOKIE_DOMAIN'] != null ? process.env['REACT_APP_COOKIE_DOMAIN'] : '.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
 
-exports.isLoggedIn = function(req, res, next) {
+
+const mailjet = new Mailjet({
+  apiKey: process.env['MAILJET_KEY'],
+  apiSecret: process.env['MAILJET_SECRET']
+});
+
+
+
+exports.isLoggedIn = function (req, res, next) {
   if (req.isAuthenticated()) return next();
   res.redirect("/login");
 };
 
 // -------------------------------------------
 
-exports.authenticated = function(req, res, next) {
+
+exports.authenticated = function (req, res, next) {
   res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-  console.log("account/server/controllers/users.js - exports.authenticated() Auth check for user: " + req.user + " is: " + req.isAuthenticated());
+  console.log("account/server/controllers/users.js - exports.authenticated() Auth check for user: " + req.user.email + " is: " + req.isAuthenticated());
   if (req.isAuthenticated()) {
     var clientUser = (({
       firstName,
@@ -54,11 +60,13 @@ exports.authenticated = function(req, res, next) {
   }
 }
 
-exports.login = function(req, res, next) {
+exports.login = function (req, res, next) {
   // Do email and password validation for the server
-  passport.authenticate("local", function(err, user, info) {
+
+  passport.authenticate("local", function (err, user, info) {
     if (err) return next(err);
     if (!user) {
+      console.log("No user");
       return res.json({
         success: false,
         message: info.message
@@ -75,6 +83,7 @@ exports.login = function(req, res, next) {
     req.login(user, loginErr => {
 
       if (loginErr) {
+        console.log("error")
         return res.json({
           success: false,
           message: loginErr
@@ -82,10 +91,14 @@ exports.login = function(req, res, next) {
       }
       if (!user.confirmEmail) {
         req.logout();
-        return res.json({
-          success: false,
-          message: "unconfirmed email",
-          userId: user.id
+        req.logout(function (err) {
+          if (err) { return next(err); }
+          res.clearCookie('sessionId', { domain: cookie_domain, path: '/' });
+          return res.json({
+            success: false,
+            message: "unconfirmed email",
+            userId: user.id
+          });
         });
       }
       //console.log("account/server/controllers/users.js - req.login() Authenicated: " + user.email);
@@ -118,199 +131,217 @@ exports.login = function(req, res, next) {
   })(req, res, next);
 };
 
-exports.confirmEmail = function(req, res, next) {
+exports.confirmEmail = async function (req, res, next) {
   const userId = req.params["userId"];
   const token = req.params["token"];
 
-  User.findById(userId, (err, user) => {
-    if (err) {
-      console.error(err);
-      res.json({
-        success: false,
-        message: err
-      });
-      return;
-    }
-    if (user.confirmEmail) {
-      console.log("User already confirmed email: " + userId);
-      res.json({
-        success: false,
-        message: "already confirmed email"
-      });
-      return;
-    }
-    const today = new Date();
-    if (user.confirmEmailTTL < today) {
-      res.json({
-        success: false,
-        message: "token expired"
-      });
-      return;
-    }
-    if (user.confirmEmailToken != token) {
-      console.log(
-        "Token Mismatch DB: " + user.confirmEmailToken + " submitted: " + token
-      );
-      res.json({
-        success: false,
-        message: "token mismatch"
-      });
-      return;
-    }
-    user.confirmEmail = true;
-    user.confirmEmailToken = "";
-    user.save(err => {
-      if (err) {
-        console.error(err);
-        res.json({
-          success: false,
-          message: err
-        });
-        return;
-      }
-      console.log("User: " + user.email + " confirmed email address");
-      res.json({
-        success: true
-      });
-      return;
+  let user = await User.findById(userId).catch(err => {
+    console.error(err);
+    res.status(404);
+    res.json({
+      success: false,
+      message: err
     });
+    return;
+  });
+
+  if (!user) {
+    console.error("User not found: " + userId);
+    res.status(404);
+    res.json({
+      success: false,
+      message: "User not found"
+    });
+    return;
+  }
+  if (user.confirmEmail) {
+    console.log("User already confirmed email: " + userId);
+    res.status(500);
+    res.json({
+      success: false,
+      message: "already confirmed email"
+    });
+    return;
+  }
+  const today = new Date();
+  if (user.confirmEmailTTL < today) {
+    res.status(500);
+    console.error("Expired token for confirming email: " + userId);
+    res.json({
+      success: false,
+      message: "token expired"
+    });
+    return;
+  }
+  if (user.confirmEmailToken != token) {
+    console.error(
+      "Token Mismatch DB: " + user.confirmEmailToken + " submitted: " + token
+    );
+    res.json({
+      success: false,
+      message: "token mismatch"
+    });
+    return;
+  }
+  user.confirmEmail = true;
+  user.confirmEmailToken = "";
+  await user.save().catch(err => {
+    console.error(err);
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
+  });
+
+  console.log("User: " + user.email + " confirmed email address");
+  res.json({
+    success: true
   });
 };
 
 
-exports.resetPassword = function(req, res, next) {
+exports.resetPassword = async function (req, res, next) {
   const userId = req.params["userId"];
   const token = req.params["token"];
 
-  User.findById(userId, (err, user) => {
-    if (err) {
-      console.error(err);
-      res.json({
-        success: false,
-        message: err
-      });
-      return;
-    }
-
-    const today = new Date();
-    if (user.resetPasswordTTL < today) {
-      res.json({
-        success: false,
-        message: "token expired"
-      });
-      return;
-    }
-    if (user.resetPasswordToken != token) {
-      console.log(
-        "Token Mismatch DB: " + user.resetPasswordToken + " submitted: " + token
-      );
-      res.json({
-        success: false,
-        message: "token mismatch"
-      });
-      return;
-    }
-
-    user.password = req.body.password
-    user.confirmEmail = true;
-    user.confirmEmailToken = "";
-    user.resetPasswordToken = "";
-    user.save(err => {
-      if (err) {
-        console.error(err);
-        res.json({
-          success: false,
-          message: err
-        });
-        return;
-      }
-      res.json({
-        success: true
-      });
-      return;
+  let user = await User.findById(userId).catch(err => {
+    console.error(err);
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
     });
+    return;
   });
+
+  if (!user) {
+    console.error("User not found: " + userId);
+    res.status(404);
+    res.json({
+      success: false,
+      message: "User not found"
+    });
+    return;
+  }
+  const today = new Date();
+  if (user.resetPasswordTTL < today) {
+    res.status(500);
+    res.json({
+      success: false,
+      message: "token expired"
+    });
+    return;
+  }
+  if (user.resetPasswordToken != token) {
+    console.log(
+      "Token Mismatch DB: " + user.resetPasswordToken + " submitted: " + token
+    );
+    res.status(500);
+    res.json({
+      success: false,
+      message: "token mismatch"
+    });
+    return;
+  }
+
+  user.password = req.body.password
+  user.confirmEmail = true;
+  user.confirmEmailToken = "";
+  user.resetPasswordToken = "";
+  await user.save().catch(err => {
+    console.error(err);
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
+  });
+  res.json({
+    success: true
+  });
+  return;
 };
 
 
 // -------------------------------------------
-exports.sendResetPassword = function(req, res, next) {
-  User.findOne({
+exports.sendResetPassword = async function (req, res, next) {
+  let user = await User.findOne({
     email: req.body.email
-  }, (err, user) => {
-    if (err) {
+  }).catch(err => {
+    console.error(err);
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
+  });
+  if (!user) {
+    console.error("Reset password failed. No user: " + req.body.email);
+    res.status(404);
+    res.json({
+      success: false,
+      message: "No account register for " + req.body.email
+    });
+    return;
+  }
+  const buffer = crypto.randomBytes(20);
+  const token = buffer.toString("hex");
+  var tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  user.resetPasswordToken = token;
+  user.resetPasswordTTL = tomorrow;
+  await user.save().catch(err => {
+    console.error(err);
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
+  });
+
+  const request = mailjet.post("send", {
+    version: "v3.1"
+  }).request({
+    Messages: [{
+      From: {
+        Email: admin_email,
+        Name: site_name + " Admin"
+      },
+      To: [{
+        Email: user.email,
+        Name: user.firstName + " " + user.lastName
+      }],
+      Subject: site_name + " - Password Reset",
+      TextPart: "It looks like you may have forgot your password. Copy this link to your browser to reset your password. Let us know if you are receiving this but did not request a password reset. /r" + account_server + "/reset-password/" + user.id + "/" + token,
+      HTMLPart: "<h3>Thanks for using " + site_name + "!</h3><br />It looks like you may have forgot your password. Copy this link to your browser to reset your password. Let us know if you are receiving this but did not request a password reset.<p>" + account_server + "/reset-password/" + user.id + "/" + token + "</p>"
+    }]
+  });
+  request
+    .then(result => {
+      console.log(`Password reset sent to: ${user.email}`)
+    })
+    .catch(err => {
+      console.error(err.statusCode);
       console.error(err);
       res.json({
         success: false,
         message: err
       });
       return;
-    }
-    if (!user) {
-      console.error("Reset password failed. No user: " + req.body.email);
-      res.json({
-        success: false,
-        message: "No account register for " + req.body.email
-      });
-      return;
-    }
-    const buffer = crypto.randomBytes(20);
-    const token = buffer.toString("hex");
-    var tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    user.resetPasswordToken = token;
-    user.resetPasswordTTL = tomorrow;
-    user.save(err => {
-      if (err) {
-        console.error(err);
-        res.json({
-          success: false,
-          message: err
-        });
-        return;
-      }
-
-      const request = mailjet.post("send", {
-        version: "v3.1"
-      }).request({
-        Messages: [{
-          From: {
-            Email: admin_email,
-            Name: site_name + " Admin"
-          },
-          To: [{
-            Email: user.email,
-            Name: user.firstName + " " + user.lastName
-          }],
-          Subject: site_name + " - Password Reset",
-          TextPart: "It looks like you may have forgot your password. Copy this link to your browser to reset your password. Let us know if you are receiving this but did not request a password reset. /r" + account_server + "/reset-password/" + user.id + "/" + token,
-          HTMLPart: "<h3>Thanks for using " + site_name + "!</h3><br />It looks like you may have forgot your password. Copy this link to your browser to reset your password. Let us know if you are receiving this but did not request a password reset.<p>" + account_server + "/reset-password/" + user.id + "/" + token + "</p>"
-        }]
-      });
-      request
-        .then(result => {
-          console.log(`Password reset sent to: ${user.email}`)
-        })
-        .catch(err => {
-          console.error(err.statusCode);
-          console.error(err);
-          res.json({
-            success: false,
-            message: err
-          });
-          return;
-        });
-      res.json({
-        success: true
-      });
-      return;
     });
+  res.json({
+    success: true
   });
+  return;
 };
 
 function handleSendConfirmEmail(user) {
 
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     if (user.confirmEmail) {
       console.log("Error - Send Confirm Email - User already confirmed email: " + user.email);
       reject({
@@ -326,24 +357,23 @@ function handleSendConfirmEmail(user) {
     tomorrow.setDate(tomorrow.getDate() + 1);
     user.confirmEmailToken = token;
     user.confirmEmailTTL = tomorrow;
-    user.save().then(function(user) {
-      return mailjet.post("send", {
-        version: "v3.1"
-      }).request({
-        Messages: [{
-          From: {
-            Email: admin_email,
-            Name:  site_name + " Admin"
-          },
-          To: [{
-            Email: user.email,
-            Name: user.firstName + " " + user.lastName
-          }],
-          Subject: "Confirm " + site_name + " Account",
-          TextPart: "Thanks for signing up for " + site_name + ". We just wanted to check and make sure your email address was real. Copy and paste this addres in your browser to confirm your email address: " + account_server + "/confirm-email/" + user._id + "/" + token,
-          HTMLPart: "<h3>Thanks for signing up for " + site_name + "</h3><br />We just wanted to check and make sure your email address was real. Copy and paste this addres in your browser to confirm your email address:<p> " + account_server + "/confirm-email/" + user._id + "/" + token + "</p>"
-        }]
-      });
+    await user.save();
+    mailjet.post("send", {
+      version: "v3.1"
+    }).request({
+      Messages: [{
+        From: {
+          Email: admin_email,
+          Name: site_name + " Admin"
+        },
+        To: [{
+          Email: user.email,
+          Name: user.firstName + " " + user.lastName
+        }],
+        Subject: "Confirm " + site_name + " Account",
+        TextPart: "Thanks for signing up for " + site_name + ". We just wanted to check and make sure your email address was real. Copy and paste this addres in your browser to confirm your email address: " + account_server + "/confirm-email/" + user._id + "/" + token,
+        HTMLPart: "<h3>Thanks for signing up for " + site_name + "</h3><br />We just wanted to check and make sure your email address was real. Copy and paste this addres in your browser to confirm your email address:<p> " + account_server + "/confirm-email/" + user._id + "/" + token + "</p>"
+      }]
     }).then(result => {
       console.log("Confirm email sent to: " + user.email);
       resolve({
@@ -353,103 +383,110 @@ function handleSendConfirmEmail(user) {
     }).catch(err => {
       console.error("Admin Email: " + admin_email + " User Email: " + user.email);
       console.error("Error - Send Confirm Email - caught: " + err);
+      res.status(500);
       reject({
         success: false,
         message: err
       });
     });
   });
-};
+}
 
 // -------------------------------------------
-exports.sendConfirmEmail = function(req, res, next) {
+exports.sendConfirmEmail = async function (req, res, next) {
   const userId = req.params["userId"];
-  User.findById(userId, (err, user) => {
-    if (err) {
-      console.error("Error - Send Confirm Email: " + err);
-      res.json({
-        success: false,
-        message: err
-      });
-      return;
-    }
-    if (!user) {
-      console.error("Error - Send Confirm Email: User not found " + userId);
-      res.json({
-        success: false,
-        message: "user not found"
-      });
-      return;
-    }
-    handleSendConfirmEmail(user).then(function(result) {
-      res.json(result);
-      return;
-    }).catch(function(error) {
-      res.json(error);
-      return;
+  let user = await User.findById(userId).catch(err => {
+
+    console.error("Error - Send Confirm Email: " + err);
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
+  });
+  if (!user) {
+    console.error("Error - Send Confirm Email: User not found " + userId);
+    res.status(404);
+    res.json({
+      success: false,
+      message: "user not found"
+    });
+    return;
+  }
+  handleSendConfirmEmail(user).then(function (result) {
+    res.json(result);
+    return;
+  }).catch(function (error) {
+    res.json(error);
+    return;
+  });
+}
+
+
+
+// -------------------------------------------
+
+exports.logout = function (req, res, next) {
+  // the logout method is added to the request object automatically by Passport
+  req.logout(function (err) {
+    if (err) { return next(err); }
+
+    res.clearCookie('sessionId', { domain: cookie_domain, path: '/' });
+    return res.json({
+      success: true
     });
   });
-
 };
 
-// -------------------------------------------
+exports.terms = async function (req, res, next) {
+  const userId = req.params["userId"];
+  let user = await User.findById(userId).catch(err => {
+    console.error(err);
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
+  });
 
-exports.logout = function(req, res, next) {
-  // the logout method is added to the request object automatically by Passport
-  req.logout();
-  res.clearCookie('sessionId', {domain: cookie_domain, path:'/'});
-  return res.json({
+  if (req.user.id != userId) {
+    console.log(
+      "Logged in user's ID: " +
+      req.user.id +
+      " does not match Param: " +
+      userId
+    );
+    res.status(500);
+    res.json({
+      success: false,
+      message: "UserID incorrect"
+    });
+    return;
+  }
+
+  user.terms = 1.1; //User.termsVer;
+  await user.save().catch(err => {
+
+    console.error(err);
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
+  });
+  res.json({
     success: true
   });
-};
-
-exports.terms = function(req, res, next) {
-  const userId = req.params["userId"];
-  User.findById(userId, (err, user) => {
-    if (err) {
-      console.error(err);
-      res.json({
-        success: false,
-        message: err
-      });
-      return;
-    }
-    if (req.user.id != userId) {
-      console.log(
-        "Logged in user's ID: " +
-        req.user.id +
-        " does not match Param: " +
-        userId
-      );
-      res.json({
-        success: false,
-        message: "UserID incorrect"
-      });
-      return;
-    }
-
-    user.terms = 1.1; //User.termsVer;
-    user.save(err => {
-      if (err) {
-        console.error(err);
-        res.json({
-          success: false,
-          message: err
-        });
-        return;
-      }
-      res.json({
-        success: true
-      });
-      return;
-    });
-  });
-};
+  return;
+}
 // -------------------------------------------
 
 
-exports.validateProfile = function(req, res, next) {
-  console.log("Validating user profile: "+ req.body.email);
+exports.validateProfile = function (req, res, next) {
+  console.log("Validating user profile: " + req.body.email);
   if (!req.body.firstName || (req.body.firstName.length < 2)) {
     console.error("ERROR: Validate System - req.body.firstName");
     res.json({
@@ -486,68 +523,97 @@ exports.validateProfile = function(req, res, next) {
   next();
 }
 
-exports.updateProfile = function(req, res, next) {
+exports.updateProfile = async function (req, res, next) {
   const userId = req.params["userId"];
 
-  User.findById(userId, (err, user) => {
-    // is email address already in use?
-    if (req.user.id != userId) {
-      console.log(
-        "ERROR: Logged in user's ID: " +
-        req.user.id +
-        " does not match Param: " +
-        userId
-      );
-      res.json({
-        success: false,
-        message: "UserID incorrect"
-      });
-      return;
-    }
-    // go ahead and create the new user
-    user.firstName = res.locals.firstName
-    user.lastName = res.locals.lastName
-    user.screenName = res.locals.screenName
-    user.location = res.locals.location
-
-
-    user.save(err => {
-      if (err) {
-        console.error(err);
-        res.json({
-          success: false,
-          message: err
-        });
-        return;
-      }
-      var clientUser = (({
-        firstName,
-        lastName,
-        screenName,
-        location
-      }) => ({
-        firstName,
-        lastName,
-        screenName,
-        location
-      }))(
-        user
-      );
-      console.log("Updated Profile: " + userId)
-      res.json({
-        success: true,
-        user: clientUser
-      });
-      return;
+  user = await User.findById(userId).catch(err => {
+    console.error(err);
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
     });
+    return;
   });
+
+  if (req.user.id != userId) {
+    console.log(
+      "ERROR: Logged in user's ID: " +
+      req.user.id +
+      " does not match Param: " +
+      userId
+    );
+    res.json({
+      success: false,
+      message: "UserID incorrect"
+    });
+    return;
+  }
+
+  // Lets make sure someone else isn't using this screenName
+  screenNameUser = await User.findOne({ screenName: req.body.screenName }).catch(err => {
+    console.error(err);
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
+  });
+
+  // Did we find a user with the screeName, is it not us?
+  if (screenNameUser && (screenNameUser.userId != user.userId)) {
+    res.status(500);
+    res.json({
+      success: false,
+      message: "Screen Name already in use"
+    });
+    return;
+  }
+
+
+
+  // go ahead and create the new user
+  user.firstName = res.locals.firstName
+  user.lastName = res.locals.lastName
+  user.screenName = res.locals.screenName
+  user.location = res.locals.location
+
+
+  await user.save().catch(err => {
+    console.error(err);
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
+  });
+  var clientUser = (({
+    firstName,
+    lastName,
+    screenName,
+    location
+  }) => ({
+    firstName,
+    lastName,
+    screenName,
+    location
+  }))(
+    user
+  );
+  console.log("Updated Profile: " + userId)
+  res.json({
+    success: true,
+    user: clientUser
+  });
+  return;
 };
 // -------------------------------------------
 
-exports.register = function(req, res, next) {
+exports.register = async function (req, res, next) {
   console.log("Registration request for: " + req.body.email);
-     
-  User.findOne({
+
+  let user = await User.findOne({
     $or: [{
       email: req.body.email
     }, {
@@ -555,49 +621,79 @@ exports.register = function(req, res, next) {
         email: req.body.email
       }
     }]
-  }, (err, user) => {
-    // is email address already in use?
-    if (user) {
-      res.json({
-        success: false,
-        message: "Email already in use"
-      });
-      return;
-    }
-    // go ahead and create the new user
-    var user = (({
-      firstName,
-      lastName,
-      screenName,
-      location,
-      email,
-      password
-    }) => ({
-      firstName,
-      lastName,
-      screenName,
-      location,
-
-    }))(
-      res.locals
-    );
-    user.password = req.body.password;
-    user.email = req.body.email;
-
-    User.create(user).then(function(dbUser) {
-      console.log("Successfully registered: " + dbUser.email + ", now sending confirmation email.");
-      // Since regiestration worked, send a confirmation email.
-      return handleSendConfirmEmail(dbUser);
-    }).then(function(result) {
-      res.json(result);
-      return;
-    }).catch(function(err) {
-      console.error("Error creating user: " + user.email + " Error: " +err);
-      res.json({
-        success: false,
-        message: err
-      });
-      return;
+  }).catch(err => {
+    console.error(err);
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
     });
+    return;
   });
-};
+  // is email address already in use?
+  if (user) {
+    res.status(500);
+    res.json({
+      success: false,
+      message: "Email already in use"
+    });
+    return;
+  }
+  user = await User.findOne({ screenName: req.body.screenName }).catch(err => {
+    console.error(err);
+    res.status(500);
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
+  });
+  // is email address already in use?
+  if (user) {
+    res.status(500);
+    res.json({
+      success: false,
+      message: "Screen Name already in use"
+    });
+    return;
+  }
+  // go ahead and create the new user
+  user = (({
+    firstName,
+    lastName,
+    screenName,
+    location,
+    email,
+    password
+  }) => ({
+    firstName,
+    lastName,
+    screenName,
+    location,
+
+  }))(
+    res.locals
+  );
+  user.password = req.body.password;
+  user.email = req.body.email;
+
+  let savedUser = await User.create(user)
+
+  console.log("Successfully registered: " + user.email + ", now sending confirmation email.");
+  // Since registration worked, send a confirmation email.
+  handleSendConfirmEmail(savedUser).then(function (result) {
+    console.log("Confirmation email sent to: " + user.email);
+    res.json({
+      success: true,
+      message: result
+    });
+    return;
+  }).catch(function (err) {
+    console.error("Error creating user: " + user.email + " Error: " + err);
+    res.json({
+      success: false,
+      message: err
+    });
+    return;
+  });
+}
