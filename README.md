@@ -216,6 +216,14 @@ Rough Playbook (use common sense, I may not have this exact):
 - get into the shell of the mongo container
 - `mongorestore --db scanner --drop /data/db/backup/`
 
+### Privlege Port Error
+
+```bash
+Error response from daemon: driver failed programming external connectivity on endpoint trunk-server-nginx-1 (ec995a6333ce5b9869b9070e380d01b81333fdb3f2734bb93922c1ef7d84314d): Error starting userland proxy: error while calling PortManager.AddPort(): cannot expose privileged port 443, you can add 'net.ipv4.ip_unprivileged_port_start=443' to /etc/sysctl.conf (currently 1024), or set CAP_NET_BIND_SERVICE on rootlesskit binary, or choose a larger port number (>= 1024): listen tcp4 0.0.0.0:443: bind: permission denied
+```
+
+https://docs.docker.com/engine/security/rootless/#exposing-privileged-ports
+
 ## Setting up Logging
 I have had good luck with Loggly. Their free tier provides enough capabilities for most small sites.
 The Doocker Logging Driver works well and is easy to install:

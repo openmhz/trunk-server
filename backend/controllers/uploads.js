@@ -127,8 +127,8 @@ exports.upload = function (req, res, next) {
 
       try {
         var srcList = JSON.parse(req.body.source_list);
-        var errorCount = parseInt(req.body.error_count);
-        var spikeCount = parseInt(req.body.spike_count);
+        var errorCount = Number(req.body.error_count);
+        var spikeCount = Number(req.body.spike_count);
       } catch (err) {
         var srcList = [];
         console.warn("[" + req.params.shortName + "] Error /:shortName/upload Parsing Source/Freq List -  Error: " + err);
