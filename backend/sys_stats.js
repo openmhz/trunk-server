@@ -62,6 +62,13 @@ function updateActiveSystems() {
 
 exports.initStats = function() {
     // get the System Stats collection
+
+    db.get().collection("system_stats").exists(function(err, result) {
+        if (result) {
+
+
+
+
     db.get().collection('system_stats', function(err, statsCollection) {
         var cursor = statsCollection.find();
 
@@ -94,6 +101,17 @@ exports.initStats = function() {
 
             }
         });
+    });
+    } else {
+        db.get().createCollection("system_stats", function(err, res) {
+        if (err) {
+            console.log("Error creating system_stats collection");
+            console.log(err);
+        } else {
+            console.log('system_stats created!');
+        }
+        });
+    }
     });
 }
 
