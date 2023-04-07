@@ -156,8 +156,8 @@ exports.addCall = function(call) {
         sysErrors[call.freq].errorHistory = new Array();
         sysErrors[call.freq].spikeHistory = new Array();
         for (var j = 0; j < spots; j++) {
-            sysErrors[call.freq].errors[j] = 0;
-            sysErrors[call.freq].spikes [j] = 0;
+            sysErrors[call.freq].errorHistory[j] = 0;
+            sysErrors[call.freq].spikeHistory[j] = 0;
         }
     }
     // add to the call count and total length, Call Average is calc by dividing the two...
