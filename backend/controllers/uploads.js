@@ -125,10 +125,18 @@ exports.upload = function (req, res, next) {
       }
       // Add in an API Key check
 
+      let errorCount = parseInt(req.body.error_count);
+      let spikeCount = parseInt(req.body.spike_count);
+
+      if (Number.isNaN(errorCount)) {
+        errorCount = 0;
+      }
+      if (Number.isNaN(spikeCount)) {
+        spikeCount = 0;
+      }
+
       try {
         var srcList = JSON.parse(req.body.source_list);
-        var errorCount = Number(req.body.error_count);
-        var spikeCount = Number(req.body.spike_count);
       } catch (err) {
         var srcList = [];
         console.warn("[" + req.params.shortName + "] Error /:shortName/upload Parsing Source/Freq List -  Error: " + err);
