@@ -100,7 +100,7 @@ const GroupModal = (props) => {
   }
 
 
-  const addTalkgroup = (index) => {
+  const addTalkgroup = (event, index) => {
     const item = {
       num: talkgroupsData[index].num,
       description: talkgroupsData[index].description
