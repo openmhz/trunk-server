@@ -72,10 +72,9 @@ exports.listSystems = async function (req, res, next) {
     sys_stats[stats[i].shortName] = {};
 
     sys_stats[stats[i].shortName].callTotals = stats[i].callTotals;
-    sys_stats[stats[i].shortName].errorTotals = stats[i].errorTotals;
-    sys_stats[stats[i].shortName].errorStats = stats[i].errorStats;
-    sys_stats[stats[i].shortName].usageBytes = stats[i].usageBytes;
-    sys_stats[stats[i].shortName].usageMb = stats[i].usageMb;
+    sys_stats[stats[i].shortName].uploadErrors = stats[i].uploadErrors;
+    sys_stats[stats[i].shortName].talkgroupStats= stats[i].talkgroupStats;
+    sys_stats[stats[i].shortName].decodeErrorsFreq = stats[i].decodeErrorsFreq;
   }
 
   res.json({

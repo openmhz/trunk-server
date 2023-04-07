@@ -1,8 +1,9 @@
 var util = require("util");
 var db = require('./db');
-var stats = {};
+var talkgroupStats = {};
 var callTotals = {};
-var errorTotals = {};
+var uploadErrors = {};
+let decodeErrorsFreq = {};
 const timePeriod = 15; // in minutes
 var spots = (24*60) / timePeriod; // the number of spots needed to keep track of 24 hours of stats
 
@@ -73,12 +74,17 @@ exports.initStats = function() {
                 
                 // Talkgroup Stats
                 if (item.talkgroupStats != undefined) {
-                    stats[item.shortName] = item.talkgroupStats;
+                    talkgroupStats[item.shortName] = item.talkgroupStats;
                 }
 
-                // Error Totals
-                if (item.errorTotals != undefined) {
-                    errorTotals[item.shortName] = item.errorTotals;
+                // Decode Errors
+                if (item.decodeErrorsFreq != undefined) {
+                    decodeErrorsFreq[item.shortName] = item.decodeErrorsFreq;
+                }
+
+                // Upload Error Totals
+                if (item.uploadErrors != undefined) {
+                    uploadErrors[item.shortName] = item.uploadErrors;
                 }
 
                 if (item.callTotals != undefined) {
@@ -109,30 +115,54 @@ exports.addError = function(call) {
 // Keeps track of the number of calls for each talkgroup for a system
 exports.addCall = function(call) {
 
+
+
     // if you haven't started keeping track of stats for the System yet
-    if (stats[call.shortName] == undefined) {
-        stats[call.shortName] = {};
-
+    if (talkgroupStats[call.shortName] == undefined) {
+        talkgroupStats[call.shortName] = {};
     }
-
-    var stat = stats[call.shortName];
-
+    var sysTalkgroupStats = talkgroupStats[call.shortName];
     // if you haven't started keeping track of Stats for this TG yet... 
-    if (stat[call.talkgroupNum] == undefined) {
-        stat[call.talkgroupNum] = {}
-        stat[call.talkgroupNum].calls = 0;
-        stat[call.talkgroupNum].totalLen = 0;
-        stat[call.talkgroupNum].callCount = new Array();
-        stat[call.talkgroupNum].avgLen = new Array();
+    if (sysTalkgroupStats[call.talkgroupNum] == undefined) {
+        sysTalkgroupStats[call.talkgroupNum] = {}
+        sysTalkgroupStats[call.talkgroupNum].calls = 0;
+        sysTalkgroupStats[call.talkgroupNum].totalLen = 0;
+        sysTalkgroupStats[call.talkgroupNum].callCountHistory = new Array();
+        sysTalkgroupStats[call.talkgroupNum].callAvgLenHistory = new Array();
         for (var j = 0; j < spots; j++) {
-            stat[call.talkgroupNum].callCount[j] = 0;
-            stat[call.talkgroupNum].avgLen[j] = 0;
+            sysTalkgroupStats[call.talkgroupNum].callCountHistory[j] = 0;
+            sysTalkgroupStats[call.talkgroupNum].callAvgLenHistory[j] = 0;
         }
     }
 
     // add to the call count and total length, Call Average is calc by dividing the two...
-    stat[call.talkgroupNum].calls++;
-    stat[call.talkgroupNum].totalLen += call.len;
+    sysTalkgroupStats[call.talkgroupNum].calls++;
+    sysTalkgroupStats[call.talkgroupNum].totalLen += call.len;
+
+    // if you haven't started keeping track of stats for the System yet
+    if (decodeErrorsFreq[call.shortName] == undefined) {
+        decodeErrorsFreq[call.shortName] = {};
+    }
+
+    var sysErrors = decodeErrorsFreq[call.shortName];
+
+    // if you haven't started keeping track of Stats for this TG yet... 
+    if (sysErrors[call.freq] == undefined) {
+        sysErrors[call.freq] = {}
+        sysErrors[call.freq].totalLen = 0;
+        sysErrors[call.freq].errors = 0;
+        sysErrors[call.freq].spikes = 0;
+        sysErrors[call.freq].errorHistory = new Array();
+        sysErrors[call.freq].spikeHistory = new Array();
+        for (var j = 0; j < spots; j++) {
+            sysErrors[call.freq].errors[j] = 0;
+            sysErrors[call.freq].spikes [j] = 0;
+        }
+    }
+    // add to the call count and total length, Call Average is calc by dividing the two...
+    sysErrors[call.freq].totalLen += call.len;
+    sysErrors[call.freq].errors += call.errorCount;
+    sysErrors[call.freq].spikes += call.spikeCount;
 }
 
 
@@ -141,69 +171,121 @@ exports.shiftStats = function() {
     db.get().collection('system_stats', function(err, statsCollection) {
 
         // for all the systems in Error Stats
-        for (var shortName in errorTotals) {
-            if (stats.hasOwnProperty(shortName)) {
+        for (var shortName in uploadErrors) {
+            if (upload.hasOwnProperty(shortName)) {
 
                 // Update the DB with Error Stats and Error Totals
                 statsCollection.update({
                     shortName: shortName
                 }, {
                     $set: {
-                        "errorTotals": errorTotals[shortName]
+                        "uploadErrors": uploadErrors[shortName]
                     }
                 }, {
                     upsert: true
                 }, function(err, objects) {
                     if (err) {
                       console.log("Shortname: " + shortName);
-                      console.log("errorTotals: " + util.inspect(errorTotals[shortName]));
+                      console.log("uploadErrors: " + util.inspect(uploadErrors[shortName]));
                       console.warn(err.message);
                     }
                 });
 
                 // move everything back one after updating
                 for (var j = spots - 1; j > 0; j--) {
-                    errorTotals[shortName][j] = errorTotals[shortName][j - 1];
+                    uploadErrors[shortName][j] = uploadErrors[shortName][j - 1];
                 }
                 // reset the first spot back to 0, so you can count the next period
-                errorTotals[shortName][0] = 0;
+                uploadErrors[shortName][0] = 0;
             }
         }
 
-        // figure out the stats
+ 
+        // for each system in decodeErrorsFreq
+        for (let shortName in decodeErrorsFreq) {
 
-        // for each system in stats
-        for (var shortName in stats) {
-            var callTotal = 0;
+            // if the system is in decodeErrorsFreq
+            if (decodeErrorsFreq.hasOwnProperty(shortName)) {
+                var sysErrors = decodeErrorsFreq[shortName];
+
+                // for each freq in that systems stats
+                for (var freqNum in sysErrors ) {
+                    if (sysErrors.hasOwnProperty(freqNum)) {
+                        var freqErrors = sysErrors[freqNum];
+
+                        // move the history for that freq back
+                        for (let j = spots - 1; j > 0; j--) {
+                            let i = j - 1;
+                            freqErrors.errorHistory[j] = freqErrors.errorHistory[i];
+                            freqErrors.spikeHistory[j] = freqErrors.spikeHistory[i];
+                        }
+
+                          if (freqErrors.totalLen > 0) {
+                            freqErrors.errorHistory[0] = (freqErrors.errors / freqErrors.totalLen);
+                            freqErrors.spikeHistory[0] = (freqErrors.spikes / freqErrors.totalLen);
+                          } else {
+                            freqErrors.errorHistory[0] = 0;
+                            freqErrors.spikeHistory[0] = 0;
+                          }
+                          freqErrors.totalLen = 0;
+                          freqErrors.errors = 0;
+                          freqErrors.spikes = 0;
+                    }
+                }
+
+                statsCollection.update({
+                    shortName: shortName
+                }, {
+                    $set: {
+                        "decodeErrorsFreq": decodeErrorsFreq[shortName],
+                    }
+                }, {
+                    upsert: true
+                }, function(err, objects) {
+                    if (err){
+                      console.log("Shortname: " + shortName);
+                      console.log("decodeErrorsFreq: " + util.inspect(decodeErrorsFreq[shortName]));
+                    console.warn(err.message);
+                  }
+                });
+
+            }
+        }
+    
+
+
+        // for each system in talkgroupStats
+        for (let shortName in talkgroupStats) {
+            let callTotal = 0;
 
             // if the system is in stats
-            if (stats.hasOwnProperty(shortName)) {
-                var stat = stats[shortName];
+            if (talkgroupStats.hasOwnProperty(shortName)) {
+                var sysTalkgroupStats = talkgroupStats[shortName];
 
                 // for each talkgroup in that systems stats
-                for (var talkgroupNum in stat) {
-                    if (stat.hasOwnProperty(talkgroupNum)) {
-                        var tg = stat[talkgroupNum];
+                for (var talkgroupNum in sysTalkgroupStats ) {
+                    if (sysTalkgroupStats.hasOwnProperty(talkgroupNum)) {
+                        var tg = sysTalkgroupStats[talkgroupNum];
                         var tgHistoryTotal = 0;
                         // move the history for that talkgroup back
-                        for (var j = spots - 1; j > 0; j--) {
-                            var i = j - 1;
-                            tgHistoryTotal += tg.callCount[i];
-                            tg.callCount[j] = tg.callCount[i];
-                            tg.avgLen[j] = tg.avgLen[i];
+                        for (let j = spots - 1; j > 0; j--) {
+                            let i = j - 1;
+                            tgHistoryTotal += tg.callCountHistory[i];
+                            tg.callCountHistory[j] = tg.callCountHistory[i];
+                            tg.callAvgLenHistory[j] = tg.callAvgLenHistory[i];
                         }
 
                         // add to the total for that group
                         callTotal += tg.calls;
 
 
-                          // figure out the history for cell 0;
-                          tg.callCount[0] = tg.calls;
+                          // figure out the history for current period in the history for this talkgroup;
+                          tg.callCountHistory[0] = tg.calls;
                           tgHistoryTotal += tg.calls;
                           if (tg.calls > 0) {
-                              tg.avgLen[0] = Math.floor(tg.totalLen / tg.calls);
+                              tg.callAvgLenHistory[0] = Math.floor(tg.totalLen / tg.calls);
                           } else {
-                              tg.avgLen[0] = 0;
+                              tg.callAvgLenHistory[0] = 0;
                           }
                           tg.calls = 0;
                           tg.totalLen = 0;
@@ -222,7 +304,6 @@ exports.shiftStats = function() {
                     }
                 }
 
-
                 for (var j = spots - 1; j > 0; j--) {
                     callTotals[shortName][j] = callTotals[shortName][j - 1];
                 }
@@ -232,7 +313,7 @@ exports.shiftStats = function() {
                     shortName: shortName
                 }, {
                     $set: {
-                        "talkgroupStats": stats[shortName],
+                        "talkgroupStats": talkgroupStats[shortName],
                         "callTotals": callTotals[shortName]
                     }
                 }, {
@@ -240,7 +321,7 @@ exports.shiftStats = function() {
                 }, function(err, objects) {
                     if (err){
                       console.log("Shortname: " + shortName);
-                      console.log("TgStats: " + util.inspect(stats[shortName]));
+                      console.log("TgStats: " + util.inspect(talkgroupStats[shortName]));
                       console.log("Call Totals: " + util.inspect(callTotals[shortName]));
                     console.warn(err.message);
                   }
@@ -251,13 +332,15 @@ exports.shiftStats = function() {
     });
     updateActiveSystems();
 }
-exports.callHistory = function(shortName) {
+exports.callTotals = function(shortName) {
     return callTotals[shortName];
 }
-exports.tgHistory = function(shortName) {
-    return stats[shortName];
+exports.talkgroupStats = function(shortName) {
+    return talkgroupStats[shortName];
 }
-
-exports.errorTotals = function(shortName) {
-    return errorTotals[shortName];
+exports.uploadErrors = function(shortName) {
+    return uploadErrors[shortName];
+}
+exports.decodeErrorsFreq = function(shortName) {
+    return decodeErrorsFreq[shortName];
 }

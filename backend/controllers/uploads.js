@@ -145,6 +145,8 @@ exports.upload = function (req, res, next) {
         return;
       }
 
+      res.status(200).end();
+
       var base_path = config.mediaDirectory;
       var local_path = "/" + shortName + "/" + time.getFullYear() + "/" + (time.getMonth() + 1) + "/" + time.getDate() + "/";
       var target_file = base_path + local_path + path.basename(req.file.originalname);
@@ -183,60 +185,9 @@ exports.upload = function (req, res, next) {
         } else {
           call.len = (stopTime - time) / 1000; //await callLength(req.file.path);
         }
-        res.status(200).end();
 
 
-        if (!objectStore) {
-          mkdirp.sync(base_path + local_path, function (err) {
-            if (err) console.error(err);
-          });
-          var src = fs.createReadStream(req.file.path);
-          var dest = fs.createWriteStream(target_file);
-          dest.on('unpipe', (src) => {
-            src.end();
-            dest.end();
-          });
-          src.pipe(dest);
-          src.unpipe()
-          src.on('error', function (err) {
-            console.warn("[" + call.shortName + "] Error /:shortName/upload copying to location - Error: " + err + " Read: " + req.file.path + " Target: " + target_file);
-            fs.unlink(req.file.path, (err) => {
-              if (err)
-                console.log("[" + call.shortName + "] error deleting: " + req.file.path);
-            });
-            res.contentType('json');
-            res.send(JSON.stringify({
-              success: false,
-              error: "Upload failed"
-            }));
-          });
-          src.on('end', function () {
-            fs.unlink(req.file.path);
-          });
-        } else {
-          //var spacesSrc = fs.createReadStream(req.file.path);
-          //var awsSrc = fs.createReadStream(req.file.path);
           var wasabiSrc = fs.createReadStream(req.file.path);
-
-          // call S3 to retrieve upload file to specified bucket
-
-          /*  var spacesParams = {Bucket: 'openmhz', Key: object_key, Body: spacesSrc, ACL: 'public-read'};
-            // call S3 to retrieve upload file to specified bucket
-            spacesS3.upload (spacesParams, function (err, data) {
-              //fs.unlink(req.file.path);
-              if (err) {
-                console.log("Spaces Error", err);
-              }
-            });*/
-          /*
-          var awsParams = {Bucket: 'openmhz', Key: object_key, Body: awsSrc, ACL: 'public-read'};
-
-          awsS3.upload (awsParams, function (err, data) {
-            fs.unlink(req.file.path);
-            if (err) {
-              console.log("AWS Error", err);
-            }
-          });*/
 
           var wasabiParams = {
             Bucket: s3_bucket,
@@ -252,7 +203,7 @@ exports.upload = function (req, res, next) {
             partSize: 10 * 1024 * 1024, queueSize: 1,
             params: wasabiParams
           });*/
-          //wasabiS3.upload(wasabiParams, options, function(err, data) {
+
           wasabiS3.upload(wasabiParams, function (err, data) {
             wasabiSrc.destroy();
             fs.unlink(req.file.path, (err) => {
@@ -272,24 +223,22 @@ exports.upload = function (req, res, next) {
               console.error("[" + call.shortName + "] " + call.name + " -   content-length: " + req.headers['content-length'] + " Wasabi Error", err);
             }
           });
-        }
+        
       } catch (err) {
         console.warn("[" + call.shortName + "] Upload Error: " + err + " Filename: " + call.name + " content-length: " + req.headers['content-length']);
         res.status(500);
         sysStats.addError(call.toObject());
         res.contentType('json');
+        res.status(500);
         res.send(JSON.stringify({
           success: false,
-          error: "FFProbe"
+          error: "File Upload"
         }));
         fs.unlink(req.file.path, (err) => {
           if (err)
             console.log("error deleting: " + req.file.path);
         });
       }
-
-
-
     });
   });
 }
