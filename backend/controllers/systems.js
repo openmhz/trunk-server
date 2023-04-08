@@ -2,18 +2,16 @@ var mongoose = require("mongoose");
 var User = require("../models/user");
 var System = require("../models/system");
 
-exports.get_systems = function (req, res) {
+exports.get_systems = async function (req, res) {
   let fromDate = new Date(Date.now() - 60 * 60 * 24 * 30 * 1000);
-  System.find({lastActive: {$gte: fromDate}}).populate('userId', "screenName").
-  exec(function (err, results) {
-    if (err) {
-      console.error("Error - get_systems: " + err.message);
+  const results = await System.find({lastActive: {$gte: fromDate}}).populate('userId', "screenName").catch( err => {
+     console.error("Error - get_systems: " + err.message);
       res.json({
         success: false,
         message: err
       });
       return;
-    }
+  });
     var systemList = [];
     for (var result in results) {
 
@@ -47,6 +45,5 @@ exports.get_systems = function (req, res) {
       success: true,
       systems: systemList
     }));
-  });
+  }
 
-}

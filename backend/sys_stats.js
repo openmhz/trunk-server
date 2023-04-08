@@ -8,71 +8,46 @@ const timePeriod = 15; // in minutes
 var spots = (24*60) / timePeriod; // the number of spots needed to keep track of 24 hours of stats
 
 
-function updateActiveSystems() {
+async function updateActiveSystems() {
 
     // Go through all of the Systems
-    db.get().collection('systems', function(err, sysCollection) {
+    const sysCollection = db.get().collection('systems');
         var cursor = sysCollection.find();
-        cursor.each(function(err, item) {
+        await cursor.forEach(function(item) {
             // go through all the systems
-
-            // While there are still Systems to work with
-            if (item) {
                 // if you have recieved some calls during that last period, make the system active
                 if ((callTotals[item.shortName] != undefined) && (callTotals[item.shortName][0] > 0)) {
                     const active = true;
                     const callAvg = callTotals[item.shortName][0] / timePeriod;
-                    sysCollection.update({
-                        shortName: item.shortName
-                    }, {
-                        $set: {
-                            "active": active,
-                            "callAvg": callAvg,
-                            "lastActive": new Date()
-                        }
-                    }, {
-                        upsert: true
-                    }, function(err, objects) {
-                        if (err) {
-                          console.log("Shortname: " + item.shortName);
-                          console.warn(err.message);
-                        }
-                    });
+
+                    const query = { shortName: item.shortName};
+                    const update = { $set: {"active": active,"callAvg": callAvg,"lastActive": new Date() }};
+                    const options = {upsert: true};
+
+                    sysCollection.updateOne(query, update, options);
+                        
                 } else {
-                    sysCollection.update({
-                        shortName: item.shortName
-                    }, {
-                        $set: {
-                            "active": false,
-                            "callAvg": 0
-                        }
-                    }, {
-                        upsert: true
-                    }, function(err, objects) {
-                        if (err) {
-                          console.log("Shortname: " + item.shortName);
-                          console.warn(err.message);
-                        }
-                    });
+                    const query = { shortName: item.shortName};
+                    const update = { $set: {"active": false, "callAvg": 0}};
+                    const options = {upsert: true};
+
+                    sysCollection.updateOne(query, update, options);
                 }
-            } 
+            
         });
-    });
 }
 
-exports.initStats = function() {
+exports.initStats = async function() {
     // get the System Stats collection
-    db.get().createCollection("system_stats")
-    db.get().collection('system_stats', function(err, statsCollection) {
+    
+    db.get().createCollection("system_stats").catch((err)=>{console.log("System Stats collection is ready")});
+    const statsCollection = db.get().collection('system_stats');
+
         var cursor = statsCollection.find();
 
         // go through each of the Systems in Stats
-        cursor.each(function(err, item) {
+        await cursor.forEach(function(item) {
             
-            // If you are not at the end...
-            if (item) {
-                //console.log("Loading stats for: " + item.shortName);
-                
                 // Talkgroup Stats
                 if (item.talkgroupStats != undefined) {
                     talkgroupStats[item.shortName] = item.talkgroupStats;
@@ -91,11 +66,7 @@ exports.initStats = function() {
                 if (item.callTotals != undefined) {
                     callTotals[item.shortName] = item.callTotals;
                 }
-            } else {
-
-            }
         });
-    });
 }
 
 // keeps track of the number of calls that get uploaded with an audio file
@@ -168,8 +139,8 @@ exports.addCall = function(call) {
 
 
 // This gets called when a Time Period is up
-exports.shiftStats = function() {
-    db.get().collection('system_stats', function(err, statsCollection) {
+exports.shiftStats = async function() {
+    const statsCollection = db.get().collection('system_stats');
 
         // for all the systems in Error Stats
         for (var shortName in uploadErrors) {
@@ -234,21 +205,11 @@ exports.shiftStats = function() {
                     }
                 }
 
-                statsCollection.update({
-                    shortName: shortName
-                }, {
-                    $set: {
-                        "decodeErrorsFreq": decodeErrorsFreq[shortName],
-                    }
-                }, {
-                    upsert: true
-                }, function(err, objects) {
-                    if (err){
-                      console.log("Shortname: " + shortName);
-                      console.log("decodeErrorsFreq: " + util.inspect(decodeErrorsFreq[shortName]));
-                    console.warn(err.message);
-                  }
-                });
+                const query = { shortName: item.shortName};
+                const update = { $set: { "decodeErrorsFreq": decodeErrorsFreq[shortName]}};
+                const options = {upsert: true};
+
+                sysCollection.updateOne(query, update, options);
 
             }
         }
@@ -310,27 +271,15 @@ exports.shiftStats = function() {
                 }
                 callTotals[shortName][0] = callTotal;
 
-                statsCollection.update({
-                    shortName: shortName
-                }, {
-                    $set: {
-                        "talkgroupStats": talkgroupStats[shortName],
-                        "callTotals": callTotals[shortName]
-                    }
-                }, {
-                    upsert: true
-                }, function(err, objects) {
-                    if (err){
-                      console.log("Shortname: " + shortName);
-                      console.log("TgStats: " + util.inspect(talkgroupStats[shortName]));
-                      console.log("Call Totals: " + util.inspect(callTotals[shortName]));
-                    console.warn(err.message);
-                  }
-                });
 
+
+                const query = { shortName: item.shortName};
+                const update = { $set: { "talkgroupStats": talkgroupStats[shortName], "callTotals": callTotals[shortName] }};
+                const options = {upsert: true};
+
+                sysCollection.updateOne(query, update, options);
             }
         }
-    });
     updateActiveSystems();
 }
 exports.callTotals = function(shortName) {

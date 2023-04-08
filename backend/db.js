@@ -11,33 +11,24 @@ var state = {
   db: null,
 }
 
-exports.connect = function(done) {
+exports.connect = async function (done) {
   if (state.db) return done()
 
   var url = 'mongodb://' + host + ':' + port + '/scanner';
 
-  MongoClient.connect(url, function(err, db) {
-    if (err) return done(err)
-    if (dbUser) {
-    db.authenticate(dbUser, dbPass, function (err, result) {
-        //test.equal(true, result);
-        state.db = db;
-        done();
-    });
-  } else {
-    state.db = db;
-    done();
-  }
-  })
+  const client = new MongoClient(url);
+  await client.connect();
+  state.db = client.db();
+  done();
 }
 
-exports.get = function() {
+exports.get = function () {
   return state.db
 }
 
-exports.close = function(done) {
+exports.close = function (done) {
   if (state.db) {
-    state.db.close(function(err, result) {
+    state.db.close(function (err, result) {
       state.db = null
       state.mode = null
       done(err)

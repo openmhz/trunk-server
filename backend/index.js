@@ -4,7 +4,6 @@ var passport = require("passport");
 var util = require("util");
 
 var secrets = require("./config/secrets");
-var configurePassport = require("./config/passport");
 var configureExpress = require("./config/express");
 
 var calls = require("./controllers/calls");
@@ -21,7 +20,6 @@ var ObjectID = require('mongodb').ObjectID;
 var db = require('./db');
 
 var System = require("./models/system");
-var Permission = require("./models/permission");
 var multer = require('multer');
 
 // -------------------------------------------
@@ -37,105 +35,34 @@ const io = require('socket.io')(server, {
   }
 });
 
-//var Twitter = require('twitter-lite');
-
-
-//io.origins('*:*');
 /*
-io.origins((origin, callback) => {
-  //if (origin !== 'https://foo.example.com') {
-  //  return callback('origin not allowed', false);
-  //}
-  callback(null, true);
-});*/
-
 io.on('connection', function (socket) {
-  //console.log('a user connected');
+  console.log('a user connected');
   socket.on('disconnect', function () {
-    //console.log('user disconnected');
+    console.log('user disconnected');
   });
-});
-
-
-// This section of code enable a Twitter client to tweet out messages when a new call comes in
-
-/*
-const client = new Twitter({
-  subdomain: "api", // "api" is the default (change for other subdomains)
-  version: "1.1", // version "1.1" is the default (change for other subdomains)
-  consumer_key: process.env.TWITTER_CONSUMER_KEY, // from Twitter.
-  consumer_secret: process.env.TWITTER_CONSUMER_SECRET, // from Twitter.
-  access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY, // from your User (oauth_token)
-  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET // from your User (oauth_token_secret)
-});
-
-client
-  .get("account/verify_credentials")
-  .then(results => {
-    console.log("Connected to Twitter");
-  })
-  .catch(console.error);
-*/
-
-function getRole(req) {
-  if (req.params.shortName && req.user) {
-    var short_name = req.params.shortName.toLowerCase();
-    var userId = req.user._id;
-    Permission.findOne({ 'userId': userId, 'shortName': short_name }, function (err, permission) {
-      if (err) {
-        console.error('Error - getRole userId: ' + userId + ' shortName: ' + short_name + ' error: ' + err);
-        return -1;
-      }
-      console.log('Found - getRole userId: ' + userId + ' shortName: ' + short_name + ' role: ' + permission.role);
-
-      return permission.role;
-    });
-  }
-}
-
-function isUser(req, res, next) {
-  if (req.params.shortName) {
-    var short_name = req.params.shortName.toLowerCase();
-    System.findOne({ 'shortName': short_name }, function (err, system) {
-      if (err) {
-        console.error('Error - System not found: ' + short_name);
-        res.status(505).send({
-          success: false,
-          message: "System Not Found"
-        });
-      }
-      if (!system.private) return next();
-
-      // Looks like the system is private...
-
-      if (getRole(req) > 0) return next();
-      res.status(401).send({
-        success: false,
-        message: "Insufficent Permission."
-      });
-    });
-  }
-}
+});*/
 
 
 // -------------------------------------------
 
-configurePassport(app, passport)
-configureExpress(app, passport)
+
+configureExpress(app)
 
 // -------------------------------------------
 
 
 const connect = () => {
-  mongoose.connect(secrets.db, (err, res) => {
-    if (err) {
-      console.log(`Error connecting to ${secrets.db}. ${err}`)
-    } else {
-      console.log(`Successfully connected to ${secrets.db}.`)
-    }
+  mongoose.connect(secrets.db).then((result) => { // Successfully connected
+    console.log("connected to Mongo");
   })
+  .catch((err) => {
+    // Catch any potential error
+    console.log(mongoose.version);
+    console.log("Unable to connect to MongoDB. Error: " + err);
+  });
 }
-connect()
+connect();
 
 mongoose.connection.on("error", console.error)
 mongoose.connection.on("disconnected", connect)
@@ -185,21 +112,6 @@ app.get('/:shortName/calls', calls.get_calls);
 /*------    UPLOADS   ---------- upload.single('call'),  uploads.upload,*/
 app.post('/:shortName/upload', upload.single('call'), uploads.upload, async function (req, res) {
   notify_clients(req.call);
-
-  // This section is for sending out tweets when new calls come in
-
-  /*
-  if ((req.call.shortName == "dcfd") && (req.call.talkgroupNum == 101)) {
-    var call_time = new Date(req.call.time);
-    var call_link = "https://openmhz.com/system/dcfd?call-id=" + req.call._id + "&time=" + call_time.getTime();
-
-    var call_time_label = call_time.toLocaleDateString('en-US', { timeZone: "America/New_York" }) + " " + call_time.toLocaleTimeString('en-US', { timeZone: "America/New_York" })
-    var status = req.call.len + " sec transmission\n" + call_time_label + "\n" + call_link;
-    const response = await client.post('statuses/update', {
-      status: status,
-    });
-    //console.log("Tweet Response: " + response);
-  }*/
 });
 
 /*------    SYSTEMS   ----------*/
@@ -430,9 +342,5 @@ var calcSched = schedule.scheduleJob(calcRule, function() {
     call_stats.build_usage();
 });
 */
-
-
-
-
 
 module.exports = app;

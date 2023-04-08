@@ -28,7 +28,7 @@ const System = () => {
   const { data: systemsData, isSuccess: isSystemsSuccess } = useGetSystemsQuery();
   const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
   const { data: groupsData } = useGetGroupsQuery(shortName);
-  const { data: systemErrorData, isSuccess: isErrorsSuccess } = useGetErrorsQuery(shortName);
+  //const { data: systemErrorData, isSuccess: isErrorsSuccess } = useGetErrorsQuery(shortName);
   const [deleteGroupAPI] = useDeleteGroupMutation();
   const [reorderGroupsAPI] = useSaveGroupOrderMutation();
   const [importTalkgroupsAPI] = useImportTalkgroupsMutation();
@@ -89,7 +89,10 @@ const System = () => {
 
   const processStatistics = (statistic) => {
     var callTotals = [];
-    var errorTotals = [];
+    var uploadErrors= [];
+    let talkgroupStats = [];
+    let decodeErrorsFreq = [];
+
     const now = new Date();
     var maxDate = now;
     var minDate = now;
@@ -105,13 +108,13 @@ const System = () => {
           maxValue = statistic.callTotals[j];
         callTotals.push({ y: statistic.callTotals[j], x: time });
       }
-      for (let j = 0; j < statistic.errorTotals.length; j++) {
-        let spotsBack = statistic.errorTotals.length - j;
+      for (let j = 0; j < statistic.uploadErrors.length; j++) {
+        let spotsBack = statistic.uploadErrors.length - j;
         let time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
         if (time < minDate) minDate = time;
-        if (statistic.errorTotals[j] > maxValue)
-          maxValue = statistic.errorTotals[j];
-        errorTotals.push({ x: time, y: statistic.errorTotals[j] });
+        if (statistic.uploadErrors[j] > maxValue)
+          maxValue = statistic.uploadErrors[j];
+        uploadErrors.push({ x: time, y: statistic.uploadErrors[j] });
       }
       const callData = {
         minDate: minDate,
@@ -119,7 +122,7 @@ const System = () => {
         minValue: minValue,
         maxValue: maxValue,
         callTotals: callTotals,
-        errorTotals: errorTotals
+        errorTotals: uploadErrors
       };
 
       setCallData(callData);
@@ -234,12 +237,12 @@ const System = () => {
       processStatistics(systemsData.stats[shortName])
     }
   }, [isSystemsSuccess]);
-
+/*
   useEffect(() => {
     if (isErrorsSuccess) {
       processErrors(systemErrorData)
     }
-  }, [systemErrorData]);
+  }, [systemErrorData]);*/
 
   let fileInput = null;
   var location = "";
