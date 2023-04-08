@@ -5,34 +5,38 @@
 
 const LocalStrategy = require("passport-local").Strategy;
 const User = require("../../models/user");
- /*
- By default, LocalStrategy expects to find credentials in parameters named username and password.
- If your site prefers to name these fields differently, options are available to change the defaults.
- */
+/*
+By default, LocalStrategy expects to find credentials in parameters named username and password.
+If your site prefers to name these fields differently, options are available to change the defaults.
+*/
 const local = new LocalStrategy({
- 	usernameField: "email"
- }, (email, password, done) => {
- 	User.findOne({
-    $or: [{
-      email
-    }, {
-      local: {
-        email
-      }
-    }]
-  }, (err, user) => {
- 		if(!user) {
-			 console.error("Auth Error - user not found: " + email);
-			 return done(null, false, { message: `Invalid email or password` })
+	usernameField: "email"
+}, async (email, password, done) => {
+	console.log(`${email} ${password}`);
+	const user = await User.findOne({
+		$or: [{
+			email
+		}, {
+			local: {
+				email
+			}
+		}]
+	});
+	if (!user) {
+		console.error("Auth Error - user not found: " + email);
+		return done(null, false, { message: `Invalid email or password` })
+	}
+	if (!user.confirmEmail) {
+		console.error("Auth Error - user has not confirmed email: " + email);
+		return done(null, false, { message: `User's email is not confirmed` })
+	}
+	user.comparePassword(password, (err, isMatch) => {
+		if (isMatch) {
+			return done(null, user)
+		} else {
+			console.error("Auth Error - password mismatch: " + email);
+			return done(null, false, { message: "Invalid email or password" })
 		}
- 		user.comparePassword(password, (err, isMatch) => {
- 			if (isMatch) {
- 				return done(null, user)
- 			} else {
-				console.error("Auth Error - password mismatch: " + email);
- 				return done(null, false, { message: "Invalid email or password" })
- 			}
- 		})
- 	})
- })
+	})
+})
 module.exports = local;

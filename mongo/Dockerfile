@@ -2,18 +2,14 @@
 #
 # docker build -t mongo .
 
-FROM mongo:4.4
+FROM mongo:5.0
 
 MAINTAINER Luke Berndt <lukekb@gmail.com>
 
 # Set timezone
- ENV TZ 'America/New_York'
-    RUN echo $TZ > /etc/timezone && \
-    apt-get update && apt-get install -y tzdata && \
-    rm /etc/localtime && \
-    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
-    dpkg-reconfigure -f noninteractive tzdata && \
-    apt-get clean
+ ENV TZ=America/New_York
+ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
     
 # Add main NGINX config
 RUN mkdir -p /app

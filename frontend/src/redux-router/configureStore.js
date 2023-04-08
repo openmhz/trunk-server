@@ -1,31 +1,22 @@
-// https://github.com/supasate/connected-react-router
-// configureStore.js
+import { configureStore } from '@reduxjs/toolkit'
+import { apiSlice } from "../features/api/apiSlice"
+import callPlayerSlice from "../features/callPlayer/callPlayerSlice"
+import { callsReducer } from "../features/calls/callsSlice"
 
-import { createBrowserHistory } from 'history'
-import { applyMiddleware, compose, createStore } from 'redux'
-import { createRouterMiddleware } from '@lagunovsky/redux-react-router'
-//import { routerMiddleware } from 'connected-react-router'
-import createRootReducer from './reducers'
-import { apiSlice } from '../features/api/apiSlice'
+const setupStore = (preloadedState) => {
+  const store = configureStore({
+    reducer: {
+      callPlayer: callPlayerSlice,
+      calls: callsReducer,
+      [apiSlice.reducerPath]: apiSlice.reducer,
+    },
+    middleware: (getDefaultMiddleware) =>
+      // adding the api middleware enables caching, invalidation, polling and other features of `rtk-query`
+      getDefaultMiddleware().concat(apiSlice.middleware),
+    preloadedState,
+  })
 
-import thunk from 'redux-thunk';
-
-export const history = createBrowserHistory()
-
-export default function configureStore(preloadedState) {
-  const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-  const store = createStore(
-    createRootReducer(history), // root reducer with router state
-    preloadedState,  
-    composeEnhancers(
-      applyMiddleware(
-        createRouterMiddleware(history), // for dispatching history actions
-        thunk,
-        apiSlice.middleware,
-        // ... other middlewares ...
-      ),
-    ),
-  )
- 
   return store
 }
+
+export default setupStore;

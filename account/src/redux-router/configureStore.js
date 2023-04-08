@@ -1,26 +1,20 @@
-// https://github.com/supasate/connected-react-router
-// configureStore.js
+import { configureStore } from '@reduxjs/toolkit'
+import { userReducer } from '../features/user/userSlice'
+import { apiSlice } from "../features/api/apiSlice"
 
-import { createBrowserHistory } from 'history'
-import { applyMiddleware, compose, createStore } from 'redux'
-import { routerMiddleware } from 'connected-react-router'
-import createRootReducer from './reducers'
-import thunk from 'redux-thunk';
-
-export const history = createBrowserHistory()
-
-export default function configureStore(preloadedState) {
-  const store = createStore(
-    createRootReducer(history), // root reducer with router state
+const setupStore = (preloadedState) => {
+  const store = configureStore({
+    reducer: {
+      user: userReducer,
+      [apiSlice.reducerPath]: apiSlice.reducer,
+    },
+    middleware: (getDefaultMiddleware) =>
+      // adding the api middleware enables caching, invalidation, polling and other features of `rtk-query`
+      getDefaultMiddleware().concat(apiSlice.middleware),
     preloadedState,
-    compose(
-      applyMiddleware(
-        routerMiddleware(history), // for dispatching history actions
-        thunk,
-        // ... other middlewares ...
-      ),
-    ),
-  )
+  })
 
   return store
 }
+
+export default setupStore;

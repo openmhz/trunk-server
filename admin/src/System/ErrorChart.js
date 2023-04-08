@@ -7,9 +7,7 @@ import { AxisBottom, AxisLeft } from '@visx/axis';
 import { Loader } from "semantic-ui-react";
 import { LegendOrdinal} from '@visx/legend';
 class ErrorChart extends Component {
-  constructor(props) {
-    super(props);
-  }
+
 
   render() {
     var errorData = this.props.data;
@@ -44,12 +42,11 @@ class ErrorChart extends Component {
       return colores_g[n % colores_g.length];
     }
 
-    const compose = (scale, accessor) => (data) => scale(accessor(data));
     var zScale = scaleOrdinal({
       domain: errorData.legend,
       range: ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"]
     });
-    var xScale, yScale, xPoint, yPoint;
+    var xScale, yScale;
     if (errorData) {
       // We'll use some mock data from `@vx/mock-data` for this.
       data = errorData.data;
@@ -67,8 +64,6 @@ class ErrorChart extends Component {
         domain: errorData.legend,
         range: ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"]
       });
-      xPoint = compose(xScale, x);
-      yPoint = compose(yScale, y);
 
     }
 

@@ -217,7 +217,6 @@ app.get('/events', events.getEvents);
 app.get('/events/:id', events.getEvent);
 
 /*------    STATS   ----------*/
-app.get('/:shortName/errors', stats.get_errors);
 app.get('/:shortName/stats', stats.get_stats);
 
 

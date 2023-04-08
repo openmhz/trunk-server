@@ -14,10 +14,13 @@ module.exports = function (app, passport) {
   	done(null, user.id)
   })
 
-  passport.deserializeUser((id, done) => {
-  	User.findById(id, (err, user) => {
-      done(err, user)
-  	})
+  passport.deserializeUser(async (id, done) => {
+    const user = await User.findById(id).exec();
+    if (user) {
+      done(null,user);
+    } else {
+      done("User not found", null);
+    }
   })
 
 

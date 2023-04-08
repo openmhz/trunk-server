@@ -15,39 +15,39 @@ const app = express()
 
 // -------------------------------------------
 
-async function connect() {
+const connect = async () => {
 
 	// Demonstrate the readyState and on event emitters
 	console.log(mongoose.connection.readyState); //logs 0
-	mongoose.connection.on('connecting', () => { 
-	console.log('Mongoose is connecting')
-	console.log(mongoose.connection.readyState); //logs 2
+	mongoose.connection.on('connecting', () => {
+		console.log('Mongoose is connecting')
+		console.log(mongoose.connection.readyState); //logs 2
 	});
 	mongoose.connection.on('connected', () => {
-	console.log('Mongoose is connected');
-	console.log(mongoose.connection.readyState); //logs 1
+		console.log('Mongoose is connected');
+		console.log(mongoose.connection.readyState); //logs 1
 	});
 	mongoose.connection.on('disconnecting', () => {
-	console.log('Mongoose is disconnecting');
-	console.log(mongoose.connection.readyState); // logs 3
+		console.log('Mongoose is disconnecting');
+		console.log(mongoose.connection.readyState); // logs 3
 	});
 
 	// Connect to a MongoDB server running on 'localhost:27017' and use the
 	// 'test' database.
-	await mongoose.connect(secrets.db, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }, (err, res) => {
-		if (err) {
-			console.log(`Mongoose - Error connecting to ${secrets.db}. ${err}`)
-		} else {
-			console.log(`Mongoose Successfully connected to ${secrets.db}.`)
-		}
-	})
+	await mongoose.connect(secrets.db, { useNewUrlParser: true, useUnifiedTopology: true }).catch(err => {
+
+		console.error(`Mongoose - Error connecting to ${secrets.db}. ${err}`)
+
+	});
 	console.log("All Done");
 }
+
 connect();
+
 mongoose.connection.on('error', err => {
 	console.error("Mongoose Error!")
 	console.error(err);
-  });
+});
 mongoose.connection.on('disconnected', () => {
 	console.log('Mongoose disconnected');
 	console.log(mongoose.connection.readyState); //logs 0
@@ -72,16 +72,16 @@ configurePassport(app, passport)
 configureExpress(app, passport)
 
 
-app.all('*', function(req, res, next) {
-  	var allowedOrigins = [account_server, admin_server, frontend_server];
-		var origin = req.headers.origin;
-    if(allowedOrigins.indexOf(origin) > -1){
-         res.setHeader('Access-Control-Allow-Origin', origin);
-    }
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header("Access-Control-Allow-Headers", "X-Requested-With");
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-    next();
+app.all('*', function (req, res, next) {
+	var allowedOrigins = [account_server, admin_server, frontend_server];
+	var origin = req.headers.origin;
+	if (allowedOrigins.indexOf(origin) > -1) {
+		res.setHeader('Access-Control-Allow-Origin', origin);
+	}
+	res.header("Access-Control-Allow-Credentials", "true");
+	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+	res.header('Access-Control-Allow-Headers', 'Content-Type');
+	next();
 });
 
 // -------------------------------------------
@@ -94,8 +94,8 @@ app.post("/users/:userId/reset-password/:token", users.resetPassword)
 app.post("/api/send-reset-password", users.sendResetPassword)
 app.post("/users/:userId", users.isLoggedIn, users.validateProfile, users.updateProfile)
 app.post("/users/:userId/terms", users.isLoggedIn, users.terms)
-app.post("/users/:userId/send-confirm",  users.sendConfirmEmail)
-app.post("/users/:userId/confirm/:token",  users.confirmEmail)
+app.post("/users/:userId/send-confirm", users.sendConfirmEmail)
+app.post("/users/:userId/confirm/:token", users.confirmEmail)
 
 app.get("*", (req, res, next) => {
 	res.sendFile(__dirname + '/public/index.html');

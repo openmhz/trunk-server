@@ -13,6 +13,8 @@ var callSchema = mongoose.Schema({
   time: Date,
   name: String,
   freq: Number,
+  errorCount: Number,
+  spikeCount: Number,
   url: String,
   emergency: Boolean,
   path: String,
@@ -21,8 +23,7 @@ var callSchema = mongoose.Schema({
 		type: Number,
 		default: 0
 	},
-  srcList: [srcSchema],
-  freqList: [freqSchema]
+  srcList: [srcSchema]
 });
 
 

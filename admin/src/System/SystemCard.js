@@ -1,5 +1,4 @@
 
-import React, { Component } from "react";
 import {
   Card,
   Icon,
@@ -9,15 +8,13 @@ import {
 
 
 
-class SystemCard extends Component {
-
-render() {
+const SystemCard = (props) => {
   var location = "";
-  const system = this.props.system;
+  const { system } = props;
 
-  
+
   if (system) {
-    
+
 
     switch (system.systemType) {
       case "state":
@@ -37,26 +34,26 @@ render() {
     }
   }
   return (
-    <Card link onClick={this.props.onClick}>
-    
-    <Card.Content>
-    <Header size='medium'>
-    <Header.Content>
-    {system.name}
-      <Header.Subheader>{system.screenName}</Header.Subheader>
-    </Header.Content>
-  </Header>
-   </Card.Content><Card.Content>
+    <Card link onClick={props.onClick}>
 
-   <Card.Description>{system.description}</Card.Description>
-   </Card.Content>
-   <Card.Content extra>
-     <Icon name='marker' />
-     {location}
-   </Card.Content>
- </Card>
+      <Card.Content>
+        <Header size='medium'>
+          <Header.Content>
+            {system.name}
+            <Header.Subheader>{system.screenName}</Header.Subheader>
+          </Header.Content>
+        </Header>
+      </Card.Content><Card.Content>
+
+        <Card.Description>{system.description}</Card.Description>
+      </Card.Content>
+      <Card.Content extra>
+        <Icon name='marker' />
+        {location}
+      </Card.Content>
+    </Card>
   );
-}
+
 }
 
 export default SystemCard;
