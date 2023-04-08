@@ -13,7 +13,7 @@ var secrets = require("../config/secrets");
 var util = require("util")
 var config = require('../config/config.json');
 
-var s3_endpoint = process.env['S3_ENDPOINT'] != null ? process.env['S3_ENDPOINT'] : 's3.us-west-1.wasabisys.com';
+var s3_endpoint = process.env['S3_ENDPOINT'] != null ? process.env['S3_ENDPOINT'] : 'https://s3.us-west-1.wasabisys.com';
 var s3_bucket = process.env['S3_BUCKET'] != null ? process.env['S3_BUCKET'] : 'openmhz-west';
 var s3_profile = process.env['S3_PROFILE'] != null ? process.env['S3_PROFILE'] : 'wasabi-account';
 
@@ -157,7 +157,7 @@ exports.upload = function (req, res, next) {
 
 
       // If not a pro plan, use S3 storage
-      var url = 'https://' + s3_endpoint + "/" + s3_bucket + "/" + object_key;
+      var url = s3_endpoint + "/" + s3_bucket + "/" + object_key;
       var objectStore = true;
 
 
