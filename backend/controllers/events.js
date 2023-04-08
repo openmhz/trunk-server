@@ -17,7 +17,7 @@ var fs = require('fs');
 const s3 = require('aws-sdk');
 const { events } = require('../models/event');
 
-var s3_endpoint = process.env['S3_ENDPOINT'] != null ? process.env['S3_ENDPOINT'] : 's3.us-west-1.wasabisys.com';
+var s3_endpoint = process.env['S3_ENDPOINT'] != null ? process.env['S3_ENDPOINT'] : 'https://s3.us-west-1.wasabisys.com';
 var s3_bucket = process.env['S3_BUCKET'] != null ? process.env['S3_BUCKET'] : 'openmhz-west';
 var s3_profile = process.env['S3_PROFILE'] != null ? process.env['S3_PROFILE'] : 'wasabi-account';
 
@@ -279,8 +279,8 @@ const packageEvent = (eventId) => {
             createEventZip(tmpEventFolder, zipFile, eventFolder);
             await uploadFile(zipFile, s3ZipFile);
             
-            const downloadUrl = 'https://' + s3_endpoint + "/" + s3_bucket + "/" + s3ZipFile;
-            const podcastUrl = 'https://' + s3_endpoint + "/" + s3_bucket + "/" + s3PodcastFile;
+            const downloadUrl = s3_endpoint + "/" + s3_bucket + "/" + s3ZipFile;
+            const podcastUrl = s3_endpoint + "/" + s3_bucket + "/" + s3PodcastFile;
             event.downloadUrl = downloadUrl;
             event.podcastUrl = podcastUrl;
             await event.save();
