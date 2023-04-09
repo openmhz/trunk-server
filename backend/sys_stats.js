@@ -73,15 +73,15 @@ exports.initStats = async function() {
 exports.addError = function(call) {
 
     // if there is no Array associated with the system.
-    if (errorTotals[call.shortName] == undefined) {
-        errorTotals[call.shortName] = new Array();
+    if (uploadErrors[call.shortName] == undefined) {
+        uploadErrors[call.shortName] = new Array();
         for (var j = 0; j < spots; j++) {
-            errorTotals[call.shortName][j] = 0;
+            uploadErrors[call.shortName][j] = 0;
         }
     }
 
     // Add an error to the count for the current period.
-    errorTotals[call.shortName][0]++;
+    uploadErrors[call.shortName][0]++;
 }
 
 // Keeps track of the number of calls for each talkgroup for a system
@@ -144,25 +144,14 @@ exports.shiftStats = async function() {
 
         // for all the systems in Error Stats
         for (var shortName in uploadErrors) {
-            if (upload.hasOwnProperty(shortName)) {
+            if (uploadErrors.hasOwnProperty(shortName)) {
 
                 // Update the DB with Error Stats and Error Totals
-                statsCollection.update({
-                    shortName: shortName
-                }, {
-                    $set: {
-                        "uploadErrors": uploadErrors[shortName]
-                    }
-                }, {
-                    upsert: true
-                }, function(err, objects) {
-                    if (err) {
-                      console.log("Shortname: " + shortName);
-                      console.log("uploadErrors: " + util.inspect(uploadErrors[shortName]));
-                      console.warn(err.message);
-                    }
-                });
+                const query = { shortName: shortName};
+                const update = { $set: { "uploadErrors": uploadErrors[shortName]}};
+                const options = {upsert: true};
 
+                statsCollection.updateOne(query, update, options);
                 // move everything back one after updating
                 for (var j = spots - 1; j > 0; j--) {
                     uploadErrors[shortName][j] = uploadErrors[shortName][j - 1];
@@ -205,11 +194,11 @@ exports.shiftStats = async function() {
                     }
                 }
 
-                const query = { shortName: item.shortName};
+                const query = { shortName: shortName};
                 const update = { $set: { "decodeErrorsFreq": decodeErrorsFreq[shortName]}};
                 const options = {upsert: true};
 
-                sysCollection.updateOne(query, update, options);
+                statsCollection.updateOne(query, update, options);
 
             }
         }
@@ -277,7 +266,7 @@ exports.shiftStats = async function() {
                 const update = { $set: { "talkgroupStats": talkgroupStats[shortName], "callTotals": callTotals[shortName] }};
                 const options = {upsert: true};
 
-                sysCollection.updateOne(query, update, options);
+                statsCollection.updateOne(query, update, options);
             }
         }
     updateActiveSystems();

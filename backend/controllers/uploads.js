@@ -8,17 +8,18 @@ var Talkgroup = require("../models/talkgroup");
 var { callModel: Call } = require("../models/call");
 var secrets = require("../config/secrets");
 var util = require("util")
-
+const { PutObjectCommand, S3Client } = require("@aws-sdk/client-s3");
+const {fromIni} = require("@aws-sdk/credential-providers");
 
 var s3_endpoint = process.env['S3_ENDPOINT'] != null ? process.env['S3_ENDPOINT'] : 'https://s3.us-west-1.wasabisys.com';
 var s3_region = process.env['S3_REGION'] != null ? process.env['S3_REGION'] : 'us-west-1';
 var s3_bucket = process.env['S3_BUCKET'] != null ? process.env['S3_BUCKET'] : 'openmhz-west';
 var s3_profile = process.env['S3_PROFILE'] != null ? process.env['S3_PROFILE'] : 'wasabi-account';
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+
 
 const client = new S3Client({
   credentials: fromIni({ profile: s3_profile }),
-  bucketEndpoint: s3_endpoint,
+  endpoint: s3_endpoint,
   region: s3_region,
   maxAttempts: 1
 });
@@ -33,10 +34,10 @@ exports.upload = async function (req, res, next) {
   }
   var shortName = req.params.shortName.toLowerCase();
   var apiKey = req.body.api_key;
-
+  let item = null;
 
   try {
-    const item = System.findOne({ 'shortName': shortName }, ["key", "ignoreUnknownTalkgroup"]);
+    item = await System.findOne({ 'shortName': shortName }, ["key", "ignoreUnknownTalkgroup"]);
   } catch (err) {
     console.warn("[" + req.params.shortName + "] Error /:shortName/upload - Error: " + err);
     res.status(500);
@@ -157,8 +158,7 @@ exports.upload = async function (req, res, next) {
   });
 
   try {
-    const response = await client.send(command);
-    console.log(response);
+    await client.send(command);
 
     wasabiSrc.destroy();
     fs.unlink(req.file.path, async (err) => {
@@ -174,11 +174,8 @@ exports.upload = async function (req, res, next) {
         next();
       }
     });
-    if (err) {
-      console.error("[" + call.shortName + "] " + call.name + " -   content-length: " + req.headers['content-length'] + " Wasabi Error", err);
-    }
   } catch (err) {
-    console.warn("[" + call.shortName + "] Upload Error: " + err + " Filename: " + call.name + " content-length: " + req.headers['content-length']);
+    console.warn("[" + call.shortName + "] Upload Error: " + err + " Filename: " + call.name + " content-length: " + req.headers['content-length'] + " Key: " + object_key + " Bucket: " + s3_bucket);
     res.status(500);
     sysStats.addError(call.toObject());
     res.contentType('json');
