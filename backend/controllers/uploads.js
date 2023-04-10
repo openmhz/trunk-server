@@ -181,9 +181,11 @@ exports.upload = async function (req, res, next) {
       success: false,
       error: "File Upload"
     }));*/
-    fs.unlink(req.file.path, (err) => {
-      if (err)
-        console.log("error deleting: " + req.file.path);
-    });
+    try {
+      fs.unlinkSync(req.file.path);
+    } catch (err) {
+      console.warn("There was an Error uploading an deleting: " + req.file.path);
+    };
+
   }
 }
