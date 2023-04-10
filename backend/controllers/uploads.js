@@ -6,7 +6,7 @@ var Talkgroup = require("../models/talkgroup");
 var { callModel: Call } = require("../models/call");
 
 const { PutObjectCommand, S3Client } = require("@aws-sdk/client-s3");
-const {fromIni} = require("@aws-sdk/credential-providers");
+const { fromIni } = require("@aws-sdk/credential-providers");
 
 var s3_endpoint = process.env['S3_ENDPOINT'] != null ? process.env['S3_ENDPOINT'] : 'https://s3.us-west-1.wasabisys.com';
 var s3_region = process.env['S3_REGION'] != null ? process.env['S3_REGION'] : 'us-west-1';
@@ -144,9 +144,13 @@ exports.upload = async function (req, res, next) {
   } catch (err) {
     console.error(err);
   }
-
-  var s3Src = fs.createReadStream(req.file.path);
-
+  let s3Src;
+  try {
+    s3Src = fs.createReadStream(req.file.path);
+  } catch (err) {
+    console.error("[" + call.shortName + "] Unable to open file: " + req.file.path)
+    return;
+  }
   const command = new PutObjectCommand({
     Bucket: s3_bucket,
     Key: object_key,

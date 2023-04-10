@@ -247,7 +247,7 @@ function notify_clients(call) {
 io.sockets.on('connection', function (client) {
   clients[client.id] = { socket: client, active: false };
   clients[client.id].timestamp = new Date();
-  client.on('start', function (data) {
+  client.on('start', async function (data) {
     if (clients[client.id] && data.shortName) {
       clients[client.id].active = true;
       clients[client.id].shortName = data.shortName.toLowerCase();
@@ -258,8 +258,8 @@ io.sockets.on('connection', function (client) {
       clients[client.id].talkgroupNums = [];
       clients[client.id].timestamp = new Date();
       if ((data.filterType == "group") && (data.filterCode.indexOf(',') == -1)) {
-        db.get().collection("groups", function (err, groupCollection) {
-          if (err || !groupCollection) {
+        const groupCollection = db.get().collection("groups");
+          if (!groupCollection) {
             console.error("Error - unable to open groups collection: " + err);
             delete clients[client.id];
             return;
@@ -269,15 +269,16 @@ io.sockets.on('connection', function (client) {
             delete clients[client.id];
             return;
           }
-          groupCollection.findOne({
+          try {
+          const group = await groupCollection.findOne({
             'shortName': data.shortName.toLowerCase(),
             '_id': ObjectId.createFromHexString(data.filterCode)
-          }, function (err, group) {
-            if (err) {
+          });
+        } catch (err) {
               console.warn("[" + data.shortName.toLowerCase() + "] Error - WebSocket Group ID not Found! Error: " + err + " Group ID: " + data.filterCode);
               delete clients[client.id];
               return;
-            } else {
+            } 
               if (group && clients[client.id]) {
                 clients[client.id].talkgroupNums = group.talkgroups;
               } else {
@@ -285,11 +286,8 @@ io.sockets.on('connection', function (client) {
                 delete clients[client.id];
                 return;
               }
-            }
-          });
-        });
-
-      } if ((data.filterType == "talkgroup") && Array.isArray(data.filterCode)) {
+          
+      } else if ((data.filterType == "talkgroup") && Array.isArray(data.filterCode)) {
         clients[client.id].talkgroupNums = data.filterCode;
       }
       //console.log("[" + data.shortName.toLowerCase() + "] WebSocket Updating - Client: " + client.id + " code set to: " + data.filterCode + " type set to: " + data.filterType + " TGS: " + clients[client.id].talkgroupNums);
