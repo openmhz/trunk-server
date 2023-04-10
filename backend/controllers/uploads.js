@@ -1,13 +1,10 @@
 var path = require('path');
 var fs = require('fs');
 var sysStats = require("../sys_stats");
-var probe = require('node-ffprobe');
-var mongoose = require("mongoose");
 var System = require("../models/system");
 var Talkgroup = require("../models/talkgroup");
 var { callModel: Call } = require("../models/call");
-var secrets = require("../config/secrets");
-var util = require("util")
+
 const { PutObjectCommand, S3Client } = require("@aws-sdk/client-s3");
 const {fromIni} = require("@aws-sdk/credential-providers");
 
@@ -148,19 +145,19 @@ exports.upload = async function (req, res, next) {
     console.error(err);
   }
 
-  var wasabiSrc = fs.createReadStream(req.file.path);
+  var s3Src = fs.createReadStream(req.file.path);
 
   const command = new PutObjectCommand({
     Bucket: s3_bucket,
     Key: object_key,
-    Body: wasabiSrc,
+    Body: s3Src,
     ACL: 'public-read'
   });
 
   try {
     await client.send(command);
 
-    wasabiSrc.destroy();
+    s3Src.destroy();
     fs.unlink(req.file.path, async (err) => {
       if (err) {
         console.error("[" + call.shortName + "]error deleting: " + req.file.path);

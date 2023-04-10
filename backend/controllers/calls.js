@@ -1,5 +1,5 @@
 
-var ObjectID = require('mongodb').ObjectID;
+const { ObjectId } = require('mongodb');
 var db = require('../db');
 var mongoose = require("mongoose");
 var { callModel: Call } = require("../models/call");
@@ -110,7 +110,7 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
 
             const group = await groupCollection.findOne({
                 'shortName': shortName,
-                '_id': ObjectID.createFromHexString(code)
+                '_id': ObjectId.createFromHexString(code)
             });
             if (!group) {
                 console.warn("[" + shortName + "] Error - build_filter() group is null " + err);
@@ -163,9 +163,9 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
 exports.get_card = async function (req, res) {
     var objectId = req.params.id;
     try {
-        var o_id = ObjectID.createFromHexString(objectId);
+        var o_id = ObjectId.createFromHexString(objectId);
     } catch (err) {
-        console.warn("Error - /card/:id generating ObjectID " + err);
+        console.warn("Error - /card/:id generating ObjectId " + err);
         res.status(500);
         res.send(JSON.stringify({
             error: err,
@@ -219,9 +219,9 @@ function package_call(item) {
 exports.remove_star = async function (req, res, next) {
     var objectId = req.params.id;
     try {
-        var o_id = ObjectID.createFromHexString(objectId);
+        var o_id = ObjectId.createFromHexString(objectId);
     } catch (err) {
-        console.warn("[" + req.params.shortName + "] Error - /remove_star/:id generating ObjectID " + err);
+        console.warn("[" + req.params.shortName + "] Error - /remove_star/:id generating ObjectId " + err);
         res.status(500);
         res.send(JSON.stringify({
             success: false,
@@ -252,9 +252,9 @@ exports.remove_star = async function (req, res, next) {
 exports.add_star = async function (req, res, next) {
     var objectId = req.params.id;
     try {
-        var o_id = ObjectID.createFromHexString(objectId);
+        var o_id = ObjectId.createFromHexString(objectId);
     } catch (err) {
-        console.warn("[" + req.params.shortName + "] Error - /add_star/:id generating ObjectID " + err);
+        console.warn("[" + req.params.shortName + "] Error - /add_star/:id generating ObjectId " + err);
         res.status(500);
         res.send(JSON.stringify({
             success: false,
@@ -286,9 +286,9 @@ exports.add_star = async function (req, res, next) {
 exports.get_call = async function (req, res) {
     var objectId = req.params.id;
     try {
-        var o_id = ObjectID.createFromHexString(objectId);
+        var o_id = ObjectId.createFromHexString(objectId);
     } catch (err) {
-        console.warn("[" + req.params.shortName + "] Error - /:shortName/call/:id generating ObjectID " + err);
+        console.warn("[" + req.params.shortName + "] Error - /:shortName/call/:id generating ObjectId " + err);
         res.status(500);
         res.send(JSON.stringify({
             success: false,

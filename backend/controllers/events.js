@@ -1,8 +1,6 @@
-var ObjectID = require('mongodb').ObjectID;
-const { spawn, spawnSync } = require('node:child_process');
+const { ObjectId } = require('mongodb');
+const { spawn } = require('node:child_process');
 const https = require('https');
-var db = require('../db');
-var mongoose = require("mongoose");
 var Event = require("../models/event");
 var Podcast = require("../models/podcast");
 var System = require("../models/system");
@@ -14,22 +12,20 @@ var frontend_server = process.env['REACT_APP_FRONTEND_SERVER'] != null ? process
 const os = require('os');
 var fs = require('fs');
 
-const s3 = require('aws-sdk');
-const { events } = require('../models/event');
+const { PutObjectCommand, S3Client } = require("@aws-sdk/client-s3");
+const { fromIni } = require("@aws-sdk/credential-providers");
 
 var s3_endpoint = process.env['S3_ENDPOINT'] != null ? process.env['S3_ENDPOINT'] : 'https://s3.us-west-1.wasabisys.com';
+var s3_region = process.env['S3_REGION'] != null ? process.env['S3_REGION'] : 'us-west-1';
 var s3_bucket = process.env['S3_BUCKET'] != null ? process.env['S3_BUCKET'] : 'openmhz-west';
 var s3_profile = process.env['S3_PROFILE'] != null ? process.env['S3_PROFILE'] : 'wasabi-account';
 
-const s3Endpoint = new s3.Endpoint(s3_endpoint);
-var s3Credentials = new s3.SharedIniFileCredentials({
-    profile: s3_profile
-});
 
-s3.config.credentials = s3Credentials;
-const s3S3 = new s3.S3({
-    endpoint: s3Endpoint,
-    maxRetries: 2
+const client = new S3Client({
+    credentials: fromIni({ profile: s3_profile }),
+    endpoint: s3_endpoint,
+    region: s3_region,
+    maxAttempts: 2
 });
 
 
@@ -105,41 +101,36 @@ const createEventZip = async (folder, filename, zipFolder) => {
 }
 
 
-const uploadFile = (zipFile, s3File) => {
+const uploadFile = async (zipFile, s3File) => {
     var s3Src = fs.createReadStream(zipFile);
-    return new Promise((resolve, reject) => {
-        const s3Params = {
-            Bucket: s3_bucket,
-            Key: s3File,
-            Body: s3Src,
-            ACL: 'public-read'
-        };
 
-        s3S3.upload(s3Params, function (err, data) {
-            s3Src.destroy();
-
-            if (err) {
-                console.error("Event S3 Upload Error " + err);
-                reject(err);
-            } else {
-                resolve("done");
-            }
-        });
+    const command = new PutObjectCommand({
+        Bucket: s3_bucket,
+        Key: s3File,
+        Body: s3Src,
+        ACL: 'public-read'
     });
+
+    try {
+        await client.send(command);
+        s3Src.destroy();
+    } catch (err) {
+        console.error("Event S3 Upload Error " + err);
+    }
 }
 
 
 const ffmpeg = async (command) => {
-// https://stackoverflow.com/questions/68101810/how-to-execute-ffmpeg-commands-synchronously
+    // https://stackoverflow.com/questions/68101810/how-to-execute-ffmpeg-commands-synchronously
     return new Promise((resolve, reject) => {
         const ffmpeg = spawn("/usr/bin/ffmpeg", command);
         //ffmpeg.once('error', reject);
         ffmpeg.stderr.on("data", (data) => {
             console.error(data.toString()); //I'm not sure what debug is
-          });
+        });
         ffmpeg.stdout.on("data", (data) => {
             //console.log(data.toString()); //I'm not sure what debug is
-          });
+        });
         ffmpeg.on("exit", (code, signal) => {
             if (signal)
                 code = signal;
@@ -156,11 +147,15 @@ const ffmpeg = async (command) => {
 };
 
 const escapeMetadata = (input) => {
-    let result = input.replace(/(\\)/g, '\\\\');
-    result=result.replace(/(\;)/g, '\\;');
-    result=result.replace(/(\#)/g, '\\#');
-    result=result.replace(/(\=)/g, '\\=');
-    return result;
+    if (typeof input === 'string') {
+        let result = input.replace(/(\\)/g, '\\\\');
+        result = result.replace(/(\;)/g, '\\;');
+        result = result.replace(/(\#)/g, '\\#');
+        result = result.replace(/(\=)/g, '\\=');
+        return result;
+    } else {
+        return "";
+    }
 }
 const createChapters = (event) => {
     let chapters = ";FFMETADATA1\n";
@@ -204,7 +199,7 @@ const createPodcast = async (tmpEventFolder, podcastFile, event) => {
     command.push("-acodec");
     command.push("copy");
     command.push(tmpFile);
-    console.log("Running command: " + command);
+    //console.log("Running command: " + command);
     await ffmpeg(command);
 
 
@@ -221,7 +216,7 @@ const createPodcast = async (tmpEventFolder, podcastFile, event) => {
     command.push("-codec");
     command.push("copy");
     command.push(podcastFile)
-    console.log("Running command: " + command);
+    //console.log("Running command: " + command);
     await ffmpeg(command);
 }
 
@@ -278,15 +273,15 @@ const packageEvent = (eventId) => {
             exportEventJson(tmpEventFolder, event);
             createEventZip(tmpEventFolder, zipFile, eventFolder);
             await uploadFile(zipFile, s3ZipFile);
-            
+
             const downloadUrl = s3_endpoint + "/" + s3_bucket + "/" + s3ZipFile;
             const podcastUrl = s3_endpoint + "/" + s3_bucket + "/" + s3PodcastFile;
             event.downloadUrl = downloadUrl;
             event.podcastUrl = podcastUrl;
             await event.save();
             await createPodcast(tmpEventFolder, podcastFile, event);
-            await uploadFile(podcastFile,s3PodcastFile);
-            await savePodcast(event,podcastUrl);
+            await uploadFile(podcastFile, s3PodcastFile);
+            await savePodcast(event, podcastUrl);
             console.log("uploaded to: " + podcastUrl);
 
 
@@ -368,7 +363,7 @@ exports.addNewEvent = async function (req, res, next) {
         const callIds = req.body.callIds;
         let objectIds = [];
         callIds.forEach((id) => {
-            objectIds.push(new ObjectID(id));
+            objectIds.push(new ObjectId(id));
         })
 
         event.title = title.replace(/[^a-zA-Z0-9 \.\-\_]/g, "");

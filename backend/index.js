@@ -16,7 +16,7 @@ var events = require("./controllers/events");
 var config = require('./config/config.json');
 
 var mongoose = require("mongoose");
-var ObjectID = require('mongodb').ObjectID;
+const { ObjectId } = require('mongodb');
 var db = require('./db');
 
 var System = require("./models/system");
@@ -264,14 +264,14 @@ io.sockets.on('connection', function (client) {
             delete clients[client.id];
             return;
           }
-          if (!ObjectID.isValid(data.filterCode)) {
+          if (!ObjectId.isValid(data.filterCode)) {
             console.error("Error - Socket - Invalid Group ID: " + data.filterCode);
             delete clients[client.id];
             return;
           }
           groupCollection.findOne({
             'shortName': data.shortName.toLowerCase(),
-            '_id': ObjectID.createFromHexString(data.filterCode)
+            '_id': ObjectId.createFromHexString(data.filterCode)
           }, function (err, group) {
             if (err) {
               console.warn("[" + data.shortName.toLowerCase() + "] Error - WebSocket Group ID not Found! Error: " + err + " Group ID: " + data.filterCode);

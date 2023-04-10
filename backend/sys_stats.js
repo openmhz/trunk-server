@@ -262,7 +262,7 @@ exports.shiftStats = async function() {
 
 
 
-                const query = { shortName: item.shortName};
+                const query = { shortName: shortName};
                 const update = { $set: { "talkgroupStats": talkgroupStats[shortName], "callTotals": callTotals[shortName] }};
                 const options = {upsert: true};
 

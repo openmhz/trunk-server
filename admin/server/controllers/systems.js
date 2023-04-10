@@ -71,12 +71,14 @@ exports.listSystems = async function (req, res, next) {
   for (var i = 0; i < stats.length; i++) {
     sys_stats[stats[i].shortName] = {};
 
-    sys_stats[stats[i].shortName].callTotals = stats[i].callTotals;
-    sys_stats[stats[i].shortName].uploadErrors = stats[i].uploadErrors;
+    sys_stats[stats[i].shortName]["uploadErrors"] = stats[i].uploadErrors;
+    sys_stats[stats[i].shortName]["callTotals"] = stats[i].callTotals;
+
     sys_stats[stats[i].shortName].talkgroupStats= stats[i].talkgroupStats;
     sys_stats[stats[i].shortName].decodeErrorsFreq = stats[i].decodeErrorsFreq;
   }
 
+  console.log(sys_stats["test"]);
   res.json({
     success: true,
     systems: returnSys,
