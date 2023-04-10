@@ -56,11 +56,11 @@ const connect = () => {
   mongoose.connect(secrets.db).then((result) => { // Successfully connected
     console.log("connected to Mongo");
   })
-  .catch((err) => {
-    // Catch any potential error
-    console.log(mongoose.version);
-    console.log("Unable to connect to MongoDB. Error: " + err);
-  });
+    .catch((err) => {
+      // Catch any potential error
+      console.log(mongoose.version);
+      console.log("Unable to connect to MongoDB. Error: " + err);
+    });
 }
 connect();
 
@@ -259,34 +259,35 @@ io.sockets.on('connection', function (client) {
       clients[client.id].timestamp = new Date();
       if ((data.filterType == "group") && (data.filterCode.indexOf(',') == -1)) {
         const groupCollection = db.get().collection("groups");
-          if (!groupCollection) {
-            console.error("Error - unable to open groups collection: " + err);
-            delete clients[client.id];
-            return;
-          }
-          if (!ObjectId.isValid(data.filterCode)) {
-            console.error("Error - Socket - Invalid Group ID: " + data.filterCode);
-            delete clients[client.id];
-            return;
-          }
-          try {
-          const group = await groupCollection.findOne({
+        if (!groupCollection) {
+          console.error("Error - unable to open groups collection: " + err);
+          delete clients[client.id];
+          return;
+        }
+        if (!ObjectId.isValid(data.filterCode)) {
+          console.error("Error - Socket - Invalid Group ID: " + data.filterCode);
+          delete clients[client.id];
+          return;
+        }
+        let group;
+        try {
+          group = await groupCollection.findOne({
             'shortName': data.shortName.toLowerCase(),
             '_id': ObjectId.createFromHexString(data.filterCode)
           });
         } catch (err) {
-              console.warn("[" + data.shortName.toLowerCase() + "] Error - WebSocket Group ID not Found! Error: " + err + " Group ID: " + data.filterCode);
-              delete clients[client.id];
-              return;
-            } 
-              if (group && clients[client.id]) {
-                clients[client.id].talkgroupNums = group.talkgroups;
-              } else {
-                console.error("Error - Socket: Invalid group or Client: " + data.filterCode + " Shortname: " + data.shortName + " ClientID: " + client.id);
-                delete clients[client.id];
-                return;
-              }
-          
+          console.warn("[" + data.shortName.toLowerCase() + "] Error - WebSocket Group ID not Found! Error: " + err + " Group ID: " + data.filterCode);
+          delete clients[client.id];
+          return;
+        }
+        if (group && clients[client.id]) {
+          clients[client.id].talkgroupNums = group.talkgroups;
+        } else {
+          console.error("Error - Socket: Invalid group or Client: " + data.filterCode + " Shortname: " + data.shortName + " ClientID: " + client.id);
+          delete clients[client.id];
+          return;
+        }
+
       } else if ((data.filterType == "talkgroup") && Array.isArray(data.filterCode)) {
         clients[client.id].talkgroupNums = data.filterCode;
       }
