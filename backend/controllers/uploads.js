@@ -173,14 +173,14 @@ exports.upload = async function (req, res, next) {
     });
   } catch (err) {
     console.warn("[" + call.shortName + "] Upload Error: " + err + " Filename: " + call.name + " content-length: " + req.headers['content-length'] + " Key: " + object_key + " Bucket: " + s3_bucket);
-    res.status(500);
+    /*res.status(500);
     sysStats.addError(call.toObject());
     res.contentType('json');
     res.status(500);
     res.send(JSON.stringify({
       success: false,
       error: "File Upload"
-    }));
+    }));*/
     fs.unlink(req.file.path, (err) => {
       if (err)
         console.log("error deleting: " + req.file.path);
