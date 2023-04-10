@@ -43,7 +43,7 @@ exports.upload = async function (req, res, next) {
   }
 
   if (!item) {
-    console.warn("[" + req.params.shortName + "] Error /:shortName/upload ShortName does not exist");
+    console.info("[" + req.params.shortName + "] Error /:shortName/upload ShortName does not exist");
     res.status(500);
     res.send("ShortName does not exist: " + shortName + "\n");
     return;
