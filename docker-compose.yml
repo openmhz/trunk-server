@@ -65,6 +65,7 @@ services:
       - S3_ENDPOINT
       - S3_BUCKET
       - S3_PROFILE
+      - S3_REGION
       - TWITTER_CONSUMER_KEY
       - TWITTER_CONSUMER_SECRET
       - TWITTER_ACCESS_TOKEN_KEY
