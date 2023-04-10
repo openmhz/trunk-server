@@ -69,13 +69,13 @@ exports.listSystems = async function (req, res, next) {
   const stats = await SystemStat.find({ shortName: { $in: shortNames } }).exec();
   var sys_stats = {}
   for (var i = 0; i < stats.length; i++) {
-    sys_stats[stats[i].shortName] = {};
-
-    sys_stats[stats[i].shortName]["uploadErrors"] = stats[i].uploadErrors;
-    sys_stats[stats[i].shortName]["callTotals"] = stats[i].callTotals;
-
-    sys_stats[stats[i].shortName].talkgroupStats= stats[i].talkgroupStats;
-    sys_stats[stats[i].shortName].decodeErrorsFreq = stats[i].decodeErrorsFreq;
+    console.log(stats[i])
+    sys_stats[stats[i].shortName] = {
+      uploadErrors: stats[i].uploadErrors,
+      callTotals: stats[i].callTotals,
+      talkgroupStats: stats[i].talkgroupStats,
+      decodeErrorsFreq: stats[i].decodeErrorsFreq
+    };
   }
 
   console.log(sys_stats["test"]);
