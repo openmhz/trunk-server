@@ -23,20 +23,15 @@ var app = express();
 
 const server = require('http').createServer(app);
 
+/*
 const io = require('socket.io')(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"],
   }
-});
-
-/*
-io.on('connection', function (socket) {
-  console.log('a user connected');
-  socket.on('disconnect', function () {
-    console.log('user disconnected');
-  });
 });*/
+
+
 
 
 // -------------------------------------------
@@ -242,7 +237,7 @@ function notify_clients(call) {
 
 
 
-
+/*
 io.sockets.on('connection', function (client) {
   clients[client.id] = { socket: client, active: false };
   clients[client.id].timestamp = new Date();
@@ -298,7 +293,7 @@ io.sockets.on('connection', function (client) {
   });
 });
 
-
+*/
 
 stats.init_stats();
 
