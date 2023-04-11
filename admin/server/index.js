@@ -57,12 +57,6 @@ mongoose.connection.on('disconnected', () => {
 });
 // -------------------------------------------
 
-const isDev = process.env.NODE_ENV === "development"
-
-
-
-
-
 function isOwner(req, res, next) {
   if (req.params.shortName && req.user) {
     var short_name = req.params.shortName.toLowerCase();
