@@ -247,7 +247,7 @@ io.sockets.on('connection', function (client) {
   clients[client.id] = { socket: client, active: false };
   clients[client.id].timestamp = new Date();
   client.on('start', async function (data) {
-    if (clients[client.id] && data.shortName) {
+    if ((typeof clients[client.id] !== "undefined") && data.shortName) {
       clients[client.id].active = true;
       clients[client.id].shortName = data.shortName.toLowerCase();
       clients[client.id].filterCode = String(data.filterCode);
@@ -265,6 +265,11 @@ io.sockets.on('connection', function (client) {
 
         const group = await Group.findOne({ 'shortName': data.shortName.toLowerCase(), '_id': ObjectId.createFromHexString(data.filterCode) });
 
+        if (typeof clients[client.id] === "undefined") {
+          console.error("How can it be undefined here!!");
+          console.error(clients);
+          return;
+        }
         if (group) {
           clients[client.id].talkgroupNums = group.talkgroups;
         } else {
