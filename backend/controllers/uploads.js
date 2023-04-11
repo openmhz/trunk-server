@@ -22,7 +22,7 @@ const client = new S3Client({
 });
 
 exports.upload = async function (req, res, next) {
-
+  process.nextTick( async () => {
   if (!req.file && (path.extname(req.file.originalname)) != '.m4a') {
     console.warn("[" + req.params.shortName + "] Error file name is wrong or file does not exist");
     res.status(500);
@@ -144,37 +144,30 @@ exports.upload = async function (req, res, next) {
   } catch (err) {
     console.error(err);
   }
-  let s3Src;
+  let fileContent;
   try {
-    s3Src = fs.createReadStream(req.file.path);
+    fileContent = fs.readFileSync(req.file.path);
+    //s3Src = fs.createReadStream(req.file.path);
   } catch (err) {
-    console.error("[" + call.shortName + "] Unable to open file: " + req.file.path)
+    console.error("[" + call.shortName + "] Unable to open file: " + req.file.path + " Error: " + err);
     return;
   }
   const command = new PutObjectCommand({
     Bucket: s3_bucket,
     Key: object_key,
-    Body: s3Src,
+    Body: fileContent,
     ACL: 'public-read'
   });
 
   try {
     await client.send(command);
-
-    s3Src.destroy();
-    fs.unlink(req.file.path, async (err) => {
-      if (err) {
-        console.error("[" + call.shortName + "]error deleting: " + req.file.path);
-      }
-      await call.save();
-      sysStats.addCall(call.toObject());
-
-      // we only want to notify clients if the clip is longer than 1 second.
-      if (call.len >= 1) {
-        req.call = call.toObject();
-        next();
-      }
-    });
+    await call.save();
+    sysStats.addCall(call.toObject());
+    // we only want to notify clients if the clip is longer than 1 second.
+    if (call.len >= 1) {
+      req.call = call.toObject();
+      next();
+    }
   } catch (err) {
     console.warn("[" + call.shortName + "] Upload Error: " + err + " Filename: " + call.name + " content-length: " + req.headers['content-length'] + " Key: " + object_key + " Bucket: " + s3_bucket);
     /*res.status(500);
@@ -185,11 +178,17 @@ exports.upload = async function (req, res, next) {
       success: false,
       error: "File Upload"
     }));*/
+  }
+  
     try {
       fs.unlinkSync(req.file.path);
     } catch (err) {
       console.warn("There was an Error uploading an deleting: " + req.file.path);
     };
 
-  }
+
+  });
+
+
+  
 }
