@@ -271,7 +271,7 @@ io.sockets.on('connection', function (client) {
           return;
         }
         if (group) {
-          clients[client.id].talkgroupNums = group.talkgroups;
+          //clients[client.id].talkgroupNums = group.talkgroups;
         } else {
           console.error("Error - Socket: Invalid group " + data.filterCode + " Shortname: " + data.shortName + " ClientID: " + client.id);
           delete clients[client.id];
