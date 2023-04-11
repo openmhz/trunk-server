@@ -23,13 +23,13 @@ var app = express();
 
 const server = require('http').createServer(app);
 
-/*
+
 const io = require('socket.io')(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"],
   }
-});*/
+});
 
 
 
@@ -41,7 +41,7 @@ configureExpress(app)
 
 // -------------------------------------------
 
-var host = process.env['MONGO_NODE_DRIVER_HOST'] != null ? process.env['MONGO_NODE_DRIVER_HOST'] : 'localhost';
+var host = process.env['MONGO_NODE_DRIVER_HOST'] != null ? process.env['MONGO_NODE_DRIVER_HOST'] : 'mongo';
 var port = process.env['MONGO_NODE_DRIVER_PORT'] != null ? process.env['MONGO_NODE_DRIVER_PORT'] : 27017;
 var mongoUrl = 'mongodb://' + host + ':' + port + '/scanner';
 
@@ -237,7 +237,7 @@ function notify_clients(call) {
 
 
 
-/*
+
 io.sockets.on('connection', function (client) {
   clients[client.id] = { socket: client, active: false };
   clients[client.id].timestamp = new Date();
@@ -266,7 +266,7 @@ io.sockets.on('connection', function (client) {
           return;
         }
         if (group) {
-          //clients[client.id].talkgroupNums = group.talkgroups;
+          clients[client.id].talkgroupNums = group.talkgroups;
         } else {
           console.error("Error - Socket: Invalid group " + data.filterCode + " Shortname: " + data.shortName + " ClientID: " + client.id);
           delete clients[client.id];
@@ -292,8 +292,6 @@ io.sockets.on('connection', function (client) {
     delete clients[client.id];
   });
 });
-
-*/
 
 stats.init_stats();
 
