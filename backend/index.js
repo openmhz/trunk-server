@@ -46,15 +46,26 @@ var port = process.env['MONGO_NODE_DRIVER_PORT'] != null ? process.env['MONGO_NO
 var mongoUrl = 'mongodb://' + host + ':' + port + '/scanner';
 
 
-const connect = () => {
-  mongoose.connect(mongoUrl).then((result) => { // Successfully connected
-    console.log("connected to Mongo");
-  })
-    .catch((err) => {
-      // Catch any potential error
-      console.log(mongoose.version);
-      console.log("Unable to connect to MongoDB. Error: " + err);
+const connect = async () => {
+    // Demonstrate the readyState and on event emitters
+    console.log(mongoose.connection.readyState); //logs 0
+    mongoose.connection.on('connecting', () => {
+      console.log('Mongoose is connecting')
+      console.log(mongoose.connection.readyState); //logs 2
     });
+    mongoose.connection.on('connected', () => {
+      console.log('Mongoose is connected');
+      console.log(mongoose.connection.readyState); //logs 1
+    });
+    mongoose.connection.on('disconnecting', () => {
+      console.log('Mongoose is disconnecting');
+      console.log(mongoose.connection.readyState); // logs 3
+    });
+  
+    // Connect to a MongoDB server running on 'localhost:27017' and use the
+    // 'test' database.
+    await mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true });
+    console.log("All Done");
 }
 connect();
 
@@ -162,9 +173,6 @@ function get_clients(req, res) {
 /*------    CLIENTS   ----------*/
 app.get('/clients', get_clients);
 app.get('/:shortName/clients', get_clients);
-
-
-
 app.use(function (err, req, res, next) {
   console.error("Caught an error");
   console.error(err.stack);
@@ -231,12 +239,6 @@ function notify_clients(call) {
     //console.log("[" + call.shortName.toLowerCase() + "] Sent call to " + sent + " clients");
   }
 }
-
-
-
-
-
-
 
 io.sockets.on('connection', function (client) {
   clients[client.id] = { socket: client, active: false };

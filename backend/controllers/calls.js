@@ -97,8 +97,19 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
 
     if (filter_type) {
         if ((filter_type == "group") && code && (code.indexOf(',') == -1)) {
-            
-
+            let o_id
+            try {
+                o_id = ObjectId.createFromHexString(code);
+            } catch (err) {
+                console.warn("[" + shortName + "] Error - build_filter() group ObjectId is invalid " + err + " id: " + code);
+                res.contentType('json');
+                res.status(500);
+                res.send(JSON.stringify({
+                    error: err,
+                    "_id": objectId
+                }));
+                return;
+            }
 
             const group = await Group.findOne({ 'shortName': shortName,  '_id': ObjectId.createFromHexString(code)}).exec();
             if (!group) {
