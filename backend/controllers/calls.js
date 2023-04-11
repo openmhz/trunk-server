@@ -1,15 +1,11 @@
 
 const { ObjectId } = require('mongodb');
-var db = require('../db');
-var mongoose = require("mongoose");
 var { callModel: Call } = require("../models/call");
-var Star = require("../models/star");
+const Group = require("../models/group");
 
 var defaultNumResults = 50;
 
-
 var channels = {};
-
 
 async function get_calls(query, numResults, res) {
 
@@ -27,12 +23,9 @@ async function get_calls(query, numResults, res) {
         url: true
     };
 
-    const transCollection = db.get().collection('calls');
     const sort = { length: -1 };
     try {
-        let cursor = transCollection.find(query.filter, fields).sort(sort).limit(numResults);
-        await cursor.forEach(function (item) {
-
+        for await (const item of Call.find(query.filter, fields).sort(sort).limit(numResults)) {
             call = {
                 _id: item._id.toHexString(),
                 talkgroupNum: item.talkgroupNum,
@@ -45,8 +38,7 @@ async function get_calls(query, numResults, res) {
                 len: Math.round(item.len)
             };
             calls.push(call);
-
-        });
+        }
 
         res.contentType('json');
         res.send(JSON.stringify({
@@ -105,13 +97,10 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
 
     if (filter_type) {
         if ((filter_type == "group") && code && (code.indexOf(',') == -1)) {
-            const groupCollection = db.get().collection("groups");
+            
 
 
-            const group = await groupCollection.findOne({
-                'shortName': shortName,
-                '_id': ObjectId.createFromHexString(code)
-            });
+            const group = await Group.findOne({ 'shortName': shortName,  '_id': ObjectId.createFromHexString(code)}).exec();
             if (!group) {
                 console.warn("[" + shortName + "] Error - build_filter() group is null " + err);
                 res.contentType('json');
@@ -173,8 +162,8 @@ exports.get_card = async function (req, res) {
         }));
         return;
     }
-    const transCollection = db.get().collection('calls');
-    const item = await transCollection.findOne({ '_id': o_id });
+    
+    const item = await Call.findById(o_id).exec();
 
     //console.log(util.inspect(item));
     if (item) {
@@ -297,8 +286,7 @@ exports.get_call = async function (req, res) {
         }));
         return;
     }
-    const transCollection = db.get().collection('calls');
-    const item = await transCollection.findOne({ '_id': o_id });
+    const item = await Call.findById(o_id).exec();
 
     if (item) {
         var call = package_call(item);

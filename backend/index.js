@@ -1,9 +1,5 @@
 
 var express = require("express");
-var passport = require("passport");
-var util = require("util");
-
-var secrets = require("./config/secrets");
 var configureExpress = require("./config/express");
 
 var calls = require("./controllers/calls");
@@ -17,9 +13,8 @@ var config = require('./config/config.json');
 
 var mongoose = require("mongoose");
 const { ObjectId } = require('mongodb');
-var db = require('./db');
+const Group = require("./models/group");
 
-var System = require("./models/system");
 var multer = require('multer');
 
 // -------------------------------------------
@@ -51,9 +46,13 @@ configureExpress(app)
 
 // -------------------------------------------
 
+var host = process.env['MONGO_NODE_DRIVER_HOST'] != null ? process.env['MONGO_NODE_DRIVER_HOST'] : 'localhost';
+var port = process.env['MONGO_NODE_DRIVER_PORT'] != null ? process.env['MONGO_NODE_DRIVER_PORT'] : 27017;
+var mongoUrl = 'mongodb://' + host + ':' + port + '/scanner';
+
 
 const connect = () => {
-  mongoose.connect(secrets.db).then((result) => { // Successfully connected
+  mongoose.connect(mongoUrl).then((result) => { // Successfully connected
     console.log("connected to Mongo");
   })
     .catch((err) => {
@@ -258,32 +257,18 @@ io.sockets.on('connection', function (client) {
       clients[client.id].talkgroupNums = [];
       clients[client.id].timestamp = new Date();
       if ((data.filterType == "group") && (data.filterCode.indexOf(',') == -1)) {
-        const groupCollection = db.get().collection("groups");
-        if (!groupCollection) {
-          console.error("Error - unable to open groups collection: " + err);
-          delete clients[client.id];
-          return;
-        }
         if (!ObjectId.isValid(data.filterCode)) {
           console.error("Error - Socket - Invalid Group ID: " + data.filterCode);
           delete clients[client.id];
           return;
         }
-        let group;
-        try {
-          group = await groupCollection.findOne({
-            'shortName': data.shortName.toLowerCase(),
-            '_id': ObjectId.createFromHexString(data.filterCode)
-          });
-        } catch (err) {
-          console.warn("[" + data.shortName.toLowerCase() + "] Error - WebSocket Group ID not Found! Error: " + err + " Group ID: " + data.filterCode);
-          delete clients[client.id];
-          return;
-        }
-        if (group && clients[client.id]) {
+
+        const group = await Group.findOne({ 'shortName': data.shortName.toLowerCase(), '_id': ObjectId.createFromHexString(data.filterCode) });
+
+        if (group) {
           clients[client.id].talkgroupNums = group.talkgroups;
         } else {
-          console.error("Error - Socket: Invalid group or Client: " + data.filterCode + " Shortname: " + data.shortName + " ClientID: " + client.id);
+          console.error("Error - Socket: Invalid group " + data.filterCode + " Shortname: " + data.shortName + " ClientID: " + client.id);
           delete clients[client.id];
           return;
         }
@@ -309,24 +294,14 @@ io.sockets.on('connection', function (client) {
 });
 
 
-//console.log("stats: " + util.inspect(call_stats));
-// Connect to Mongo on start
-db.connect(function (err) {
+
+stats.init_stats();
+
+server.listen(app.get("port"), (err) => {
   if (err) {
-    console.log('Unable to connect to Mongo.')
-    process.exit(1)
+    console.err(err.stack)
   } else {
-    stats.init_stats();
-
-    server.listen(app.get("port"), (err) => {
-      if (err) {
-        console.err(err.stack)
-      } else {
-        console.log(`App listening on port ${app.get("port")} [${process.env.NODE_ENV} mode]`)
-      }
-    })
-
-
+    console.log(`App listening on port ${app.get("port")} [${process.env.NODE_ENV} mode]`)
   }
 })
 

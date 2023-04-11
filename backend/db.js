@@ -1,11 +1,8 @@
 var MongoClient = require('mongodb').MongoClient;
-var config = require('./config/config.json');
-var test = require('assert');
+
 
 var host = process.env['MONGO_NODE_DRIVER_HOST'] != null ? process.env['MONGO_NODE_DRIVER_HOST'] : 'localhost';
 var port = process.env['MONGO_NODE_DRIVER_PORT'] != null ? process.env['MONGO_NODE_DRIVER_PORT'] : 27017;
-var dbUser = process.env['MONGO_TRUNK_FRONTEND_USER'] != null ? process.env['MONGO_TRUNK_FRONTEND_USER'] : null;
-var dbPass = process.env['MONGO_TRUNK_FRONTEND_PASS'] != null ? process.env['MONGO_TRUNK_FRONTEND_PASS'] : null;
 
 var state = {
   db: null,

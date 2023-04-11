@@ -1,10 +1,7 @@
-var db = require('../db');
+const Group = require("../models/group");
 
 exports.get_groups = async function (req, res) {
-
-    const grp_coll = db.get().collection('groups');
-    const cursor = grp_coll.find({ 'shortName': req.params.shortName.toLowerCase() });
-    const grp_results = await cursor.toArray();
+    const grp_results = await Group.find({ shortName: req.params.shortName.toLowerCase()}).sort("position").exec();
 
     res.contentType('json');
     res.send(JSON.stringify(grp_results));
