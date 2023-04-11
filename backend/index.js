@@ -267,7 +267,7 @@ io.sockets.on('connection', function (client) {
 
         if (typeof clients[client.id] === "undefined") {
           console.error("How can it be undefined here!!");
-          console.error(clients);
+          console.error(clients[client.id]);
           return;
         }
         if (group) {
