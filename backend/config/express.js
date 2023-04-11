@@ -11,7 +11,7 @@ var dev_server = frontend_server + ":3000"
 
 module.exports = function(app) {
 	app.set("port", 3005)
-	//app.set('trust proxy', true);
+
 	// X-Powered-By header has no functional value.
 	// Keeping it makes it easier for an attacker to build the site's profile
 	// It can be removed safely
