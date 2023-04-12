@@ -155,11 +155,17 @@ exports.shiftStats = async function () {
         if (decodeErrorsFreq.hasOwnProperty(shortName)) {
             var sysErrors = decodeErrorsFreq[shortName];
 
+
             // for each freq in that systems stats
             for (var freqNum in sysErrors) {
                 if (sysErrors.hasOwnProperty(freqNum)) {
                     var freqErrors = sysErrors[freqNum];
 
+                    if ((freqErrors.errorHistory == undefined) || (freqErrors.spikeHistory == undefined)) {
+                        console.error("[" + shortName +"] Skipping stat for freq: " + freqNum);
+                        console.error(freqErrors);
+                        continue;
+                    }
                     // move the history for that freq back
                     for (let j = spots - 1; j > 0; j--) {
                         let i = j - 1;
@@ -204,6 +210,11 @@ exports.shiftStats = async function () {
                 if (sysTalkgroupStats.hasOwnProperty(talkgroupNum)) {
                     var tg = sysTalkgroupStats[talkgroupNum];
                     var tgHistoryTotal = 0;
+                    if ((tg.callCountHistory == undefined) || (tg.callAvgLenHistory== undefined)) {
+                        console.error("[" + shortName +"] Skipping stat for tg: " + talkgroupNum);
+                        console.error(tg);
+                        continue;
+                    }
                     // move the history for that talkgroup back
                     for (let j = spots - 1; j > 0; j--) {
                         let i = j - 1;

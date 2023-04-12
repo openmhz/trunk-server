@@ -105,7 +105,7 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
 
             const group = await Group.findOne({ 'shortName': shortName, '_id': ObjectId.createFromHexString(code) }).exec();
             if (!group) {
-                console.warn("[" + shortName + "] Error - build_filter() group is null " + err);
+                console.warn("[" + shortName + "] Error - build_filter() group is null ");
                 res.contentType('json');
                 res.status(404);
                 res.send(JSON.stringify({
