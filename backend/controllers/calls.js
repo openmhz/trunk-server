@@ -25,7 +25,7 @@ async function get_calls(query, numResults, res) {
 
     const sort = { length: -1 };
     try {
-        const items =  await Call.find(query.filter, fields).sort(sort).limit(numResults);
+        const items =  await Call.find(query.filter, fields).sort(query.sort_order).limit(numResults);
         for (var i=0; i < items.length; i++) {
             const item = items[i];
             call = {
@@ -85,10 +85,9 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
     query['direction'] = direction;
     query['sort_order'] = sort_order;
 
-    query['filter'] = filter;
-    get_calls(query, numResults, res);
 
-   /* if (filter_type) {
+
+   if (filter_type) {
         if ((filter_type == "group") && code && (code.indexOf(',') == -1)) {
             let o_id
             try {
@@ -139,7 +138,7 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
     } else {
         query['filter'] = filter;
         get_calls(query, numResults, res);
-    }*/
+    }
 }
 
 
