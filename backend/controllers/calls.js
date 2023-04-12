@@ -56,13 +56,6 @@ async function get_calls(query, numResults, res) {
 async function build_filter(filter_type, code, start_time, direction, shortName, numResults, starred, res) {
     var filter = {};
     var query = {};
-    var FilterType = {
-        All: 0,
-        Talkgroup: 1,
-        Group: 2,
-        Unit: 3
-    };
-
 
     if (start_time) {
         var start = new Date(start_time);
@@ -77,10 +70,6 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
         }
 
     }
-    /*
-    filter.len = {
-        $gte: -1.0
-    };*/
 
 
     var sort_order = {};
@@ -96,7 +85,10 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
     query['direction'] = direction;
     query['sort_order'] = sort_order;
 
-    if (filter_type) {
+    query['filter'] = filter;
+    get_calls(query, numResults, res);
+
+   /* if (filter_type) {
         if ((filter_type == "group") && code && (code.indexOf(',') == -1)) {
             let o_id
             try {
@@ -140,16 +132,6 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
                 }
             }
 
-            if (filter_type == "unit") {
-                if (code) {
-                    var codeArray = code.split(',').map(function (item) {
-                        return parseInt(item, 10);
-                    });
-                    filter.srcListv = {
-                        $in: codeArray
-                    };
-                }
-            }
             query['filter'] = filter;
 
             get_calls(query, numResults, res);
@@ -157,7 +139,7 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
     } else {
         query['filter'] = filter;
         get_calls(query, numResults, res);
-    }
+    }*/
 }
 
 

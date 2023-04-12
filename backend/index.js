@@ -96,7 +96,6 @@ function addSystemClients(req, res, next) {
 
 
 /*------    CALLS   ----------*/
-
 app.get('/card/:id', calls.get_card);
 app.post('/add_star/:id', calls.add_star);
 app.post('/remove_star/:id', calls.remove_star);
