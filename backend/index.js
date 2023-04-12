@@ -51,19 +51,14 @@ const connect = async () => {
     console.log(mongoose.connection.readyState); //logs 0
     mongoose.connection.on('connecting', () => {
       console.log('Mongoose is connecting')
-      console.log(mongoose.connection.readyState); //logs 2
     });
     mongoose.connection.on('connected', () => {
       console.log('Mongoose is connected');
-      console.log(mongoose.connection.readyState); //logs 1
     });
     mongoose.connection.on('disconnecting', () => {
       console.log('Mongoose is disconnecting');
-      console.log(mongoose.connection.readyState); // logs 3
     });
   
-    // Connect to a MongoDB server running on 'localhost:27017' and use the
-    // 'test' database.
     await mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true });
     console.log("All Done");
 }
