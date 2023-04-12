@@ -24,7 +24,7 @@
     "get-folder-size": "^4.0.0",
     "mkdirp": "^2.1.6",
     "mongodb": "5.2.0",
-    "mongoose": "7.0.0",
+    "mongoose": "7.0.3",
     "multer": "1.3.0",
     "node-ffprobe": "https://github.com/ListenerApproved/node-ffprobe",
     "node-schedule": "2.1.1",

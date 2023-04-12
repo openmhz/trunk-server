@@ -96,7 +96,7 @@ function addSystemClients(req, res, next) {
 
 
 /*------    CALLS   ----------*/
-
+/*
 app.get('/card/:id', calls.get_card);
 app.post('/add_star/:id', calls.add_star);
 app.post('/remove_star/:id', calls.remove_star);
@@ -106,7 +106,7 @@ app.get('/:shortName/calls/next', calls.get_next_calls);
 app.get('/:shortName/calls/newer', calls.get_newer_calls);
 app.get('/:shortName/calls/older', calls.get_older_calls);
 app.get('/:shortName/calls/:time/older', calls.get_iphone_calls);
-app.get('/:shortName/calls', calls.get_calls);
+app.get('/:shortName/calls', calls.get_calls); */
 
 
 /*------    UPLOADS   ---------- upload.single('call'),  uploads.upload,*/
@@ -123,13 +123,14 @@ app.get('/:shortName/talkgroups', talkgroups.get_talkgroups);
 /*------    GROUPS   ----------*/
 app.get('/:shortName/groups', groups.get_groups);
 
+
 /*------    EVENTS   ----------*/
-app.post('/events', events.addNewEvent);
+/*app.post('/events', events.addNewEvent);
 app.get('/events', events.getEvents);
-app.get('/events/:id', events.getEvent);
+app.get('/events/:id', events.getEvent);*/
 
 /*------    STATS   ----------*/
-app.get('/:shortName/stats', stats.get_stats);
+//app.get('/:shortName/stats', stats.get_stats);
 
 
 function get_clients(req, res) {
