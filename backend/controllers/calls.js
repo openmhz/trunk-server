@@ -25,7 +25,9 @@ async function get_calls(query, numResults, res) {
 
     const sort = { length: -1 };
     try {
-        for await (const item of Call.find(query.filter, fields).sort(sort).limit(numResults)) {
+        const items =  await Call.find(query.filter, fields).sort(sort).limit(numResults);
+        for (var i=0; i < items.length; i++) {
+            const item = items[i];
             call = {
                 _id: item._id.toHexString(),
                 talkgroupNum: item.talkgroupNum,
@@ -40,11 +42,10 @@ async function get_calls(query, numResults, res) {
             calls.push(call);
         }
 
-        res.contentType('json');
-        res.send(JSON.stringify({
+        res.json({
             calls: calls,
             direction: query.direction
-        }));
+        });
     } catch (err) {
         console.warn("Error - get_calls() Could not find item " + err + " filter: " + query.filter);
         res.send(404, 'Sorry, we cannot find that!');
@@ -111,7 +112,7 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
                 return;
             }
 
-            const group = await Group.findOne({ 'shortName': shortName,  '_id': ObjectId.createFromHexString(code)}).exec();
+            const group = await Group.findOne({ 'shortName': shortName, '_id': ObjectId.createFromHexString(code) }).exec();
             if (!group) {
                 console.warn("[" + shortName + "] Error - build_filter() group is null " + err);
                 res.contentType('json');
@@ -173,7 +174,7 @@ exports.get_card = async function (req, res) {
         }));
         return;
     }
-    
+
     const item = await Call.findById(o_id).exec();
 
     //console.log(util.inspect(item));
