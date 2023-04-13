@@ -13,7 +13,6 @@ exports.isLoggedIn = function (req, res, next) {
 // -------------------------------------------
 
 exports.listSystems = async function (req, res, next) {
-  console.log("Listing Systems for: " + req.user._id);
   const userId = new mongoose.Types.ObjectId(req.user._id);
   const systems = await System.find({ userId: userId }).exec();
   if (systems == null) {
@@ -69,7 +68,6 @@ exports.listSystems = async function (req, res, next) {
   const stats = await SystemStat.find({ shortName: { $in: shortNames } }).exec();
   var sys_stats = {}
   for (var i = 0; i < stats.length; i++) {
-    console.log(stats[i])
     sys_stats[stats[i].shortName] = {
       uploadErrors: stats[i].uploadErrors,
       callTotals: stats[i].callTotals,
@@ -78,7 +76,6 @@ exports.listSystems = async function (req, res, next) {
     };
   }
 
-  console.log(sys_stats["test"]);
   res.json({
     success: true,
     systems: returnSys,

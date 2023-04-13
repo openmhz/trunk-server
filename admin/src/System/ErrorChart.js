@@ -5,11 +5,22 @@ import { scaleLinear, scaleTime, scaleOrdinal } from '@visx/scale';
 import { timeParse, timeFormat } from 'd3-time-format';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { Loader } from "semantic-ui-react";
-import { LegendOrdinal} from '@visx/legend';
+import {
+  Legend,
+  LegendLinear,
+  LegendQuantile,
+  LegendOrdinal,
+  LegendSize,
+  LegendThreshold,
+  LegendItem,
+  LegendLabel,
+} from '@visx/legend';
 class ErrorChart extends Component {
 
 
   render() {
+
+const legendGlyphSize = 15;
     var errorData = this.props.data;
     if (!errorData) {
       return (
@@ -105,13 +116,35 @@ class ErrorChart extends Component {
           <LegendOrdinal
             scale={zScale}
             labelMargin="0 15px 0 0"
+            orientation="horizontal"
             onMouseOver={data => event => {
               console.log(
                 `mouse over: ${data.text}`,
                 `index: ${data.index}`,
               );
             }}
-          />
+          >
+          {(labels) => (
+            <div style={{ display: 'flex', flexDirection: 'row' }}>
+              {labels.map((label, i) => (
+                <LegendItem
+                  key={`legend-quantile-${i}`}
+                  margin="0 5px"
+              
+                >
+                  <svg width={legendGlyphSize} height={legendGlyphSize}>
+                    <rect fill={label.value} width={legendGlyphSize} height={legendGlyphSize} />
+                  </svg>
+                  <LegendLabel align="left" margin="0 0 0 4px">
+                    {label.text}
+                  </LegendLabel>
+                </LegendItem>
+              ))}
+            </div>
+          )}
+
+
+          </LegendOrdinal>
         </div>
       </div>
 

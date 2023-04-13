@@ -39,11 +39,12 @@ const System = () => {
   const [groupVisible, setGroupVisible] = useState(false);
   const [editGroupId, setEditGroupId] = useState(false);
   const [errorData, setErrorData] = useState({});
-  const [callData, setCallData] = useState({});
+  const [callStatistics, setCallStatistics] = useState({});
   const [groupOrder, setGroupOrder] = useState([]);
 
 
-  const processErrors = (errors) => {
+  const processErrors = (statistics) => {
+    const errors = statistics.decodeErrorsFreq;
     var allData = [];
 
     var num = 0;
@@ -53,21 +54,25 @@ const System = () => {
     var minValue = 0;
     var maxValue = 0;
     var legend = [];
-    for (var j = 0; j < errors.length; j++) {
+    var MS_PER_MINUTE = 60000;
+    for (const freq in errors) {
+      const freqErrors = errors[freq];
       var data = [];
-      for (var i = 0; i < errors[j].values.length; i++) {
-        var time = new Date(errors[j].values[i].time);
-        if (errors[j].values[i].errors > maxValue)
-          maxValue = errors[j].values[i].errors;
+      for (var i = 0; i < freqErrors.errorHistory.length; i++) {
+        let spotsBack = freqErrors.errorHistory.length - i;
+        let time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
         if (time < minDate) minDate = time;
+        
+        if (freqErrors.errorHistory[i] > maxValue)
+          maxValue = freqErrors.errorHistory[i];
         var value = {
           id: num++,
-          y: errors[j].values[i].errors,
+          y: freqErrors.errorHistory[i],
           x: time
         };
         data.push(value);
       }
-      const id = Math.floor(errors[j]._id / 1000) / 1000 + "MHz";
+      const id = Math.floor(freq / 1000) / 1000 + "MHz";
       legend.push(id);
       var obj = {
         id: id,
@@ -116,16 +121,16 @@ const System = () => {
           maxValue = statistic.uploadErrors[j];
         uploadErrors.push({ x: time, y: statistic.uploadErrors[j] });
       }
-      const callData = {
+      const data = {
         minDate: minDate,
         maxDate: maxDate,
         minValue: minValue,
         maxValue: maxValue,
         callTotals: callTotals,
-        errorTotals: uploadErrors
+        uploadErrors: uploadErrors
       };
 
-      setCallData(callData);
+      setCallStatistics(data);
     }
   }
 
@@ -235,6 +240,7 @@ const System = () => {
   useEffect(() => {
     if (isSystemsSuccess) {
       processStatistics(systemsData.stats[shortName])
+      processErrors(systemsData.stats[shortName])
     }
   }, [isSystemsSuccess]);
 /*
@@ -492,7 +498,7 @@ const System = () => {
             <Icon name="microphone" />
             24-Hour Call History
           </Divider>
-          <CallChart data={callData} />
+          <CallChart data={callStatistics} />
           <Divider horizontal>
             <Icon name="microphone" />
             Hourly Vocoder Error Percentage

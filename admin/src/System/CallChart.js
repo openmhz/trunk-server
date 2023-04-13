@@ -17,7 +17,7 @@ const CallChart = (props) => {
   }
 
   var callTotals = callData.callTotals;
-  var errorTotals = callData.errorTotals;
+  var uploadErrors = callData.uploadErrors;
 
   // Define the graph dimensions and margins
   const width = props.width;
@@ -50,6 +50,7 @@ const CallChart = (props) => {
       });
   }
 
+
   return (
     <svg width={width} height={height}>
       <Group left={margin.left} top={margin.top}>
@@ -59,13 +60,18 @@ const CallChart = (props) => {
           data={callTotals}
           x={x}
           y={y}
+          xScale={xScale}
+          yScale={yScale}
           strokeWidth={2}
+          stroke="#333"
           curve={curveStep}
         />
         <LinePath
-          data={errorTotals}
+          data={uploadErrors}
           x={x}
           y={y}
+          xScale={xScale}
+          yScale={yScale}
           strokeWidth={2}
           stroke="red"
           curve={curveStep}
