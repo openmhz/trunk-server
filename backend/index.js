@@ -129,7 +129,7 @@ app.get('/events', events.getEvents);
 app.get('/events/:id', events.getEvent);
 
 /*------    STATS   ----------*/
-//app.get('/:shortName/stats', stats.get_stats);
+app.get('/:shortName/stats', stats.get_stats);
 
 
 function get_clients(req, res) {
