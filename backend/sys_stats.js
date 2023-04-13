@@ -15,20 +15,19 @@ async function updateActiveSystems() {
     // Go through all of the Systems
 
 
-    for await (const item of System.find()) {
+    for await (let item of System.find()) {
         // go through all the systems
         // if you have recieved some calls during that last period, make the system active
         if ((callTotals[item.shortName] != undefined) && (callTotals[item.shortName][0] > 0)) {
             item.active = true;
             item.callAvg = callTotals[item.shortName][0] / timePeriod;
             item.lastActive = new Date();
-            await item.Save();
+            await item.save();
         } else {
             item.active = false;
             item.callAvg = 0;
             await item.save();
         }
-
     };
 }
 
@@ -37,23 +36,24 @@ exports.initStats = async function () {
 
 
     for await (const item of SystemStat.find()) {
+        const obj = item.toObject();
         // Talkgroup Stats
         if (item.talkgroupStats != undefined) {
-            talkgroupStats[item.shortName] = item.talkgroupStats;
+            talkgroupStats[item.shortName] = obj.talkgroupStats;
         }
 
         // Decode Errors
         if (item.decodeErrorsFreq != undefined) {
-            decodeErrorsFreq[item.shortName] = item.decodeErrorsFreq;
+            decodeErrorsFreq[item.shortName] = obj.decodeErrorsFreq;
         }
 
         // Upload Error Totals
         if (item.uploadErrors != undefined) {
-            uploadErrors[item.shortName] = item.uploadErrors;
+            uploadErrors[item.shortName] = obj.uploadErrors;
         }
 
         if (item.callTotals != undefined) {
-            callTotals[item.shortName] = item.callTotals;
+            callTotals[item.shortName] = obj.callTotals;
         }
     };
 }
@@ -162,8 +162,7 @@ exports.shiftStats = async function () {
                     var freqErrors = sysErrors[freqNum];
 
                     if ((freqErrors.errorHistory == undefined) || (freqErrors.spikeHistory == undefined)) {
-                        console.error("[" + shortName +"] Skipping stat for freq: " + freqNum);
-                        console.error(freqErrors);
+                        console.error("[" + shortName + "] Skipping stat for freq: " + freqNum);
                         continue;
                     }
                     // move the history for that freq back
@@ -210,9 +209,8 @@ exports.shiftStats = async function () {
                 if (sysTalkgroupStats.hasOwnProperty(talkgroupNum)) {
                     var tg = sysTalkgroupStats[talkgroupNum];
                     var tgHistoryTotal = 0;
-                    if ((tg.callCountHistory == undefined) || (tg.callAvgLenHistory== undefined)) {
-                        console.error("[" + shortName +"] Skipping stat for tg: " + talkgroupNum);
-                        console.error(tg);
+                    if ((tg.callCountHistory == undefined) || (tg.callAvgLenHistory == undefined)) {
+                        console.error("[" + shortName + "] Skipping stat for tg: " + talkgroupNum);
                         continue;
                     }
                     // move the history for that talkgroup back
