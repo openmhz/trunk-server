@@ -59,7 +59,7 @@ const System = () => {
       const freqErrors = errors[freq];
       var data = [];
       for (var i = 0; i < freqErrors.errorHistory.length; i++) {
-        let spotsBack = freqErrors.errorHistory.length - i;
+        let spotsBack = i; //freqErrors.errorHistory.length - i;
         let time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
         if (time < minDate) minDate = time;
         
@@ -106,7 +106,7 @@ const System = () => {
     var MS_PER_MINUTE = 60000;
     if (statistic) {
       for (let j = 0; j < statistic.callTotals.length; j++) {
-        let spotsBack = statistic.callTotals.length - j;
+        let spotsBack = j;//statistic.callTotals.length - j;
         let time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
         if (time < minDate) minDate = time;
         if (statistic.callTotals[j] > maxValue)
@@ -238,11 +238,11 @@ const System = () => {
   }, [groupsData])
 
   useEffect(() => {
-    if (isSystemsSuccess) {
+    if (isSystemsSuccess && systemsData.stats[shortName]) {
       processStatistics(systemsData.stats[shortName])
       processErrors(systemsData.stats[shortName])
     }
-  }, [isSystemsSuccess]);
+  }, [isSystemsSuccess, systemsData]);
 /*
   useEffect(() => {
     if (isErrorsSuccess) {

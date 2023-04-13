@@ -26,14 +26,14 @@ const CallChart = (props) => {
   const parseDate = timeParse("%Y%m%d");
   const format = timeFormat("%b %d");
   const formatDate = (date) => format(parseDate(date));
-
+  const parseTime = timeParse('%Y-%m-%dT%H:%M:%S.%LZ');
   // Then we'll create some bounds
   const xMax = width - margin.left - margin.right;
   const yMax = height - margin.top - margin.bottom;
 
   // accessors
-  const x = d => d.x;
-  const y = d => d.y;
+  //const x = d => d.x;
+  //const y = d => d.y;
 
   var xScale, yScale;
   if (callData) {
@@ -50,7 +50,9 @@ const CallChart = (props) => {
       });
   }
 
-
+    // accessors
+    const x = d => xScale(d.x);
+    const y = d => yScale(d.y);
   return (
     <svg width={width} height={height}>
       <Group left={margin.left} top={margin.top}>
@@ -60,18 +62,15 @@ const CallChart = (props) => {
           data={callTotals}
           x={x}
           y={y}
-          xScale={xScale}
-          yScale={yScale}
+
           strokeWidth={2}
-          stroke="#333"
+          stroke="blue"
           curve={curveStep}
         />
         <LinePath
           data={uploadErrors}
           x={x}
           y={y}
-          xScale={xScale}
-          yScale={yScale}
           strokeWidth={2}
           stroke="red"
           curve={curveStep}
