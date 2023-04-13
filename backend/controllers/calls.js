@@ -98,7 +98,7 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
                 res.status(500);
                 res.send(JSON.stringify({
                     error: err,
-                    "_id": objectId
+                    "_id": code
                 }));
                 return;
             }
