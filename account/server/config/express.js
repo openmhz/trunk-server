@@ -54,7 +54,7 @@ module.exports = function(app, passport) {
 		console.log('===> 🚦  Note: In order for authentication to work in production');
 		console.log('===>           you will need a secure HTTPS connection');
 		sess.cookie.secure = true; // Serve secure cookies
-		sess.cookie.httpOnly = false;
+		//sess.cookie.httpOnly = false;
 	}
 
 	app.use(session(sess))
