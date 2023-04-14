@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-const now = new Date();
+const now = new Date().getTime();
 const initialState = {
   isWaiting: false,
   shortName: "",

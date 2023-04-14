@@ -1,19 +1,17 @@
-import React, { useEffect, useLayoutEffect, useState, useRef, useCallback, useMemo } from "react";
+import React, { useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 import FilterModal from "./components/FilterModal";
 import GroupModal from "./components/GroupModal";
 import CalendarModal from "./components/CalendarModal";
 import CallPlayer from "./CallPlayer";
+import Activity from "./Activity";
 import { useSelector, useDispatch } from 'react-redux'
 import { setFilter, setDateFilter } from "../features/callPlayer/callPlayerSlice";
 import { getCalls, addCall, getOlderCalls, getNewerCalls } from "../features/calls/callsSlice";
 import { useGetGroupsQuery, useGetSystemsQuery, } from '../features/api/apiSlice'
-import { selectSystem } from "../features/systems/systemsSlice";
 import {
   Container,
   Label,
-  Rail,
-  Sticky,
   Menu,
   Icon,
   Sidebar
@@ -21,7 +19,6 @@ import {
 import "./CallPlayer.css";
 import queryString from '../query-string';
 import io from 'socket.io-client';
-import { useCallLink } from "./components/CallLinks";
 
 
 
@@ -43,6 +40,7 @@ function Calls(props) {
   const [filterVisible, setFilterVisible] = useState(false);
   const [groupVisible, setGroupVisible] = useState(false);
   const [calendarVisible, setCalendarVisible] = useState(false);
+  const [activityVisible, setActivityVisible] = useState(false);
   const [isConnected, setIsConnected] = useState(socket.connected);
   const [selectCallId, setSelectCallId] = useState(false);
   const [live, setLive] = useState(true);
@@ -85,6 +83,7 @@ function Calls(props) {
   const handleSidebarToggle = () => setSidebarOpened(!sidebarOpened);
   const handleFilterToggle = () => setFilterVisible(!filterVisible);
   const handleCalendarToggle = () => setCalendarVisible(!calendarVisible);
+  const handleActivityToggle = () => setActivityVisible(!activityVisible);
 
   const getFilterDescription = () => {
     let filter = { type: 'all', code: "", filterStarred: false };
@@ -400,6 +399,10 @@ function Calls(props) {
           {system && system.name}
         </Container>
         <Menu.Menu position="right">
+          <Menu.Item name='atcivity-btn' onClick={handleActivityToggle} active={activityVisible}>
+            <Icon name="line graph" />
+            <span >Activity</span>
+          </Menu.Item>
           <Menu.Item name='archive-btn' onClick={handleCalendarToggle} active={!live}>
             <Icon name="calendar" />
             <span className="desktop-only">
@@ -416,7 +419,10 @@ function Calls(props) {
           </Menu.Item>
         </Menu.Menu>
       </Menu>
-      <CallPlayer callsData={callsData} selectCallId={selectCallId} handleNewer={handleNewer} handleOlder={handleOlder} />
+      {activityVisible
+        ? <Activity />
+        : <CallPlayer callsData={callsData} selectCallId={selectCallId} handleNewer={handleNewer} handleOlder={handleOlder} />
+      }
     </div>
   );
 }
