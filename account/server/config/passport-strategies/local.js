@@ -12,7 +12,6 @@ If your site prefers to name these fields differently, options are available to 
 const local = new LocalStrategy({
 	usernameField: "email"
 }, async (email, password, done) => {
-	console.log(`${email} ${password}`);
 	const user = await User.findOne({
 		$or: [{
 			email
