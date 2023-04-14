@@ -27,7 +27,6 @@ exports.isLoggedIn = function (req, res, next) {
 
 exports.authenticated = function (req, res, next) {
   res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
-  console.log("account/server/controllers/users.js - exports.authenticated() Auth check for user: " + req.user.email + " is: " + req.isAuthenticated());
   if (req.isAuthenticated()) {
     var clientUser = (({
       firstName,
