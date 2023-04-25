@@ -9,7 +9,7 @@ const navStyle = {
 
 const Navigation = (props) => {
   const dispatch = useDispatch();
-  const { email } = useSelector((state) => state.user);
+  const { email, admin } = useSelector((state) => state.user);
 
   const logout = event => {
     event.preventDefault();
@@ -24,6 +24,11 @@ const Navigation = (props) => {
           {process.env.REACT_APP_SITE_NAME}
         </Menu.Item>
         <Menu.Menu position="right">
+          {admin &&
+          <Link to="/all-systems">
+            <Menu.Item name="all-systems">All Systems</Menu.Item>
+          </Link>          
+          }
           <Link to="/list-systems">
             <Menu.Item name="systems"> Systems</Menu.Item>
           </Link>

@@ -9,7 +9,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { setFilter, setDateFilter } from "../features/callPlayer/callPlayerSlice";
 
 import { useGetStatsQuery,useGetTalkgroupsQuery } from '../features/api/apiSlice'
-import ActivityChart from "./ActivityChart";
+import ActivityChart from "./BetterActivityChart";
 import { selectSystem } from "../features/systems/systemsSlice";
 import {
     Container,

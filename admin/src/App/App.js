@@ -1,7 +1,7 @@
 import Navigation from "./Navigation"
 import { Routes, Route } from 'react-router-dom';
 
-import Restricted from "./Restricted"
+import {AdminRestricted, Restricted} from "./Restricted"
 
 import About from "../Components/About"
 import System from "../System/System"
@@ -20,6 +20,7 @@ const App = (params) => {
 					<Route path="/update-system/:shortName" element={ <Restricted><UpdateSystem/></Restricted>} />
 					<Route path="/create-system" element={ <Restricted><CreateSystem/></Restricted>}  />
 					<Route path="/list-systems" element={ <Restricted><ListSystems/></Restricted>}  />
+					<Route path="/all-systems" element={ <AdminRestricted><ListSystems/></AdminRestricted>}  />
 					<Route path="/" element={ <Restricted><ListSystems/></Restricted>} />
 					<Route render={() => (<div>Miss</div>)} />
 				</Routes>

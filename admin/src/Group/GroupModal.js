@@ -77,7 +77,7 @@ const GroupModal = (props) => {
     }
   },[props.editGroupId, props.talkgroups]);
 
-  const removeTalkgroup =  (index) => {
+  const removeTalkgroup =  (event, index) => {
     const item = {
       num: group.items[index].num,
       description: group.items[index].description

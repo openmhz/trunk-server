@@ -79,7 +79,7 @@ function isOwner(req, res, next) {
   }
 }
 
-
+/*
 function isAdmin(req, res, next) {
   if (req.params.shortName && req.user) {
     var short_name = req.params.shortName.toLowerCase();
@@ -99,7 +99,7 @@ function isAdmin(req, res, next) {
       }
     });
   }
-}
+}*/
 
 function isLoggedIn(req, res, next) {
   if (req.isAuthenticated()) return next();
@@ -108,6 +108,16 @@ function isLoggedIn(req, res, next) {
     message: "Not Authenticated."
   });
 };
+
+
+function isAdmin(req, res, next) {
+  if (req.isAuthenticated() && req.user.admin) return next();
+  res.status(401).send({
+    success: false,
+    message: "Not Authenticated."
+  });
+};
+
 
 function uploadFile(req, res, next) {
   const upload = multer({dest: 'uploads/'}).single('file');
@@ -142,6 +152,7 @@ app.post("/groups/:shortName/:groupId?", isLoggedIn, groups.upsertGroup);
 app.get("/groups/:shortName/:groupId?", isLoggedIn, groups.getGroups);
 app.delete("/groups/:shortName/:groupId", isLoggedIn, groups.deleteGroup);
 app.get("/systems", isLoggedIn, systems.listSystems)
+app.get("/admin/systems", isAdmin, systems.listAllSystems)
 app.delete("/systems/:shortName", isLoggedIn, systems.deleteSystem)
 app.post("/systems/:shortName", [isLoggedIn, systems.ownSystem, systems.validateSystem, systems.updateSystem])
 app.post("/systems", [isLoggedIn, systems.uniqueShortName, systems.validateSystem, systems.createSystem])

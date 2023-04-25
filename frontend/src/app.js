@@ -19,6 +19,7 @@ import AboutComponent from "./About/AboutComponent"
 // Event
 import ListEvents from "./Event/ListEvents"
 import ViewEvent from "./Event/ViewEvent"
+import ActivityChart from './Call/BetterActivityChart';
 
 
 const App = () => {
@@ -32,6 +33,7 @@ return (
           <Route exact path="/events" element={<ListEvents/>} />
           <Route exact path="/events/:id" element={<ViewEvent/>} />
           <Route exact path="/about" element={<AboutComponent/>} />
+          <Route exact path="/test" element={<ActivityChart/>} />
         </Routes>
 )
 }
