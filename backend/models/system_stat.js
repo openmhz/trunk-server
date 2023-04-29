@@ -1,11 +1,16 @@
 var mongoose = require('mongoose');
 
 let decodeErrorSchema = mongoose.Schema({
+  totalLen: Number,
+  errors: Number,
+  spikes: Number,
   errorHistory: [Number],
   spikeHistory: [Number],
 })
 
 let talkgroupStatsSchema = mongoose.Schema({
+  calls: Number,
+  totalLen: Number,
   callCountHistory: [Number],
   callAvgLenHistory: [Number]
 })
