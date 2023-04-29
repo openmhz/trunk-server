@@ -1,121 +1,24 @@
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSearchParams } from "react-router-dom";
 import { AreaClosed, Line, Bar } from '@visx/shape';
-import appleStock, { AppleStock } from '@visx/mock-data/lib/mocks/appleStock';
 import { curveMonotoneX } from '@visx/curve';
 import { GridRows, GridColumns } from '@visx/grid';
 import { scaleTime, scaleLinear } from '@visx/scale';
 import { withTooltip, Tooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { useTooltip, useTooltipInPortal } from '@visx/tooltip';
-import { Loader } from "semantic-ui-react";
-import { WithTooltipProvidedProps } from '@visx/tooltip/lib/enhancers/withTooltip';
 import { localPoint } from '@visx/event';
 import { LinearGradient } from '@visx/gradient';
 import { max, extent, bisector } from 'd3-array';
 import { timeFormat } from 'd3-time-format';
-
-const data = [
-    0,
-    3,
-    1,
-    0,
-    0,
-    0,
-    0,
-    6,
-    5,
-    2,
-    7,
-    0,
-    0,
-    2,
-    2,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
-];
-
-export const background = '#3b6978';
-export const background2 = '#204051';
+import {  AxisLeft } from '@visx/axis';
+import {
+    Header
+  } from "semantic-ui-react";
+export const background = '#9f0000'; //'#3b6978';
+export const background2 = '#9f0000'; //'#204051';
 export const accentColor = '#edffea';
-export const accentColorDark = '#75daad';
+export const accentColorDark = '#ff7543'; //#75daad';
 const tooltipStyles = {
     ...defaultStyles,
     background,
@@ -140,8 +43,8 @@ const getCallActivity = (d) => {
 
 
 
-const ChartWithTooltip = () => {
-    const props = {data};
+const ChartWithTooltip = (props) => {
+    //const props = {data};
     const {
         tooltipData,
         tooltipLeft,
@@ -152,6 +55,8 @@ const ChartWithTooltip = () => {
     } = useTooltip();
     const width = 500;
     const height = 250;
+    const navigate = useNavigate();
+    let [searchParams, setSearchParams] = useSearchParams();
     // If you don't want to use a Portal, simply replace `TooltipInPortal` below with
     // `Tooltip` or `TooltipWithBounds` and remove `containerRef`
     const { containerRef, TooltipInPortal } = useTooltipInPortal({
@@ -179,7 +84,15 @@ const ChartWithTooltip = () => {
     }
     const handleMouseClick = (event) => {
         const { data } = getMouseData(event);
-        console.log(data);
+        const timestamp = data.x.getTime();
+
+        const params ={
+            "filter-type": "talkgroups",
+            "filter-code": props.tgNum,
+            "time": timestamp
+        }
+        setSearchParams(params);
+        props.navigate(props.tgNum, timestamp);
     }
     const handleMouseOver = (event, datum) => {
         const { coords, data } = getMouseData(event);
@@ -190,7 +103,7 @@ const ChartWithTooltip = () => {
         });
     };
     // bounds
-    const margin = { top: 0, right: 0, bottom: 0, left: 0 };
+    const margin = { top: 10, right: 0, bottom: 0, left: 25 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -201,10 +114,11 @@ const ChartWithTooltip = () => {
                 var MS_PER_MINUTE = 60000;
             
                 for (let j = 0; j < props.data.length; j++) {
-                    let spotsBack = props.data.length - j;
+                    let spotsBack = j;
                     let time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
                     callTotals.push({ y: props.data[j], x: time });
                 }
+                callTotals.sort((a,b) => a.x-b.x);
                 return callTotals
             
             
@@ -218,7 +132,7 @@ const ChartWithTooltip = () => {
                 range: [margin.left, innerWidth + margin.left],
                 domain: extent(calls, getDate),
             }),
-        [innerWidth, margin.left],
+        [innerWidth, margin.left, calls],
     );
 
     const callActivityScale = useMemo(
@@ -229,22 +143,26 @@ const ChartWithTooltip = () => {
                 nice: true,
             })
         },
-        [margin.top, innerHeight],
+        [margin.top, innerHeight, calls],
     );
 
     return (
         // Set `ref={containerRef}` on the element corresponding to the coordinate system that
         // `left/top` (passed to `TooltipInPortal`) are relative to.
-        <>
-            <svg ref={containerRef} width={width} height={height}>
+        <div style={{ float: "left", margin: "15px"}}>
+             <Header as='h3'>{props.tg}</Header>
+             <div style={{position: 'relative'}}>
+            <svg ref={containerRef} width={width} height={height} >
+                
                 <rect
-                    x={0}
+                    x={margin.left}
                     y={0}
-                    width={width}
+                    width={width-margin.left-margin.right}
                     height={height}
                     fill="url(#area-background-gradient)"
                     rx={14}
                 />
+
                 <LinearGradient id="area-background-gradient" from={background} to={background2} />
                 <LinearGradient id="area-gradient" from={accentColor} to={accentColor} toOpacity={0.1} />
                 <GridRows
@@ -287,6 +205,7 @@ const ChartWithTooltip = () => {
                     onMouseUp={handleMouseClick}
                     onMouseOut={hideTooltip}
                 />
+                <AxisLeft scale={callActivityScale} left={margin.left}  numTicks={2} hideAxisLine={true} hideZero={true} />
                 {tooltipData && (
                     <g>
                         <Line
@@ -325,13 +244,13 @@ const ChartWithTooltip = () => {
                     <TooltipWithBounds
                         key={Math.random()}
                         top={tooltipTop - 12}
-                        left={tooltipLeft + 12}
+                        left={tooltipLeft}
                         style={tooltipStyles}
                     >
-                        {`$${getCallActivity(tooltipData)}`}
+                        {`${getCallActivity(tooltipData)}`}
                     </TooltipWithBounds>
                     <Tooltip
-                        top={innerHeight + margin.top - 14}
+                        top={-28}
                         left={tooltipLeft}
                         style={{
                             ...defaultStyles,
@@ -344,7 +263,8 @@ const ChartWithTooltip = () => {
                     </Tooltip>
                 </div>
             )}
-        </>
+            </div>
+        </div>
     )
 };
 
@@ -516,7 +436,7 @@ export default withTooltip(({
                     {formatDate(getDate(tooltipData))}
                 </Tooltip>
             </div>
-
+            </div>
         </div>
     );
 }

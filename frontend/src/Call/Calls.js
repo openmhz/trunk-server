@@ -51,14 +51,14 @@ function Calls(props) {
   const pageYOffset = useRef(); // Store the current Scroll Offset in a way that guarantees the latest value is available when Call Data is updated
   const shouldPlayAddCallRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
   shouldPlayAddCallRef.current = (!isPlaying && autoPlay) ? true : false;
-
+  const uri = queryString.parse(useLocation().search);
   const filterType = useSelector((state) => state.callPlayer.filterType);
   const filterGroupId = useSelector((state) => state.callPlayer.filterGroupId);
   const filterTalkgroups = useSelector((state) => state.callPlayer.filterTalkgroups);
   const filterStarred = useSelector((state) => state.callPlayer.filterStarred);
   const filterDate = useSelector((state) => state.callPlayer.filterDate);
   //const live = useSelector((state) => state.callPlayer.live);
-  const uri = queryString.parse(useLocation().search);
+
   const pathname = useLocation().pathname;
 
   let currentCallId = false;
@@ -84,6 +84,22 @@ function Calls(props) {
   const handleFilterToggle = () => setFilterVisible(!filterVisible);
   const handleCalendarToggle = () => setCalendarVisible(!calendarVisible);
   const handleActivityToggle = () => setActivityVisible(!activityVisible);
+  const handleActivityNavigate = (tgNum, timestamp) =>{
+
+    let filter = {
+      filterDate: timestamp,
+      filterType: 2,  // this is "all"
+      filterTalkgroups: [tgNum],
+      filterGroupId: false,
+      filterStarred: false,
+      shortName: shortName
+    };
+
+    dispatch(setFilter(filter));
+    setLive(false);
+    stopSocket();
+    setActivityVisible(false)
+  }
 
   const getFilterDescription = () => {
     let filter = { type: 'all', code: "", filterStarred: false };
@@ -235,6 +251,7 @@ function Calls(props) {
 
 
   const setStateFromUri = async () => {
+  
     let filter = {
       filterDate: false,
       filterType: 0,  // this is "all"
@@ -420,7 +437,7 @@ function Calls(props) {
         </Menu.Menu>
       </Menu>
       {activityVisible
-        ? <Activity />
+        ? <Activity navigate={handleActivityNavigate} />
         : <CallPlayer callsData={callsData} selectCallId={selectCallId} handleNewer={handleNewer} handleOlder={handleOlder} />
       }
     </div>
