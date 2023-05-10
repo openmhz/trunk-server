@@ -292,7 +292,7 @@ exports.get_call = async function (req, res) {
         );
 
     } else {
-        console.warn("[" + req.params.shortName + "] Error - /:shortName/call/:id Could not find item " + err + " ID: " + objectId);
+        console.warn("[" + req.params.shortName + "] Error - /:shortName/call/:id Could not find item ID: " + objectId);
         res.status(404);
         res.send(JSON.stringify({
             success: false,

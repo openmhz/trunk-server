@@ -237,7 +237,7 @@ exports.shiftStats = async function () {
                     tg.totalLen = 0;
                     if (tgHistoryTotal == 0) {
                         // there has been no recent activity on this talkgroup. remove it from the stats.
-                        delete stat[talkgroupNum];
+                        delete sysTalkgroupStats[talkgroupNum];
                     }
                 }
             }
