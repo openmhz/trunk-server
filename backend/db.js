@@ -1,7 +1,7 @@
 const { CloudWatchLogs } = require("aws-sdk");
 var { callModel: Call } = require("./models/call");
 var Event = require("./models/event");
-var Podcast = require("../models/podcast");
+var Podcast = require("./models/podcast");
 
 exports.cleanOldEvents = async function() {
   var date = new Date();
