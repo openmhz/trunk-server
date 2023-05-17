@@ -1,5 +1,4 @@
 var util = require("util");
-var db = require('./db');
 const SystemStat = require("./models/system_stat");
 var System = require("./models/system");
 var talkgroupStats = {};

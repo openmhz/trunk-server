@@ -1,34 +1,49 @@
-var MongoClient = require('mongodb').MongoClient;
+const { CloudWatchLogs } = require("aws-sdk");
+var { callModel: Call } = require("./models/call");
+var Event = require("./models/event");
+var Podcast = require("../models/podcast");
 
-
-var host = process.env['MONGO_NODE_DRIVER_HOST'] != null ? process.env['MONGO_NODE_DRIVER_HOST'] : 'localhost';
-var port = process.env['MONGO_NODE_DRIVER_PORT'] != null ? process.env['MONGO_NODE_DRIVER_PORT'] : 27017;
-
-var state = {
-  db: null,
+exports.cleanOldEvents = async function() {
+  var date = new Date();
+  Event.bulkWrite([
+    {
+      deleteMany: {
+        filter: { expireTime: {$lt: date} }
+      }
+    }
+  ]).then(res => {
+   // Prints "1 1 1"
+   console.log("Removed " + res.deletedCount + " Podcasts");
+  });
 }
 
-exports.connect = async function (done) {
-  if (state.db) return done()
-
-  var url = 'mongodb://' + host + ':' + port + '/scanner';
-
-  const client = new MongoClient(url);
-  await client.connect();
-  state.db = client.db();
-  done();
+exports.cleanOldPodcasts = async function() {
+  var date = new Date();
+  Podcast.bulkWrite([
+    {
+      deleteMany: {
+        filter: { expireTime: {$lt: date} }
+      }
+    }
+  ]).then(res => {
+   // Prints "1 1 1"
+   console.log("Removed " + res.deletedCount + " Events");
+  });
 }
 
-exports.get = function () {
-  return state.db
-}
 
-exports.close = function (done) {
-  if (state.db) {
-    state.db.close(function (err, result) {
-      state.db = null
-      state.mode = null
-      done(err)
-    })
-  }
+
+exports.cleanOldCalls = async function() {
+  var date = new Date();
+  date.setMonth(date.getMonth() - 1);
+  Call.bulkWrite([
+    {
+      deleteMany: {
+        filter: { time: {$lt: date} }
+      }
+    }
+  ]).then(res => {
+   // Prints "1 1 1"
+   console.log("Removed " + res.deletedCount + " Calls older than " + date);
+  });
 }

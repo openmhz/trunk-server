@@ -10,7 +10,8 @@ var groups = require("./controllers/groups");
 var stats = require("./controllers/stats");
 var events = require("./controllers/events");
 var config = require('./config/config.json');
-
+let db = require('./db')
+var schedule = require('node-schedule');
 var mongoose = require("mongoose");
 const { ObjectId } = require('mongodb');
 const Group = require("./models/group");
@@ -291,6 +292,9 @@ io.sockets.on('connection', function (client) {
 });
 
 stats.init_stats();
+let cleanupSched = schedule.scheduleJob('3 * * *', function() {
+  db.cleanOldCalls();
+});
 
 server.listen(app.get("port"), (err) => {
   if (err) {
@@ -300,16 +304,5 @@ server.listen(app.get("port"), (err) => {
   }
 })
 
-/*
-var calcRule = new schedule.RecurrenceRule();
-calcRule.minute = 4;
-
-var calcSched = schedule.scheduleJob(calcRule, function() {
-    console.log('Time to calulcate stats');
-    call_stats.build_call_volume();
-    console.log('Time to calulcate usage');
-    call_stats.build_usage();
-});
-*/
 
 module.exports = app;
