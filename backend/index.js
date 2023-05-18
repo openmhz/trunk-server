@@ -292,7 +292,9 @@ io.sockets.on('connection', function (client) {
 });
 
 stats.init_stats();
-let cleanupSched = schedule.scheduleJob('3 * * *', function() {
+// This will run at 3am each day.
+// IF you don't set the minute to 0, it will run every minute while it is still 3, so at 3:01, 3:02... etc
+let cleanupSched = schedule.scheduleJob('0 3 * * *', function() {
   db.cleanOldCalls();
 });
 
