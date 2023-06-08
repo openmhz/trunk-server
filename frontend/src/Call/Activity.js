@@ -9,7 +9,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { setFilter, setDateFilter } from "../features/callPlayer/callPlayerSlice";
 
 import { useGetStatsQuery,useGetTalkgroupsQuery } from '../features/api/apiSlice'
-import ActivityChart from "./ActivityChart";
+import ActivityChart from "./BetterActivityChart";
 import { selectSystem } from "../features/systems/systemsSlice";
 import {
     Container,
@@ -41,7 +41,7 @@ function Activity(props) {
                 if (talkgroupData && talkgroupData.talkgroups[tgNum] !== undefined) {
                     tg = talkgroupData.talkgroups[tgNum].description;
                 }
-                result.push(<ActivityChart key={tgNum} tg={tg} data={statsData.talkgroupStats[tgNum].callCountHistory}  />);
+                result.push(<ActivityChart key={tgNum} tg={tg} tgNum={tgNum}  data={statsData.talkgroupStats[tgNum].callCountHistory}  navigate={props.navigate}/>);
             }
             return result;
         } else {

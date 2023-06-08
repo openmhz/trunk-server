@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
 var bcrypt   = require('bcrypt');
+var User = require('./user');
 
 var systemSchema = mongoose.Schema({
   name: String,
@@ -12,7 +13,9 @@ var systemSchema = mongoose.Schema({
   description: String,
   showScreenName: Boolean,
   ignoreUnknownTalkgroup : Boolean,
-  userId:  mongoose.Schema.Types.ObjectId,
+  active: {type: Boolean, default: false},
+  lastActive: Date,
+  userId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
   key: String
 });
 

@@ -10,7 +10,8 @@ var groups = require("./controllers/groups");
 var stats = require("./controllers/stats");
 var events = require("./controllers/events");
 var config = require('./config/config.json');
-
+let db = require('./db')
+var schedule = require('node-schedule');
 var mongoose = require("mongoose");
 const { ObjectId } = require('mongodb');
 const Group = require("./models/group");
@@ -291,6 +292,20 @@ io.sockets.on('connection', function (client) {
 });
 
 stats.init_stats();
+// This will run at 3am each day.
+// IF you don't set the minute to 0, it will run every minute while it is still 3, so at 3:01, 3:02... etc
+schedule.scheduleJob('0 3 * * *', function() {
+  db.cleanOldCalls();
+});
+
+schedule.scheduleJob('15 3 * * *', function() {
+  db.cleanOldEvents();
+});
+
+schedule.scheduleJob('30 3 * * *', function() {
+  db.cleanOldPodcasts();
+});
+
 
 server.listen(app.get("port"), (err) => {
   if (err) {
@@ -300,16 +315,5 @@ server.listen(app.get("port"), (err) => {
   }
 })
 
-/*
-var calcRule = new schedule.RecurrenceRule();
-calcRule.minute = 4;
-
-var calcSched = schedule.scheduleJob(calcRule, function() {
-    console.log('Time to calulcate stats');
-    call_stats.build_call_volume();
-    console.log('Time to calulcate usage');
-    call_stats.build_usage();
-});
-*/
 
 module.exports = app;

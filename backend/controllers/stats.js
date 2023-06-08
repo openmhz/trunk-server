@@ -13,6 +13,7 @@ exports.get_stats = function(req, res) {
     var talkgroupStats = sysStats.talkgroupStats(short_name);
     var uploadErrors = sysStats.uploadErrors(short_name);
     let decodeErrorsFreq = sysStats.decodeErrorsFreq(short_name);
+
     if (callTotals && talkgroupStats) {
         res.contentType('json');
         res.send(JSON.stringify({
@@ -32,3 +33,4 @@ exports.get_stats = function(req, res) {
 var statSched = schedule.scheduleJob('*/15 * * * *', function() {
     sysStats.shiftStats();
 });
+

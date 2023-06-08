@@ -12,6 +12,66 @@ exports.isLoggedIn = function (req, res, next) {
 
 // -------------------------------------------
 
+exports.listAllSystems = async function (req, res, next) {
+  if (!req.user.admin) {
+      res.status(401);
+      res.json({ success: false, message: "Not Authorized" });
+      return; 
+  }
+
+  const systems = await System.find().exec();
+  if (systems == null) {
+    res.status(400);
+    res.json({ success: false, message: err });
+    return;
+  }
+
+  let returnSys = systems.map(obj => {
+    var rObj = (({
+      name,
+      shortName,
+      description,
+      systemType,
+      city,
+      state,
+      county,
+      country,
+      userId,
+      key,
+      showScreenName,
+      ignoreUnknownTalkgroup,
+      lastActive,
+      active
+    }) => ({
+      name,
+      shortName,
+      description,
+      systemType,
+      city,
+      state,
+      county,
+      country,
+      userId,
+      key,
+      showScreenName,
+      ignoreUnknownTalkgroup,
+      lastActive,
+      active
+    }))(obj);
+
+
+    rObj.id = obj._id;
+    return rObj;
+  });
+
+
+  res.json({
+    success: true,
+    systems: returnSys
+  });
+  return;
+};
+
 exports.listSystems = async function (req, res, next) {
   const userId = new mongoose.Types.ObjectId(req.user._id);
   const systems = await System.find({ userId: userId }).exec();

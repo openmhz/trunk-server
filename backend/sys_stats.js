@@ -1,5 +1,4 @@
 var util = require("util");
-var db = require('./db');
 const SystemStat = require("./models/system_stat");
 var System = require("./models/system");
 var talkgroupStats = {};
@@ -34,26 +33,26 @@ async function updateActiveSystems() {
 exports.initStats = async function () {
     // get the System Stats collection
 
-
     for await (const item of SystemStat.find()) {
         const obj = item.toObject();
         // Talkgroup Stats
-        if (item.talkgroupStats != undefined) {
-            talkgroupStats[item.shortName] = obj.talkgroupStats;
+        if (obj.talkgroupStats !== undefined) {
+            talkgroupStats[obj.shortName] = Object.fromEntries(obj.talkgroupStats);
         }
 
         // Decode Errors
-        if (item.decodeErrorsFreq != undefined) {
-            decodeErrorsFreq[item.shortName] = obj.decodeErrorsFreq;
+        if (obj.decodeErrorsFreq !== undefined) {
+
+            decodeErrorsFreq[obj.shortName] = Object.fromEntries(obj.decodeErrorsFreq);
         }
 
         // Upload Error Totals
-        if (item.uploadErrors != undefined) {
-            uploadErrors[item.shortName] = obj.uploadErrors;
+        if (obj.uploadErrors !== undefined) {
+            uploadErrors[obj.shortName] = obj.uploadErrors;
         }
 
-        if (item.callTotals != undefined) {
-            callTotals[item.shortName] = obj.callTotals;
+        if (obj.callTotals !== undefined) {
+            callTotals[obj.shortName] = obj.callTotals;
         }
     };
 }
@@ -62,7 +61,7 @@ exports.initStats = async function () {
 exports.addError = function (call) {
 
     // if there is no Array associated with the system.
-    if (uploadErrors[call.shortName] == undefined) {
+    if (uploadErrors[call.shortName] === undefined) {
         uploadErrors[call.shortName] = new Array();
         for (var j = 0; j < spots; j++) {
             uploadErrors[call.shortName][j] = 0;
@@ -76,12 +75,12 @@ exports.addError = function (call) {
 // Keeps track of the number of calls for each talkgroup for a system
 exports.addCall = function (call) {
     // if you haven't started keeping track of stats for the System yet
-    if (talkgroupStats[call.shortName] == undefined) {
+    if (talkgroupStats[call.shortName] === undefined) {
         talkgroupStats[call.shortName] = {};
     }
     var sysTalkgroupStats = talkgroupStats[call.shortName];
     // if you haven't started keeping track of Stats for this TG yet... 
-    if (sysTalkgroupStats[call.talkgroupNum] == undefined) {
+    if (sysTalkgroupStats[call.talkgroupNum] === undefined) {
         sysTalkgroupStats[call.talkgroupNum] = {}
         sysTalkgroupStats[call.talkgroupNum].calls = 0;
         sysTalkgroupStats[call.talkgroupNum].totalLen = 0;
@@ -105,7 +104,7 @@ exports.addCall = function (call) {
     var sysErrors = decodeErrorsFreq[call.shortName];
 
     // if you haven't started keeping track of Stats for this TG yet... 
-    if (sysErrors[call.freq] == undefined) {
+    if (sysErrors[call.freq] === undefined) {
         sysErrors[call.freq] = {}
         sysErrors[call.freq].totalLen = 0;
         sysErrors[call.freq].errors = 0;
@@ -237,7 +236,7 @@ exports.shiftStats = async function () {
                     tg.totalLen = 0;
                     if (tgHistoryTotal == 0) {
                         // there has been no recent activity on this talkgroup. remove it from the stats.
-                        delete stat[talkgroupNum];
+                        delete sysTalkgroupStats[talkgroupNum];
                     }
                 }
             }

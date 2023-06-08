@@ -7,7 +7,7 @@ import { authenticateUser  } from "../features/user/userSlice";
  * Higher-order component (HOC) to wrap restricted pages
  */
 
-const Restricted = ({children }) => {
+export const Restricted = ({children }) => {
   const { authenticated, hasAuthenticated } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   useEffect(() => {
@@ -16,6 +16,25 @@ const Restricted = ({children }) => {
 
   if (hasAuthenticated) {
     if (authenticated) {
+      return children;;
+    } 
+   else {
+    window.location = process.env.REACT_APP_ACCOUNT_SERVER + "/login?nextLocation=admin";
+  } 
+}
+  return <div/>
+  
+};
+
+export const AdminRestricted = ({children }) => {
+  const { authenticated, hasAuthenticated, admin } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(authenticateUser({}));
+  },[]);
+
+  if (hasAuthenticated) {
+    if (authenticated && admin) {
       return children;;
     } 
    else {

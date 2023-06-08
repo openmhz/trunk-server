@@ -23,8 +23,8 @@ const GroupModal = (props) => {
   }
 
   const [groupName, setGroupName] = useState("");
-  const [group, setGroup] = useState(emptyGroup)
-  const [talkgroups, setTalkgroups] = useState(props.talkgroups ? props.talkgroups : [])
+  const [group, setGroup] = useState(emptyGroup);
+  const [talkgroupList, setTalkgroupList] = useState([]);
 
   const { data: talkgroupsData} = useGetTalkgroupsQuery(props.shortName);
   const { data: groupsData} = useGetGroupsQuery(props.shortName);
@@ -56,7 +56,7 @@ const GroupModal = (props) => {
     // we want to remove that are part of the Group from the list on the Left
     const group = { name: editGroup.groupName, items: items }
     setGroup(group);
-    setTalkgroups(talkgroups);
+    setTalkgroupList(talkgroups);
     setGroupName(editGroup.groupName);
     }
   },[groupsData,talkgroupsData, props.editGroupId]);
@@ -64,20 +64,11 @@ const GroupModal = (props) => {
 
   useEffect(() => {
     if (!props.editGroupId && talkgroupsData) {
-      setTalkgroups([...talkgroupsData]);
+      setTalkgroupList([...talkgroupsData]);
     }
   },[talkgroupsData, props.editGroupId]);
 
-
-  useEffect(() => {
-    if (!props.editGroupId && props.talkgroups) {
-      setGroupName("");
-      setGroup(emptyGroup);
-      setTalkgroups( [...props.talkgroups]);
-    }
-  },[props.editGroupId, props.talkgroups]);
-
-  const removeTalkgroup =  (index) => {
+  const removeTalkgroup =  (event, index) => {
     const item = {
       num: group.items[index].num,
       description: group.items[index].description
@@ -96,24 +87,29 @@ const GroupModal = (props) => {
         .slice(0, index)
         .concat(this.state.group.items.slice(index + 1))
     });
-    setTalkgroups(talkgroups);
+    setTalkgroupList(talkgroups);
   }
 
 
   const addTalkgroup = (event, index) => {
+
+  // Build a talkgroup item for the group based on the Index of the item from the list
     const item = {
-      num: talkgroupsData[index].num,
-      description: talkgroupsData[index].description
+      num: talkgroupList[index].num,
+      description: talkgroupList[index].description
     };
 
+    // Add item to the Group
     setGroup({ items: group.items.concat(item) })
-    setTalkgroups(talkgroups.slice(0, index).concat(talkgroups.slice(index + 1)));
+
+    // remove the item from the list
+    setTalkgroupList(talkgroupList.slice(0, index).concat(talkgroupList.slice(index + 1)));
   }
 
   const handleClose = () => {
     setGroupName("");
     setGroup(emptyGroup);
-    setTalkgroups([...talkgroupsData]);
+    setTalkgroupList([...talkgroupsData]);
     props.onClose();
   }
 
@@ -130,7 +126,7 @@ const GroupModal = (props) => {
 
       setGroupName("");
       setGroup(emptyGroup);
-      setTalkgroups([...talkgroupsData]);
+      setTalkgroupList([...talkgroupsData]);
       await updateGroup(data);
       props.onClose(true);
     } else {
@@ -142,7 +138,7 @@ const GroupModal = (props) => {
 
       setGroupName("");
       setGroup(emptyGroup);
-      setTalkgroups([...talkgroupsData]);
+      setTalkgroupList([...talkgroupsData]);
 
       await createGroup(data);
       props.onClose();
@@ -175,8 +171,8 @@ const GroupModal = (props) => {
                     </Table.Row>
                   </Table.Header>
                   <Table.Body>
-                    {talkgroups &&
-                      talkgroups.map((talkgroup, i) => (
+                    {talkgroupList &&
+                      talkgroupList.map((talkgroup, i) => (
                         <Table.Row link="true" key={talkgroup.num + "-" + i}>
                           <Table.Cell>{talkgroup.num}</Table.Cell>
 
