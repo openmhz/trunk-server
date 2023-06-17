@@ -153,6 +153,7 @@ app.get("/groups/:shortName/:groupId?", isLoggedIn, groups.getGroups);
 app.delete("/groups/:shortName/:groupId", isLoggedIn, groups.deleteGroup);
 app.get("/systems", isLoggedIn, systems.listSystems)
 app.get("/admin/systems", isAdmin, systems.listAllSystems)
+app.get("/admin/users", isAdmin, systems.listUserSystems)
 app.delete("/systems/:shortName", isLoggedIn, systems.deleteSystem)
 app.post("/systems/:shortName", [isLoggedIn, systems.ownSystem, systems.validateSystem, systems.updateSystem])
 app.post("/systems", [isLoggedIn, systems.uniqueShortName, systems.validateSystem, systems.createSystem])

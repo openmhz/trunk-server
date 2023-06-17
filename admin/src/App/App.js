@@ -5,6 +5,7 @@ import {AdminRestricted, Restricted} from "./Restricted"
 
 import About from "../Components/About"
 import System from "../System/System"
+import AllSystems from "../AllSystems/AllSystems"
 import ListSystems from "../System/ListSystems"
 import UpdateSystem from "../System/UpdateSystem"
 import CreateSystem from "../System/CreateSystem"
@@ -20,7 +21,7 @@ const App = (params) => {
 					<Route path="/update-system/:shortName" element={ <Restricted><UpdateSystem/></Restricted>} />
 					<Route path="/create-system" element={ <Restricted><CreateSystem/></Restricted>}  />
 					<Route path="/list-systems" element={ <Restricted><ListSystems/></Restricted>}  />
-					<Route path="/all-systems" element={ <AdminRestricted><ListSystems/></AdminRestricted>}  />
+					<Route path="/all-systems" element={ <AdminRestricted><AllSystems/></AdminRestricted>}  />
 					<Route path="/" element={ <Restricted><ListSystems/></Restricted>} />
 					<Route render={() => (<div>Miss</div>)} />
 				</Routes>

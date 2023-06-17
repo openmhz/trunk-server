@@ -138,7 +138,7 @@ export const apiSlice = createApi({
     }),
     getAllSystems: builder.query({
       // The URL for the request is '/fakeApi/posts'
-      query: () => ({ url: `/admin/systems`, credentials: "include" })
+      query: () => ({ url: `/admin/users`, credentials: "include" })
     }),
     createSystem: builder.mutation({
       query: (system) => ({
