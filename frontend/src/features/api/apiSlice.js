@@ -54,10 +54,19 @@ export const apiSlice = createApi({
                 method: 'POST',
                 body: initialEvent
             })
+        }),
+        contactSystem: builder.mutation({
+            query: (args) => {
+                const {shortName, body} = args;
+                return {
+                url: `/${shortName}/contact`,
+                method: 'POST',
+                body: body
+            }}
         })
 
     })
 })
 
 // Export the auto-generated hook for the `getPosts` query endpoint
-export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetStatsQuery, useGetEventsQuery, useGetEventQuery, useAddNewEventMutation } = apiSlice
+export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetStatsQuery, useGetEventsQuery, useGetEventQuery, useAddNewEventMutation, useContactSystemMutation } = apiSlice

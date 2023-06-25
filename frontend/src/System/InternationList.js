@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import SystemCard from "./SystemCard";
 
 
-const InternationList = (other) => {
+const InternationList = (other, onContactClick) => {
     
     const navigate = useNavigate();
     let international = [];
@@ -15,7 +15,7 @@ const InternationList = (other) => {
         <Card.Group itemsPerRow={4} stackable={true}>
             {other &&
                 other.map((system) => {
-                    return <SystemCard system={system} key={system.shortName} onClick={(e) => navigate("/system/" + system.shortName)} />
+                    return <SystemCard system={system} key={system.shortName} onClick={(e) => navigate("/system/" + system.shortName)} onContactClick={onContactClick} />
                 })}
         </Card.Group>
     ))

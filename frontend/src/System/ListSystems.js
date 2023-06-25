@@ -1,6 +1,6 @@
-import { Component, useRef } from "react";
+import { Component, useRef, useState } from "react";
 import { Link, useNavigate } from 'react-router-dom'
-
+import ContactModal from "./ContactModal";
 import { useSelector, useDispatch } from 'react-redux'
 import {
   Container,
@@ -24,7 +24,8 @@ import InternationList from "./InternationList";
 // ----------------------------------------------------
 
 const ListSystems = (props) => {
-
+  const [contactVisible, setContactVisible] = useState(false);
+  const [contactSystem, setContactSystem] = useState(false);
   const { data: systems, isSuccess } = useGetSystemsQuery();
   //const systems = useSelector(selectActiveSystems)
   const contextRef = useRef();
@@ -45,13 +46,19 @@ const ListSystems = (props) => {
     }
   }
 
+  const handleContactClick = (system) => {
+    setContactSystem(system);
+    setContactVisible(true);
+  };
+  
   const stateList = StateLinkList(states);
-  const systemsByState = SystemsByState(states);
-  const international = InternationList(other);
+  const systemsByState = SystemsByState(states, handleContactClick);
+  const international = InternationList(other, handleContactClick);
 
   return (
     <div ref={contextRef}>
       <NavBar />
+      <ContactModal system={contactSystem} open={contactVisible} onClose={()=> setContactVisible(false)}/>
       <Container >
         <Divider horizontal style={{ paddingTop: "5em", paddingBottom: "2em" }}><Header as="h1">Radio Systems<Icon name='rss' /></Header></Divider>
         <Grid centered columns={2}>

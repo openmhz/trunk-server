@@ -123,6 +123,7 @@ exports.listSystems = async function (req, res, next) {
       userId,
       key,
       showScreenName,
+      allowContact,
       ignoreUnknownTalkgroup
     }) => ({
       name,
@@ -136,6 +137,7 @@ exports.listSystems = async function (req, res, next) {
       userId,
       key,
       showScreenName,
+      allowContact,
       ignoreUnknownTalkgroup
     }))(obj);
     if (obj.showScreenName) {
@@ -319,6 +321,7 @@ exports.updateSystem = async function (req, res, next) {
   res.locals.system.description = res.locals.description;
   res.locals.system.systemType = res.locals.systemType;
   res.locals.system.showScreenName = res.locals.showScreenName;
+  res.locals.system.allowContact = res.locals.allowContact;
   res.locals.system.ignoreUnknownTalkgroup = res.locals.ignoreUnknownTalkgroup;
 
 
@@ -342,6 +345,7 @@ exports.updateSystem = async function (req, res, next) {
     userId,
     key,
     showScreenName,
+    allowContact,
     ignoreUnknownTalkgroup
   }) => ({
     name,
@@ -355,6 +359,7 @@ exports.updateSystem = async function (req, res, next) {
     userId,
     key,
     showScreenName,
+    allowContact,
     ignoreUnknownTalkgroup
   }))(res.locals.system);
   returnSys.id = res.locals.system._id;
@@ -506,6 +511,7 @@ exports.createSystem = async function (req, res, next) {
     county,
     country,
     showScreenName,
+    allowContact,
     ignoreUnknownTalkgroup
   }) => ({
     name,
@@ -517,6 +523,7 @@ exports.createSystem = async function (req, res, next) {
     county,
     country,
     showScreenName,
+    allowContact,
     ignoreUnknownTalkgroup
   }))(res.locals);
   system.key = key;
@@ -543,6 +550,7 @@ exports.createSystem = async function (req, res, next) {
     country,
     userId,
     showScreenName,
+    allowContact,
     ignoreUnknownTalkgroup,
     key
   }) => ({
@@ -556,6 +564,7 @@ exports.createSystem = async function (req, res, next) {
     country,
     userId,
     showScreenName,
+    allowContact,
     ignoreUnknownTalkgroup,
     key
   }))(newSys);
