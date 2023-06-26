@@ -25,6 +25,10 @@ const Navigation = (props) => {
         </Menu.Item>
         <Menu.Menu position="right">
           {admin &&
+          <Link to="/active-users">
+            <Menu.Item name="active-users">Active Users</Menu.Item>
+          </Link> }
+          {admin &&
           <Link to="/all-systems">
             <Menu.Item name="all-systems">All Systems</Menu.Item>
           </Link>          

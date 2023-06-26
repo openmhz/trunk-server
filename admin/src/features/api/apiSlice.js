@@ -140,6 +140,10 @@ export const apiSlice = createApi({
       // The URL for the request is '/fakeApi/posts'
       query: () => ({ url: `/admin/users`, credentials: "include" })
     }),
+    getActiveUsers: builder.query({
+      // The URL for the request is '/fakeApi/posts'
+      query: () => ({ url: `/admin/users/active`, credentials: "include" })
+    }),
     createSystem: builder.mutation({
       query: (system) => ({
         url: `/systems`,
@@ -202,4 +206,4 @@ export const apiSlice = createApi({
 })
 
 // Export the auto-generated hook for the `getPosts` query endpoint
-export const { useGetGroupsQuery, useGetSystemsQuery, useGetAllSystemsQuery, useGetTalkgroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useCreateSystemMutation, useUpdateSystemMutation, useDeleteSystemMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation } = apiSlice
+export const { useGetGroupsQuery, useGetSystemsQuery, useGetAllSystemsQuery, useGetActiveUsersQuery, useGetTalkgroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useCreateSystemMutation, useUpdateSystemMutation, useDeleteSystemMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation } = apiSlice
