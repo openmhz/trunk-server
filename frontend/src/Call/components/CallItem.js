@@ -109,7 +109,7 @@ const CallItem = (props) => {
       <Table.Cell>{playStatus}</Table.Cell>
       <Table.Cell>{call.len}</Table.Cell>
       <Table.Cell>{talkgroup}</Table.Cell>
-      <Table.Cell>{time.toLocaleTimeString()}</Table.Cell>
+      <Table.Cell>{`${time.toLocaleTimeString()} ${time.toLocaleDateString() !== new Date().toLocaleDateString() ? time.getMonth() + 1 + '/' + time.getDate() : ''}`}</Table.Cell> 
       <Table.Cell onMouseEnter={() => setStarVisible(true)} onMouseLeave={() => setStarVisible(false)} onClick={handleStarClicked}>{starButton}</Table.Cell>
     </Table.Row>
   );
