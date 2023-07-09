@@ -13,7 +13,44 @@ exports.isLoggedIn = function (req, res, next) {
 
 // -------------------------------------------
 
-exports.listUserSystems = async function (req, res, next) {
+
+exports.listActiveUsers = async function (req,res,next) {
+  if (!req.user.admin) {
+    res.status(401);
+    res.json({ success: false, message: "Not Authorized" });
+    return; 
+  }
+  let users = {};
+  let fromDate = new Date(Date.now() - 60 * 60 * 24 * 30 * 1000);
+  const systems = await System.find({lastActive: {$gte: fromDate}}).populate('userId', "screenName").catch( err => {
+     console.error("Error - get_systems: " + err.message);
+      res.json({
+        success: false,
+        message: err
+      });
+      return;
+  });
+  for (let index = 0; index < systems.length; index++) {
+    const system = systems[index];
+
+    if (!users.hasOwnProperty(system.userId.toString())) {
+      const user = await User.findById(system.userId, "_id email firstName lastName lastLogin");
+      users[system.userId.toString()] = user.email;
+    }
+
+  }
+
+  let list = [];
+  for (const id in users) {
+    list.push(users[id]);
+  }
+
+  res.json(list);
+  return;
+}
+
+
+exports.listUserSystems = async function (req,res,next) {
   if (!req.user.admin) {
     res.status(401);
     res.json({ success: false, message: "Not Authorized" });
