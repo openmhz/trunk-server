@@ -12,6 +12,10 @@ var systemSchema = mongoose.Schema({
   state: String,
   description: String,
   showScreenName: Boolean,
+  allowContact: {
+		type: Boolean,
+		default: true
+	},
   ignoreUnknownTalkgroup : Boolean,
   active: {type: Boolean, default: false},
   lastActive: Date,

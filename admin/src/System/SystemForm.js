@@ -24,6 +24,7 @@ const SystemForm = (props) => {
   const [county, setCounty] = useState("");
   const [country, setCountry] = useState("");
   const [showScreenName, setShowScreenName] = useState(false);
+  const [allowContact, setAllowContact] = useState(true);
   const [ignoreUnknownTalkgroup, setIgnoreUnknownTalkgroup] = useState(false);
   const [nameError, setNameError] = useState(false);
   const [shortNameError, setShortNameError] = useState(false);
@@ -45,6 +46,7 @@ const SystemForm = (props) => {
       setCounty(props.system.county);
       setCountry(props.system.country);
       setShowScreenName(props.system.showScreenName);
+      setAllowContact(props.system.allowContact);
       setIgnoreUnknownTalkgroup(props.system.ignoreUnknownTalkgroup);
     }
   }, [props.system, props.isEditing]);
@@ -128,6 +130,12 @@ const SystemForm = (props) => {
     return error;
   }
 
+
+  const handleAllowContactCheckboxChange = () => {
+    setAllowContact((current) => !current);
+  }
+
+
   const handleScreenNameCheckboxChange = () => {
     setShowScreenName((current) => !current);
   }
@@ -150,6 +158,7 @@ const SystemForm = (props) => {
         county,
         country,
         showScreenName,
+        allowContact,
         ignoreUnknownTalkgroup
       };
       props.onSubmit(system);
@@ -271,6 +280,12 @@ const SystemForm = (props) => {
             onChange={handleScreenNameCheckboxChange}
             checked={showScreenName}
             label="Display Screen Name in System Listing" />
+        </Form.Field>
+        <Form.Field>
+          <Checkbox
+            onChange={handleAllowContactCheckboxChange}
+            checked={allowContact}
+            label="Allow Users to Contact you via a Web Form. They will not get your email address unless you write them back." />
         </Form.Field>
         <Form.Field>
           <Checkbox

@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, useState } from "react";
 import {
   Card,
   Icon,
@@ -7,15 +7,26 @@ import {
 } from "semantic-ui-react";
 
 
-class SystemCard extends Component {
-
-  render() {
+function SystemCard (props) {
+  
+    const {system, keepShort, onClick, onContactClick} = props;
     var location = "";
-    const system = this.props.system;
     var clientCount = "";
     var callAvg = "";
-    var description = system.description;
-    if (this.props.keepShort && (description.length > 100)) {
+    const description = system.description;
+
+
+
+    const handleContactClick = (event) => {
+      event.stopPropagation();
+      onContactClick(system);
+    }
+
+    const onCardClick = (event) => {
+      onClick();
+    }
+
+    if (keepShort && (description.length > 100)) {
       description = description.substring(0, 96) + "...";
     }
     if (system.callAvg) {
@@ -75,7 +86,7 @@ class SystemCard extends Component {
       }
     }
     return (
-      <Card link onClick={this.props.onClick} raised={true} centered={true} >
+      <Card link onClick={onCardClick} raised={true} centered={true} >
         <Card.Content>
           <Card.Header >{system.name}</Card.Header>
           <Card.Meta>{location} </Card.Meta>
@@ -84,6 +95,7 @@ class SystemCard extends Component {
             <Grid.Row>
                 <Grid.Column >
                 {system.screenName && <Label size="mini"><Icon name='user' /> {system.screenName}</Label>}
+                {/*system.allowContact && <Label size="mini" onClick={handleContactClick}><Icon name='mail' />Message</Label>*/}
                 </Grid.Column>
               </Grid.Row>
               <Grid.Row>
@@ -99,7 +111,6 @@ class SystemCard extends Component {
         </Card.Content>
       </Card>
     );
-  }
 }
 
 export default SystemCard;

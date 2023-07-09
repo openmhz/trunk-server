@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import SystemCard from "./SystemCard";
 
 
-const SystemsByState = (states) => {
+const SystemsByState = (states, onContactClick) => {
     const navigate = useNavigate();
     let systemsByState = [];
 
@@ -23,7 +23,7 @@ const SystemsByState = (states) => {
                 <Card.Group  key={"group-" +state} itemsPerRow={4} stackable={true}>
                     {states[state] &&
                         states[state].map((system) => {
-                            return <SystemCard system={system} key={system.shortName} onClick={(e) => navigate("/system/" + system.shortName)} />
+                            return <SystemCard system={system} key={system.shortName} onClick={(e) => navigate("/system/" + system.shortName)} onContactClick={onContactClick} />
                         })}
                 </Card.Group>
             ))

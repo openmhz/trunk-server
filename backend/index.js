@@ -116,6 +116,7 @@ app.post('/:shortName/upload', upload.single('call'), uploads.upload, async func
 
 /*------    SYSTEMS   ----------*/
 app.get('/systems', addSystemClients, systems.get_systems);
+app.post('/:shortName/contact', systems.contact_system);
 
 /*------    TALKGROUPS   ----------*/
 app.get('/:shortName/talkgroups', talkgroups.get_talkgroups);
@@ -249,6 +250,13 @@ io.sockets.on('connection', function (client) {
       clients[client.id].filterType = String(data.filterType);
       clients[client.id].talkgroupNums = [];
       clients[client.id].timestamp = new Date();
+
+      if (typeof clients[client.id].filterCode != "string") {
+        console.error("Error - Socket - Invalid filterCode: " + data.filterCode + " ShortName: " + data.shortName.toLowerCase());
+        delete clients[client.id];
+        return;
+      }
+
       if ((data.filterType == "group") && (data.filterCode.indexOf(',') == -1)) {
         if (!ObjectId.isValid(data.filterCode)) {
           console.error("Error - Socket - Invalid Group ID: " + data.filterCode);

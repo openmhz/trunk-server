@@ -51,6 +51,10 @@ services:
     pid: "host"
     environment:
       - MONGO_NODE_DRIVER_HOST=mongo
+      - MAILJET_KEY
+      - MAILJET_SECRET
+      - REACT_APP_ADMIN_EMAIL
+      - REACT_APP_SITE_NAME
       - NODE_ENV
       - REACT_APP_BACKEND_SERVER
       - REACT_APP_ADMIN_SERVER
