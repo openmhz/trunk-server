@@ -13,11 +13,11 @@ exports.isLoggedIn = function (req, res, next) {
 
 // -------------------------------------------
 
-exports.listUserSystems = async function (req,res,next) {
+exports.listUserSystems = async function (req, res, next) {
   if (!req.user.admin) {
     res.status(401);
     res.json({ success: false, message: "Not Authorized" });
-    return; 
+    return;
   }
   const users = await User.find({}, "_id email firstName lastName lastLogin");
   let list = [];
@@ -27,7 +27,7 @@ exports.listUserSystems = async function (req,res,next) {
     const userId = new mongoose.Types.ObjectId(user._id);
     const systems = await System.find({ userId: userId }, "name shortName description systemType city state county country lastActive");
 
-    user["systems"] = systems; 
+    user["systems"] = systems;
     list.push(user);
   }
   res.json(list);
@@ -36,9 +36,9 @@ exports.listUserSystems = async function (req,res,next) {
 
 exports.listAllSystems = async function (req, res, next) {
   if (!req.user.admin) {
-      res.status(401);
-      res.json({ success: false, message: "Not Authorized" });
-      return; 
+    res.status(401);
+    res.json({ success: false, message: "Not Authorized" });
+    return;
   }
 
   const systems = await System.find().exec();
@@ -61,6 +61,7 @@ exports.listAllSystems = async function (req, res, next) {
       userId,
       key,
       showScreenName,
+      allowContact,
       ignoreUnknownTalkgroup,
       lastActive,
       active
@@ -76,6 +77,7 @@ exports.listAllSystems = async function (req, res, next) {
       userId,
       key,
       showScreenName,
+      allowContact,
       ignoreUnknownTalkgroup,
       lastActive,
       active
@@ -311,6 +313,8 @@ exports.uniqueShortName = async function (req, res, next) {
 
 // -------------------------------------------
 
+// All the values you want to use here need to be copied over in validateSystem()
+
 exports.updateSystem = async function (req, res, next) {
 
   res.locals.system.name = res.locals.name;
@@ -375,6 +379,7 @@ exports.validateSystem = async function (req, res, next) {
   try {
     res.locals.showScreenName = req.body.showScreenName;
     res.locals.ignoreUnknownTalkgroup = req.body.ignoreUnknownTalkgroup;
+    res.locals.allowContact = req.body.allowContact;
     if (!req.body.name || (req.body.name.length < 2)) {
       console.error("ERROR: Validate System - req.body.name");
       res.status(500)

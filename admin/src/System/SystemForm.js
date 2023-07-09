@@ -158,6 +158,7 @@ const SystemForm = (props) => {
         county,
         country,
         showScreenName,
+        allowContact,
         ignoreUnknownTalkgroup
       };
       props.onSubmit(system);

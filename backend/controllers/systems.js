@@ -79,10 +79,14 @@ exports.contact_system = async function(req, res) {
   });
   request.then(result => {
       console.log(`User Comment sent to: ${user.email} for shortName: ${system.shortName}`)
+      res.json({
+        success: true
+      });
     })
     .catch(err => {
       console.error(err.statusCode);
       console.error(err);
+      res.status(500);
       res.json({
         success: false,
         message: err
@@ -97,6 +101,7 @@ exports.get_systems = async function (req, res) {
   let fromDate = new Date(Date.now() - 60 * 60 * 24 * 30 * 1000);
   const results = await System.find({lastActive: {$gte: fromDate}}).populate('userId', "screenName").catch( err => {
      console.error("Error - get_systems: " + err.message);
+     res.status(500);
       res.json({
         success: false,
         message: err
