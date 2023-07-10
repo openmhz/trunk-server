@@ -16,10 +16,10 @@ const User = require("../../models/user");
  }, (email, password, done) => {
  	User.findOne({
     $or: [{
-      email
+		email: { '$regex': email, $options: 'i' } 
     }, {
       local: {
-        email
+        email: { '$regex': email, $options: 'i' } 
       }
     }]
   }, (err, user) => {

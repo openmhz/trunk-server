@@ -14,10 +14,10 @@ const local = new LocalStrategy({
 }, async (email, password, done) => {
 	const user = await User.findOne({
 		$or: [{
-			email
+			email: { '$regex': email, $options: 'i' } 
 		}, {
 			local: {
-				email
+				email: { '$regex': email, $options: 'i' } 
 			}
 		}]
 	});

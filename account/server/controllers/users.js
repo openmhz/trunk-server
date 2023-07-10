@@ -173,6 +173,7 @@ exports.confirmEmail = async function (req, res, next) {
     return;
   }
   if (user.confirmEmailToken != token) {
+    res.status(500);
     console.error(
       "Token Mismatch DB: " + user.confirmEmailToken + " submitted: " + token
     );
@@ -267,7 +268,7 @@ exports.resetPassword = async function (req, res, next) {
 // -------------------------------------------
 exports.sendResetPassword = async function (req, res, next) {
   let user = await User.findOne({
-    email: req.body.email
+    email: { '$regex': req.body.email, $options: 'i' } 
   }).catch(err => {
     console.error(err);
     res.status(500);
@@ -550,7 +551,8 @@ exports.updateProfile = async function (req, res, next) {
   }
 
   // Lets make sure someone else isn't using this screenName
-  screenNameUser = await User.findOne({ screenName: req.body.screenName }).catch(err => {
+
+  screenNameUser = await User.findOne({ screenName:  { '$regex': req.body.screenName , $options: 'i' }  }).catch(err => {
     console.error(err);
     res.status(500);
     res.json({
@@ -614,12 +616,12 @@ exports.register = async function (req, res, next) {
 
   let user = await User.findOne({
     $or: [{
-      email: req.body.email
-    }, {
-      local: {
-        email: req.body.email
-      }
-    }]
+			email: { '$regex': req.body.email, $options: 'i' } 
+		}, {
+			local: {
+				email: { '$regex': req.body.email, $options: 'i' } 
+			}
+		}]
   }).catch(err => {
     console.error(err);
     res.status(500);
