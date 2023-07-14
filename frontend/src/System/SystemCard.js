@@ -13,7 +13,7 @@ function SystemCard (props) {
     var location = "";
     var clientCount = "";
     var callAvg = "";
-    const description = system.description;
+    let description = system.description;
 
 
 
