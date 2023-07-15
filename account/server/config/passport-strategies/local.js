@@ -12,12 +12,17 @@ If your site prefers to name these fields differently, options are available to 
 const local = new LocalStrategy({
 	usernameField: "email"
 }, async (email, password, done) => {
+
+	// https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex/6969486#6969486
+	const escapeRegExp = (string) => {
+		return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+	}
 	const user = await User.findOne({
 		$or: [{
-			email: { '$regex': email, $options: 'i' } 
+			email: { '$regex': escapeRegExp(email), $options: 'i' } 
 		}, {
 			local: {
-				email: { '$regex': email, $options: 'i' } 
+				email: { '$regex': escapeRegExp(email), $options: 'i' } 
 			}
 		}]
 	});

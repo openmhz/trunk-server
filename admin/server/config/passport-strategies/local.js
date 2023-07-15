@@ -14,12 +14,16 @@ const User = require("../../models/user");
  module.exports = new LocalStrategy({
  	usernameField: "email"
  }, (email, password, done) => {
+	// https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex/6969486#6969486
+	const escapeRegExp = (string) => {
+		return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+	}
  	User.findOne({
     $or: [{
-		email: { '$regex': email, $options: 'i' } 
+		email: { '$regex': escapeRegExp(email), $options: 'i' } 
     }, {
       local: {
-        email: { '$regex': email, $options: 'i' } 
+        email: { '$regex': escapeRegExp(email), $options: 'i' } 
       }
     }]
   }, (err, user) => {

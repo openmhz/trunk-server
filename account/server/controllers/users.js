@@ -15,7 +15,10 @@ const mailjet = new Mailjet({
   apiSecret: process.env['MAILJET_SECRET']
 });
 
-
+	// https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex/6969486#6969486
+	const escapeRegExp = (string) => {
+		return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+	}
 
 exports.isLoggedIn = function (req, res, next) {
   if (req.isAuthenticated()) return next();
@@ -268,7 +271,7 @@ exports.resetPassword = async function (req, res, next) {
 // -------------------------------------------
 exports.sendResetPassword = async function (req, res, next) {
   let user = await User.findOne({
-    email: { '$regex': req.body.email, $options: 'i' } 
+    email: { '$regex': escapeRegExp(req.body.email), $options: 'i' } 
   }).catch(err => {
     console.error(err);
     res.status(500);
@@ -552,7 +555,7 @@ exports.updateProfile = async function (req, res, next) {
 
   // Lets make sure someone else isn't using this screenName
 
-  screenNameUser = await User.findOne({ screenName:  { '$regex': req.body.screenName , $options: 'i' }  }).catch(err => {
+  screenNameUser = await User.findOne({ screenName:  { '$regex': escapeRegExp(req.body.screenName) , $options: 'i' }  }).catch(err => {
     console.error(err);
     res.status(500);
     res.json({
@@ -616,10 +619,10 @@ exports.register = async function (req, res, next) {
 
   let user = await User.findOne({
     $or: [{
-			email: { '$regex': req.body.email, $options: 'i' } 
+			email: { '$regex': escapeRegExp(req.body.email), $options: 'i' } 
 		}, {
 			local: {
-				email: { '$regex': req.body.email, $options: 'i' } 
+				email: { '$regex': escapeRegExp(req.body.email), $options: 'i' } 
 			}
 		}]
   }).catch(err => {
