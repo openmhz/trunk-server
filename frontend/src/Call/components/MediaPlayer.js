@@ -19,19 +19,19 @@ const MediaPlayer = (props) => {
   const parentHandlePlayPause = props.onPlayPause
   const playSilence = props.playSilence;
 
-  const handlePause = () => { setIsPlaying(false);  }
-  const handlePlay = () => { setIsPlaying(true);  }
-  const playPause = () => { 
-    const audio = audioRef.current.audioEl.current; 
-    if (isPlaying) { 
-      setIsPlaying(false); 
-      parentHandlePlayPause(false); 
-      audio.pause(); 
-    } else { 
-      setIsPlaying(true); 
+  const handlePause = () => { setIsPlaying(false); }
+  const handlePlay = () => { setIsPlaying(true); }
+  const playPause = () => {
+    const audio = audioRef.current.audioEl.current;
+    if (isPlaying) {
+      setIsPlaying(false);
+      parentHandlePlayPause(false);
+      audio.pause();
+    } else {
+      setIsPlaying(true);
       parentHandlePlayPause(true);
-      audio.play(); 
-    } 
+      audio.play();
+    }
   }
 
   const call = props.call;
@@ -41,7 +41,7 @@ const MediaPlayer = (props) => {
     const audio = audioRef.current.audioEl.current;
     const onEnded = props.onEnded;
     setSourceIndex(0);
-    if (call) {
+    if (call ) {
       audio.src = call.url;
       const playPromise = audio.play();
 
@@ -53,7 +53,7 @@ const MediaPlayer = (props) => {
         }).catch(function (error) {
           console.log("Automatic playback failed: " + error);
           handlePause();
-          onEnded();
+          //onEnded();
           // Show a UI element to let the user manually start playback.
         });
       } else {
@@ -75,22 +75,22 @@ const MediaPlayer = (props) => {
         { src: '/android-chrome-192x192.png', sizes: '512x512', type: 'image/png' },
       ]
     });
-      audio.src = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV////////////////////////////////////////////AAAAAExhdmM1OC4xMwAAAAAAAAAAAAAAACQDkAAAAAAAAAGw9wrNaQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/+MYxAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxDsAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxHYAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV";
-      const playPromise = audio.play();
+    audio.src = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV////////////////////////////////////////////AAAAAExhdmM1OC4xMwAAAAAAAAAAAAAAACQDkAAAAAAAAAGw9wrNaQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/+MYxAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxDsAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxHYAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV";
+    const playPromise = audio.play();
 
-      // In browsers that don’t yet support this functionality,
-      // playPromise won’t be defined.
-      if (playPromise !== undefined) {
-        playPromise.then(function () {
+    // In browsers that don’t yet support this functionality,
+    // playPromise won’t be defined.
+    if (playPromise !== undefined) {
+      playPromise.then(function () {
 
-        }).catch(function (error) {
-          console.log("Automatic playback failed: " + error);
-          // Show a UI element to let the user manually start playback.
-        });
-      } else {
-        audio.src = false;
-      }
-    
+      }).catch(function (error) {
+        console.log("Automatic playback failed: " + error);
+        // Show a UI element to let the user manually start playback.
+      });
+    } else {
+      audio.src = false;
+    }
+
   }, [playSilence]);
 
 

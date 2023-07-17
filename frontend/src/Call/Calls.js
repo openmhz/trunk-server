@@ -43,6 +43,7 @@ function Calls(props) {
   const [activityVisible, setActivityVisible] = useState(false);
   const [isConnected, setIsConnected] = useState(socket.connected);
   const [selectCallId, setSelectCallId] = useState(false);
+  const [initialCallId, setInitialCallId] = useState(false);
   const [live, setLive] = useState(true);
 
   const navigate = useNavigate();
@@ -174,6 +175,12 @@ function Calls(props) {
 
     }
 
+    if (initialCallId) {
+      if (search.length !== 1) {
+        search = search + '&';
+      }
+      search = search + `call-id=${initialCallId}`;
+    }
     if (filterDate) {
       if (search.length !== 1) {
         search = search + '&';
@@ -280,7 +287,7 @@ function Calls(props) {
     // is this just for one call?
     if (uri.hasOwnProperty('call-id')) {
       const _id = uri['call-id'];
-      setSelectCallId(_id);
+      setInitialCallId(_id);
       setAutoPlay(false);
       setLive(false);
       if (!urlOptions) setUrlOptions(true);
@@ -344,7 +351,9 @@ function Calls(props) {
   }, []);
 
   useEffect(() => {
-    dispatch(getCalls({}));
+
+      dispatch(getCalls({}));
+  
     if (live && isConnected) {
       startSocket();
     }
@@ -354,7 +363,7 @@ function Calls(props) {
   // Update the Browser URI when any relevant values change
   useEffect(() => {
     updateUri();
-  }, [filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred, selectCallId])
+  }, [filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred, selectCallId, initialCallId])
 
   useEffect(() => {
     if (!urlOptions && groupsData && (groupsData.length > 0)) {
@@ -438,7 +447,7 @@ function Calls(props) {
       </Menu>
       {activityVisible
         ? <Activity navigate={handleActivityNavigate} />
-        : <CallPlayer callsData={callsData} selectCallId={selectCallId} handleNewer={handleNewer} handleOlder={handleOlder} />
+        : <CallPlayer callsData={callsData} selectCallId={selectCallId} initialCallId={initialCallId} handleNewer={handleNewer} handleOlder={handleOlder} />
       }
     </div>
   );

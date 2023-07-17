@@ -105,6 +105,7 @@ app.get('/:shortName/calls/latest', calls.get_latest_calls);
 app.get('/:shortName/calls/next', calls.get_next_calls);
 app.get('/:shortName/calls/newer', calls.get_newer_calls);
 app.get('/:shortName/calls/older', calls.get_older_calls);
+app.get('/:shortName/calls/date', calls.get_date_calls);
 app.get('/:shortName/calls/:time/older', calls.get_iphone_calls);
 app.get('/:shortName/calls', calls.get_calls); 
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
 import { useParams } from 'react-router-dom';
 import CallItem from "./CallItem";
 import {
@@ -22,13 +22,13 @@ const ListCalls = (props) => {
 
 
   
-  useEffect(() => {
+  useLayoutEffect(() => {
       if (activeCallRef.current && centerCall) {
         activeCallRef.current.scrollIntoView({
           block: "center",
         });
     }
-  },[activeCallId]);
+  },[activeCallId, activeCallRef.current]);
 
     const callsData = props.callsData;
     return (

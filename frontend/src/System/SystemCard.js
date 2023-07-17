@@ -95,7 +95,7 @@ function SystemCard (props) {
             <Grid.Row>
                 <Grid.Column >
                 {system.screenName && <Label size="mini"><Icon name='user' /> {system.screenName}</Label>}
-                {/*system.allowContact && <Label size="mini" onClick={handleContactClick}><Icon name='mail' />Message</Label>*/}
+                {system.allowContact && <Label size="mini" onClick={handleContactClick}><Icon name='mail' />Message</Label>}
                 </Grid.Column>
               </Grid.Row>
               <Grid.Row>

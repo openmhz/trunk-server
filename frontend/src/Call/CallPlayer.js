@@ -49,12 +49,14 @@ function CallPlayer(props) {
   const [currentCall, setCurrentCall] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [silenceCount, setSilenceCount] = useState(0);
+  const [selectedInitialCall, setSelectedInitialCall] = useState(false);
   const { callLink, callDownload, callTweet } = useCallLink(currentCall)
 
   const dispatch = useDispatch();
   const stickyRef = useRef(); // lets us get the Y Scroll offset for the Call List
   const positionRef = useRef(); // lets us get the Y Scroll offset for the Call List
   const shouldPlayAddCallRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
+  //const selectedInitialCall = useRef(false); // allows you to track if you have already selected the Initial Call - you only want to do this once
   shouldPlayAddCallRef.current = (!isPlaying && autoPlay) ? true : false;
 
   let currentCallId = false;
@@ -122,9 +124,24 @@ function CallPlayer(props) {
     }
   }, [loadOlderInView]);
 
+  // This handles when a Call is specified in the URI
+useEffect(() => {
+  if (props.initialCallId && callsData) {
+    const call = callsData.entities[props.initialCallId];
+    if (call && !selectedInitialCall) {
+      const time = new Date(call.time);
+
+      console.log("Playing Initial Call: " + call._id + " Start Time: " + time.toLocaleTimeString() );
+      setIsPlaying(true);  
+      setCurrentCall(call); 
+      setSelectedInitialCall(true); // signals that it has selected the initial call - you only want to do this once
+      dispatch(playedCall(call._id));
+    }
+  }
+}, [props.initialCallId, callsData])
 
   // Triggered when a new call is selected in the parent component.
-  // This happens in 2 scenarios: when a call is specified in the URI or when a new call comes over the socket
+  // This happens when a new call comes over the socket
   // When a call is set to CurrentCall, it will automatically start playing
   // we should only set the selectCallId to be the current call when AutoPlay is selected
   // and when there isn't another call already playing

@@ -7,7 +7,28 @@ var defaultNumResults = 50;
 
 var channels = {};
 
-async function get_calls(query, numResults, res) {
+const build_call_list = (items) => {
+    let calls = [];
+    for (var i=0; i < items.length; i++) {
+        const item = items[i];
+        call = {
+            _id: item._id.toHexString(),
+            talkgroupNum: item.talkgroupNum,
+            url: item.url,
+            filename: item.path + item.name,
+            time: item.time,
+            srcList: item.srcList,
+            star: item.star,
+            freq: item.freq,
+            len: Math.round(item.len)
+        };
+        calls.push(call);
+    }
+    console.log("Finished Items is: " + items.length + " long and Calls is: " + calls.length)
+    return calls;
+}
+
+async function get_calls(query, numResults, middleDate, res) {
 
     var calls = [];
     var fields = {
@@ -25,23 +46,26 @@ async function get_calls(query, numResults, res) {
 
     const sort = { length: -1 };
     try {
+        console.log(query.filter);
         const items =  await Call.find(query.filter, fields).sort(query.sort_order).limit(numResults);
-        for (var i=0; i < items.length; i++) {
-            const item = items[i];
-            call = {
-                _id: item._id.toHexString(),
-                talkgroupNum: item.talkgroupNum,
-                url: item.url,
-                filename: item.path + item.name,
-                time: item.time,
-                srcList: item.srcList,
-                star: item.star,
-                freq: item.freq,
-                len: Math.round(item.len)
-            };
-            calls.push(call);
-        }
+        const refined_items = build_call_list(items);
+        //calls.concat(refined_items);
+        calls.push(...refined_items);
+        console.log(calls);
 
+        // if we are loading a list of calls around a specific Call ID, we want to load call before and after that call, so we call it twice.
+        if (middleDate) {
+            query.filter.time = {
+                $gt: middleDate
+            };
+            console.log("doing a second query");
+            console.log(query.filter);
+            const items =  await Call.find(query.filter, fields).sort(query.sort_order).limit(numResults);
+            const refined_items = build_call_list(items);
+            calls.push(...refined_items);
+            console.log(calls);
+            //calls.concat(refined_items);
+        }
         res.json({
             calls: calls,
             direction: query.direction
@@ -116,9 +140,6 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
             filter.talkgroupNum = {
                 $in: group.talkgroups
             };
-            query['filter'] = filter;
-
-            get_calls(query, numResults, res);
 
         } else {
             if ((filter_type == "talkgroup") || (filter_type == "group")) {
@@ -132,14 +153,18 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
                 }
             }
 
-            query['filter'] = filter;
-
-            get_calls(query, numResults, res);
         }
-    } else {
-        query['filter'] = filter;
-        get_calls(query, numResults, res);
-    }
+    } 
+
+        if (direction=="middle") {
+            query['filter'] = filter;
+            get_calls(query, numResults, start, res);
+        } else {
+            query['filter'] = filter;
+            get_calls(query, numResults, false, res);
+        }
+
+    
 }
 
 
@@ -300,6 +325,19 @@ exports.get_call = async function (req, res) {
         }));
     }
 
+}
+
+// This is what you use when you want to get some calls before and after a timestamp.
+
+exports.get_date_calls = function (req, res) {
+    var filter_code = req.query["filter-code"];
+    var filter_type = req.query["filter-type"];
+    var starred = req.query["filter-starred"] === 'true' ? true : false;
+    var start_time = parseInt(req.query["time"]);
+    var short_name = req.params.shortName.toLowerCase();
+    //console.log("[" + short_name + "] Next Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
+
+    build_filter(filter_type, filter_code, start_time, 'middle', short_name, defaultNumResults, starred, res);
 }
 
 
