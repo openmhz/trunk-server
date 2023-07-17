@@ -28,7 +28,7 @@ const ListCalls = (props) => {
           block: "center",
         });
     }
-  },[activeCallId, activeCallRef.current]);
+  },[activeCallId]);
 
     const callsData = props.callsData;
     return (
