@@ -87,7 +87,7 @@ const initialState = {
         url = url + '/date'
         params["time"] = filterDate;
       } else if (filterDate){
-          url = url + '/'
+          url = url + '/older'
           params["time"] = filterDate;
         }
       
