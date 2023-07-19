@@ -265,6 +265,7 @@ function Calls(props) {
       filterTalkgroups: [],
       filterGroupId: false,
       filterStarred: false,
+      filterCallId: false,
       shortName: shortName
     };
 
@@ -288,6 +289,7 @@ function Calls(props) {
     if (uri.hasOwnProperty('call-id')) {
       const _id = uri['call-id'];
       setInitialCallId(_id);
+      filter.filterCallId = false;
       setAutoPlay(false);
       setLive(false);
       if (!urlOptions) setUrlOptions(true);

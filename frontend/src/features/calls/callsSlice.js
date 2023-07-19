@@ -78,17 +78,19 @@ const initialState = {
       var params = {};
       var url = "";
   
-      const {shortName,filterType,filterGroupId, filterTalkgroups, filterStarred, filterDate} = getState().callPlayer; 
+      const {shortName,filterType,filterGroupId, filterTalkgroups, filterStarred, filterDate, filterCallId} = getState().callPlayer; 
   
       if ((typeof direction === 'string') && (typeof date === 'number')) {
           url = url + '/' + direction;
           params["time"] = date;
-      } else {
-        if (filterDate){
-          url = url + '/date'
+      } else  if (filterCallId) {
+        url = url + '/date'
+        params["time"] = filterDate;
+      } else if (filterDate){
+          url = url + '/'
           params["time"] = filterDate;
         }
-      }
+      
       if (filterStarred) {
         params["filter-starred"] = true;
       }

@@ -12,6 +12,7 @@ const initialState = {
   filterGroupId: false,
   filterDate: false,
   filterStarred: false,
+  filterCallId: false,
   currentCallId: false,
   playlist: [],
   live: false,
@@ -35,6 +36,9 @@ export const callPlayerSlice = createSlice({
   reducers: {
     setCurrentCallId: (state, action) => {
       state.currentCallId = action.payload;
+    },
+    setFilterCallId: (state, action) => {
+      state.filterCallId = action.payload;
     },
     setCallTime: (state, action) => {
       state.newestCallTime = action.payload;
@@ -70,6 +74,7 @@ export const callPlayerSlice = createSlice({
       state.filterTalkgroups = !action.payload.filterTalkgroups ? [] : action.payload.filterTalkgroups;
       state.filterGroupId = !action.payload.filterGroupId ? false : action.payload.filterGroupId;
       state.filterDate = !action.payload.filterDate ? 0 : action.payload.filterDate;
+      state.filterCallId = !action.payload.filterCallId ? false : action.payload.filterCallId;
       state.shortName = !action.payload.shortName ? state.shortName : action.payload.shortName;
     },
     setLive: (state,action) => {

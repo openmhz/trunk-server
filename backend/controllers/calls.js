@@ -24,7 +24,6 @@ const build_call_list = (items) => {
         };
         calls.push(call);
     }
-    console.log("Finished Items is: " + items.length + " long and Calls is: " + calls.length)
     return calls;
 }
 
@@ -46,25 +45,19 @@ async function get_calls(query, numResults, middleDate, res) {
 
     const sort = { length: -1 };
     try {
-        console.log(query.filter);
         const items =  await Call.find(query.filter, fields).sort(query.sort_order).limit(numResults);
         const refined_items = build_call_list(items);
-        //calls.concat(refined_items);
         calls.push(...refined_items);
-        console.log(calls);
 
         // if we are loading a list of calls around a specific Call ID, we want to load call before and after that call, so we call it twice.
         if (middleDate) {
             query.filter.time = {
                 $gt: middleDate
             };
-            console.log("doing a second query");
-            console.log(query.filter);
+
             const items =  await Call.find(query.filter, fields).sort(query.sort_order).limit(numResults);
             const refined_items = build_call_list(items);
             calls.push(...refined_items);
-            console.log(calls);
-            //calls.concat(refined_items);
         }
         res.json({
             calls: calls,
@@ -80,9 +73,10 @@ async function get_calls(query, numResults, middleDate, res) {
 async function build_filter(filter_type, code, start_time, direction, shortName, numResults, starred, res) {
     var filter = {};
     var query = {};
+    var start = new Date(start_time);
 
     if (start_time) {
-        var start = new Date(start_time);
+
         if (direction == 'newer') {
             filter.time = {
                 $gt: start
