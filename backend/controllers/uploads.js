@@ -23,7 +23,7 @@ const client = new S3Client({
 
 exports.upload = async function (req, res, next) {
   process.nextTick( async () => {
-  if (!req.file && (path.extname(req.file.originalname)) != '.m4a') {
+  if (!req.file || (path.extname(req.file.originalname)) != '.m4a') {
     console.warn("[" + req.params.shortName + "] Error file name is wrong or file does not exist");
     res.status(500);
     res.send("Error, invalid filename:\n");
