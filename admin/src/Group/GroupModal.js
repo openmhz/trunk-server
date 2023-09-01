@@ -83,9 +83,9 @@ const GroupModal = (props) => {
       }
     }
     setGroup( {
-      items: this.state.group.items
+      items: group.items
         .slice(0, index)
-        .concat(this.state.group.items.slice(index + 1))
+        .concat(group.items.slice(index + 1))
     });
     setTalkgroupList(talkgroups);
   }
