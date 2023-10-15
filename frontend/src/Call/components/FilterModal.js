@@ -97,7 +97,7 @@ function FilterModal(props) {
         return (
           <Tab.Pane attached={false}>
             <Header>All Calls</Header>
-            <p>Dispaly all of the calls.</p>
+            <p>Display all of the calls.</p>
           </Tab.Pane>
         )
       }
