@@ -119,7 +119,7 @@ exports.get_systems = async function (req, res) {
         name: results[result].name,
         shortName: results[result].shortName,
         systemType: results[result].systemType,
-        county: results[result].count,
+        county: results[result].county,
         country: results[result].country,
         city: results[result].city,
         state: results[result].state,
