@@ -22,6 +22,7 @@ COPY ./package.json /tmp
 RUN cd /tmp && npm install
 RUN cp -a /tmp/node_modules /app
 RUN env
+RUN npm install -g nodemon
 WORKDIR /app
 COPY server /app
 COPY --from=build /app/build /app/public

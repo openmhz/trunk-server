@@ -119,6 +119,15 @@ You can then browser to:
 *Interesting Note*: Safari 13+ does not like the **.test** TLD and doesn't seem to want to store cookies from the TLD. It seems to work fine in production when you are using a real TLD. I guess use Chrome for local testing or a different TLD for testing, like local. 
 https://stackoverflow.com/questions/62023857/sharing-cookies-across-test-sub-domains-in-safari-13-not-possible
 
+### Debugging Node Servers using Dev Containers
+
+VS Code makes it easy to work on code running in a Docker container - whether it is on your machine or on a remote host. The [Dev Container](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension lets you edit files running inside a Docker container. Install the [Remote Explorer](https://marketplace.visualstudio.com/items?itemName=ms-vscode.remote-explorer) extension to work with remote hosts over SSH.
+
+If you are editing on a remote host, first use the Remote Explorer to get to that machine. 
+
+Now, launch all of the containers using `./docker-test.sh up -d`. The **Account**, **Admin**, **Frontend** and **Backend** node servers will all be started using [Nodemon](https://nodemon.io). When you make a change to any of the server related files, the server will reload. This makes it easy to edit and test against running code in a full deployment. To go to one of these Containers, open the Remote Explorer extension from the sidebar, select Dev Containers from the dropdown in the upper right of the sidebar, and then choose the Container you wish to work on.
+
+
 ### Debugging React Apps using Hot Reloading
 If you are trying to make changes to any of react frontends, it is a huge pain to have to compile to site and rebuild the container each time you make a change. Instead, simply run the react app in development mode. This will work for the frontends for the:
 - admin frontend

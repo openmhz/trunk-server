@@ -22,6 +22,6 @@ RUN mkdir -p /home/app/upload && cp -a /tmp/node_modules /home/app
 
 WORKDIR $HOME/
 COPY . $HOME/
-
+RUN npm install -g nodemon
 # Run the command on container startup
 CMD node index.js

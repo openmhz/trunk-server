@@ -17,24 +17,28 @@ services:
       driver: "json-file"
       options:
         tag: "backend"
+    command: ["nodemon", "index.js"]
 
   admin:
     logging:
       driver: "json-file"
       options:
         tag: "admin"
+    command: ["nodemon", "index.js"]
 
   account:
     logging:
       driver: "json-file"
       options:
         tag: "account"
+    command: ["nodemon", "index.js"]
 
   frontend:
     logging:
       driver: "json-file"
       options:
         tag: "frontend"
+    command: ["nodemon", "index.js"]
 
 networks:
   proxy:
