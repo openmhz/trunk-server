@@ -20,16 +20,15 @@ class ListTalkgroups extends Component {
       <Table celled>
   <Table.Header>
     <Table.Row>
-      <Table.HeaderCell>Mode</Table.HeaderCell>
-      <Table.HeaderCell>Number</Table.HeaderCell>
-      <Table.HeaderCell>Alpha</Table.HeaderCell>
+
+      <Table.HeaderCell>Decimal</Table.HeaderCell>
+      <Table.HeaderCell>Alpha Tag</Table.HeaderCell>
       <Table.HeaderCell>Description</Table.HeaderCell>
     </Table.Row>
   </Table.Header>
   <Table.Body>
     {talkgroups.map((talkgroup, i) => (
       <Table.Row key={talkgroup.num + "-" + i}>
-        <Table.Cell>{talkgroup.mode}</Table.Cell>
         <Table.Cell>{talkgroup.num}</Table.Cell>
         <Table.Cell>{talkgroup.alpha}</Table.Cell>
         <Table.Cell>{talkgroup.description}</Table.Cell>

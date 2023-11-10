@@ -40,6 +40,7 @@ exports.exportTalkgroups = function (req, res, next) {
     }
     res.statusCode = 200;
     res.setHeader("Content-Type", "text/csv");
+    res.write("Decimal, Alpha Tag, Description, Priority\r\n");
     talkgroups.forEach(function (item) {
       /*  res.write('"' + item.num + '", "'
                       + item.mode + '", "'
@@ -51,28 +52,13 @@ exports.exportTalkgroups = function (req, res, next) {
       if (item) {
         var sending = "";
         sending = item.num + ", ";
-        if (item.mode) {
-          sending = sending + item.mode.toString().replace(/\,/g, "") + ", ";
-        } else {
-          sending = sending + " ,";
-        }
-        if (item.alpa) {
+        if (item.alpha) {
           sending = sending + item.alpha.toString().replace(/\,/g, "") + ", ";
         } else {
           sending = sending + " ,";
         }
         if (item.description) {
           sending = sending + item.description.toString().replace(/\,/g, "") + ", ";
-        } else {
-          sending = sending + " ,";
-        }
-        if (item.tag) {
-          sending = sending + item.tag.toString().replace(/\,/g, "") + ", ";
-        } else {
-          sending = sending + " ,";
-        }
-        if (item.group) {
-          sending = sending + item.group.toString().replace(/\,/g, "") + ", ";
         } else {
           sending = sending + " ,";
         }
@@ -97,15 +83,7 @@ async function csv_import(shortName, filename, callback) {
 
   var parser = parse(
     {
-      columns: [
-        "num",
-        "mode",
-        "alpha",
-        "description",
-        "tag",
-        "group",
-        "priority"
-      ]
+      columns: true, ltrim: true, rtrim: true
     },
     async function (err, data) {
       if (err) {
@@ -113,27 +91,31 @@ async function csv_import(shortName, filename, callback) {
         callback(err, null);
       } else {
         var response = [];
+        
         for (var i = 0; i < data.length; i++) {
           var row = data[i];
-          row.num = parseInt(row.num);
-          row.tag = row.tag.toLowerCase();
-          row.group = row.group.toLowerCase();
+          console.log(row)
+          if (!( "Decimal" in row) || !("Description" in row) || !("Alpha Tag" in row)) {
+            console.error("Error: csv import column header error");
+            callback("Column Headers are required - Required Columns: 'Decimal' 'Decscription' 'Alpha Tag' Optional Column: 'Priority' ", null);
+            return
+          }
+
+
           var newTg = new Talkgroup();
-          newTg.num = row.num;
-          newTg.alpha = row.alpha;
-          newTg.mode = row.mode;
-          newTg.description = row.description;
-          newTg.tag = row.tag;
-          newTg.group = row.group;
-          newTg.priority = row.priority;
+          newTg.num = parseInt(row["Decimal"]);
+          newTg.alpha = row["Alpha Tag"].toLowerCase();
+          newTg.description = row["Description"];
+          newTg.priority = row["Priority"];
           newTg.shortName = shortName;
 
           await newTg.save().catch(err => {
             console.log("Error: CSV import: " + err);
             callback(err, null);
+            return
           });
 
-          response.push(row);
+          response.push({num: newTg.num, alpha: newTg.alpha, description: newTg.description});
         }
         callback(null, response);
       }
@@ -147,34 +129,23 @@ async function csv_import(shortName, filename, callback) {
 exports.importTalkgroups = function (req, res, next) {
   process.nextTick(async function () {
     const system = await System.findOne({ shortName: req.params.shortName.toLowerCase() }).catch(err => {
-      res.status(500);
-      console.error("Error - importTalkgroups: " + err);
-      res.json({ success: false, message: err });
+      res.status(500).send("Error - importTalkgroups: " + err);
       return;
     });
 
     if (!system) {
       console.error("Error - importTalkgroups: System not found - " + req.params.shortName.toLowerCase());
-      res.status(404);
-      res.json({
-        success: false,
-        message: "That Short Name does not exist."
-      });
+      res.status(404).send("That Short Name does not exist.");
       return;
     }
     if (!system.userId.equals(req.user._id)) {
-      console.error("Error - importTalkgroups: you are not the user for hte system: " + req.user._id);
-      res.status(401);
-      res.json({
-        success: false,
-        message: "You are not the user associated with this system."
-      });
+      console.error("Error - importTalkgroups: you are not the user for the system: " + req.user._id);
+      res.status(401).send("You are not the user associated with this system.");
       return;
     }
     if (!req.file || req.file.size === 0) {
       console.error("Error - File is bad. Size");
-      res.status(500);
-      res.json({ success: false, message: "Please select a file." });
+      res.status(500).send( "Please select a file." );
       return;
     }
 
@@ -183,9 +154,7 @@ exports.importTalkgroups = function (req, res, next) {
         csv_import(system.shortName, req.file.path, function (err, data) {
           if (err) {
             console.error("Erorr - CSV import, callback: " + err);
-            res.status(500);
-            res.json({ success: false, message: err });
-            res.end();
+            res.status(500).send(err);
             return;
           } else {
             res.json( data );

@@ -13,9 +13,9 @@ import {
   Icon,
   Form,
   TextArea,
+  Message,
   Header,
   Container,
-  Message,
   List,
   Segment,
   Tab,
@@ -31,7 +31,7 @@ const System = () => {
   //const { data: systemErrorData, isSuccess: isErrorsSuccess } = useGetErrorsQuery(shortName);
   const [deleteGroupAPI] = useDeleteGroupMutation();
   const [reorderGroupsAPI] = useSaveGroupOrderMutation();
-  const [importTalkgroupsAPI] = useImportTalkgroupsMutation();
+  const [importTalkgroupsAPI, { error: importError }] = useImportTalkgroupsMutation();
   const [deleteSystemAPI ] = useDeleteSystemMutation();
   const [openSystemDeleteConfirm, setOpenSystemDeleteConfirm] = useState(false);
   const [openMessage, setOpenMessage] = useState(false);
@@ -401,22 +401,13 @@ const System = () => {
             <List ordered celled>
               <List.Item>
                 <List.Content>
-                  <List.Header>Number</List.Header>
-                  <List.Description>The talkgroup number</List.Description>
+                  <List.Header>Decimal</List.Header>
+                  <List.Description>The talkgroup number in decimal</List.Description>
                 </List.Content>
               </List.Item>
               <List.Item>
                 <List.Content>
-                  <List.Header>Mode</List.Header>
-                  <List.Description>
-                    The mode for the talkgroup, it can be: 'A' = analog, 'D' =
-                    P25 Digital, 'E' = Encrypted
-                  </List.Description>
-                </List.Content>
-              </List.Item>
-              <List.Item>
-                <List.Content>
-                  <List.Header>Alpha</List.Header>
+                  <List.Header>Alpha Tag</List.Header>
                   <List.Description>
                     Up to 12 charecter description of the talkgroup
                   </List.Description>
@@ -427,31 +418,6 @@ const System = () => {
                   <List.Header>Description</List.Header>
                   <List.Description>
                     The full title for the talkgroup
-                  </List.Description>
-                </List.Content>
-              </List.Item>
-              <List.Item>
-                <List.Content>
-                  <List.Header>Tag</List.Header>
-                  <List.Description>
-                    The type of talkgroup, eg: Dispatch, Fireground
-                  </List.Description>
-                </List.Content>
-              </List.Item>
-              <List.Item>
-                <List.Content>
-                  <List.Header>Group</List.Header>
-                  <List.Description>
-                    The department that uses this talkgroup
-                  </List.Description>
-                </List.Content>
-              </List.Item>
-              <List.Item>
-                <List.Content>
-                  <List.Header>Priority</List.Header>
-                  <List.Description>
-                    The priority for recording this talkgroup, 100 or over
-                    will be skipped
                   </List.Description>
                 </List.Content>
               </List.Item>
@@ -483,6 +449,12 @@ const System = () => {
               Export Talkgroups
             </Button>
           </a>
+          {importError ? (
+            <div>
+              <Message color='red'>{importError.data}</Message>
+            </div>
+          ) : (<div></div>)}
+          
           <ListTalkgroups talkgroups={talkgroupsData} />
         </div>
       )

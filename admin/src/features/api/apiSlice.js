@@ -94,7 +94,7 @@ export const apiSlice = createApi({
           await queryFulfilled
           dispatch(
             apiSlice.util.updateQueryData('getGroups', group.shortName, (groups) => {
-              const groupIndex = groups.findIndex((obj => obj.groupId === group.groupId));
+              const groupIndex = groups.findIndex((obj => obj._id === group._id));
               groups.splice(groupIndex,1);
             })
           )

@@ -10,7 +10,8 @@ exports.get_talkgroups = async function (req, res) {
       
     var talkgroups = {};
     for (var tg in tg_results) {
-        talkgroups[tg_results[tg].num] = tg_results[tg];
+        var talkgroup = {num: tg_results[tg].num, alpha: tg_results[tg].alpha, description: tg_results[tg].description}
+        talkgroups[tg_results[tg].num] = talkgroup;
     }
     res.contentType('json');
     res.send(JSON.stringify({
