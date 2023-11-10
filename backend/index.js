@@ -258,7 +258,7 @@ io.sockets.on('connection', function (client) {
         return;
       }
 
-      if ((data.filterType == "group") && (data.filterCode.indexOf(',') == -1)) {
+      if ((data.filterType == "group") && (typeof data.filterCode == "string") && (data.filterCode.indexOf(',') == -1)) {
         if (!ObjectId.isValid(data.filterCode)) {
           console.error("Error - Socket - Invalid Group ID: " + data.filterCode);
           delete clients[client.id];
@@ -282,6 +282,8 @@ io.sockets.on('connection', function (client) {
 
       } else if ((data.filterType == "talkgroup") && Array.isArray(data.filterCode)) {
         clients[client.id].talkgroupNums = data.filterCode;
+      } else {
+        console.error("Invalid Socket Filter - Type: " + data.filterType + " Code: " + data.filterCode);
       }
       //console.log("[" + data.shortName.toLowerCase() + "] WebSocket Updating - Client: " + client.id + " code set to: " + data.filterCode + " type set to: " + data.filterType + " TGS: " + clients[client.id].talkgroupNums);
     } else {
