@@ -89,7 +89,7 @@ exports.contact_system = async function(req, res) {
       res.status(500);
       res.json({
         success: false,
-        message: err
+        message: "Failed to send"
       });
       return;
     });

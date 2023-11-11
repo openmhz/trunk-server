@@ -283,7 +283,8 @@ io.sockets.on('connection', function (client) {
       } else if ((data.filterType == "talkgroup") && Array.isArray(data.filterCode)) {
         clients[client.id].talkgroupNums = data.filterCode;
       } else {
-        console.error("Invalid Socket Filter - Type: " + data.filterType + " Code: " + data.filterCode);
+        // This is for ALL filters
+        //console.error("Invalid Socket Filter - Type: " + data.filterType + " Code: " + data.filterCode);
       }
       //console.log("[" + data.shortName.toLowerCase() + "] WebSocket Updating - Client: " + client.id + " code set to: " + data.filterCode + " type set to: " + data.filterType + " TGS: " + clients[client.id].talkgroupNums);
     } else {
