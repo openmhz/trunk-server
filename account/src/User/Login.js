@@ -48,9 +48,12 @@ const Login = (props) => {
               window.location =  process.env.REACT_APP_FRONTEND_SERVER;
               break;
               default:
-              case "admin":
-                window.location =  process.env.REACT_APP_ADMIN_SERVER;
-                break;
+            case "admin":
+              window.location =  process.env.REACT_APP_ADMIN_SERVER;
+              break;
+            case "account":
+              navigate("/");
+              break;
           }
         } else {
           navigate("/");

@@ -44,7 +44,7 @@ const ConfirmEmail = (props) => {
           <Message.Content>
             <Message.Header>Success</Message.Header>
             <p>You have successfully confirmed you email address.</p>
-            <Link to="/login">
+            <Link to="/login?nextLocation=admin">
               <Button
                 size="large"
                 content="Continue to Login"
