@@ -181,7 +181,3 @@ services:
       driver: syslog
       options:
         tag: "frontend"
-
-networks:
-  proxy:
-  node:

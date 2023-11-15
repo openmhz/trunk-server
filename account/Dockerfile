@@ -10,7 +10,7 @@ ARG REACT_APP_SITE_NAME
 ARG REACT_APP_ADMIN_EMAIL
 ARG NODE_ENV
 COPY package.json ./
-RUN npm install --also=dev
+RUN npm install --include=dev
 COPY . ./
 RUN npm run build
 RUN env

@@ -8,7 +8,7 @@ ARG REACT_APP_FRONTEND_SERVER
 ARG REACT_APP_GOOGLE_ANALYTICS
 ARG NODE_ENV
 COPY package.json ./
-RUN npm install --also=dev
+RUN npm install --include=dev
 COPY . ./
 RUN npm run build
 
