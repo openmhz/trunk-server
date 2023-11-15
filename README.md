@@ -77,6 +77,8 @@ Fill in:
 
 `./docker-prod.sh` - sets up docker-compose to run with the correct environment variables for production
 
+If you are having trouble with Docker Compose not building the images, try adding "--parallel 1". There may have been too many builds happening at once.
+
 ### Service I Like
 - 💻 I use Digital Ocean and they have been pretty great. If you need hosting, give them a try and use my referal code: https://m.do.co/c/402fa446f7a6 
 You get $100 of credit to use in 60 days.
