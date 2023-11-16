@@ -1,6 +1,5 @@
 REACT_APP_BACKEND_SERVER=https://api.openmhz.com
 REACT_APP_FRONTEND_SERVER=https://openmhz.com
-REACT_APP_SOCKET_SERVER=wss://api.openmhz.com
 REACT_APP_SITE_NAME=OpenMHz
 REACT_APP_ARCHIVE_DAYS=30
 

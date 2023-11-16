@@ -1,31 +1,16 @@
-import React, { useEffect, useLayoutEffect, useState, useRef, useCallback, useMemo } from "react";
-import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
-import FilterModal from "./components/FilterModal";
-import GroupModal from "./components/GroupModal";
-import CalendarModal from "./components/CalendarModal";
-import CallPlayer from "./CallPlayer";
+import React, {  useMemo } from "react";
+import {  useParams } from 'react-router-dom';
 
-import { useSelector, useDispatch } from 'react-redux'
-import { setFilter, setDateFilter } from "../features/callPlayer/callPlayerSlice";
 
 import { useGetStatsQuery,useGetTalkgroupsQuery } from '../features/api/apiSlice'
 import ActivityChart from "./BetterActivityChart";
-import { selectSystem } from "../features/systems/systemsSlice";
 import {
     Container,
-    Label,
-    Rail,
-    Sticky,
-    Menu,
-    Icon,
-    Sidebar,
     Header
 
 } from "semantic-ui-react";
 import "./CallPlayer.css";
-import queryString from '../query-string';
-import io from 'socket.io-client';
-import { useCallLink } from "./components/CallLinks";
+
 
 
 function Activity(props) {

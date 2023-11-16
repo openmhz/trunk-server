@@ -8,7 +8,6 @@ const secrets = require("./secrets");
 var cookie_domain = process.env['REACT_APP_COOKIE_DOMAIN'] != null ? process.env['REACT_APP_COOKIE_DOMAIN'] : '.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
 var backend_server = process.env['REACT_APP_BACKEND_SERVER'] != null ? process.env['REACT_APP_BACKEND_SERVER'] : 'https://api.openmhz.com';
 var frontend_server = process.env['REACT_APP_FRONTEND_SERVER'] != null ? process.env['REACT_APP_FRONTEND_SERVER'] : 'https://openmhz.com';
-var socket_server = process.env['REACT_APP_SOCKET_SERVER'] != null ? process.env['REACT_APP_SOCKET_SERVER'] : 'wss://socket.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
 var account_server = process.env['REACT_APP_ACCOUNT_SERVER'] != null ? process.env['REACT_APP_ACCOUNT_SERVER'] : 'https://account.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
 var dev_server = frontend_server + ":3000"
 
@@ -41,7 +40,6 @@ module.exports = function(app) {
 	    var allowedOrigins = [ account_server];
 	    allowedOrigins.push(frontend_server);
 	    allowedOrigins.push(backend_server);
-	    allowedOrigins.push(socket_server);
 		allowedOrigins.push(dev_server);
 	    var origin = req.headers.origin;
 

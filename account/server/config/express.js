@@ -65,7 +65,6 @@ module.exports = function(app, passport) {
 	    var allowedOrigins = [ account_server];
 	    allowedOrigins.push(frontend_server);
 	    allowedOrigins.push(backend_server);
-	    allowedOrigins.push(socket_server);
 		allowedOrigins.push(admin_server);
 		allowedOrigins.push(admin_dev_server);
 		allowedOrigins.push(account_dev_server);
