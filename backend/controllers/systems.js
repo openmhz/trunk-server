@@ -144,3 +144,37 @@ exports.get_systems = async function (req, res) {
     }));
   }
 
+  exports.authorize_system = async function (req, res) {
+
+    var shortName = req.params.shortName.toLowerCase();
+    var apiKey = req.body.api_key;
+    let item = null;
+  
+    try {
+      item = await System.findOne({ 'shortName': shortName }, ["key"]);
+    } catch (err) {
+      console.warn("[" + req.params.shortName + "] Error /:shortName/authorize - Error: " + err);
+      res.status(500);
+      res.send("Invalid System Name\n");
+      return;
+    }
+  
+    if (!item) {
+      console.info("[" + req.params.shortName + "] Error /:shortName/authorize ShortName does not exist");
+      res.status(500);
+      res.send("Invalid System Name\n");
+      return;
+    }
+
+    if (apiKey != item.key) {
+      console.warn("[" + req.params.shortName + "] Error /:shortName/authorize API Key Mismatch - Provided key: " + apiKey);
+      res.status(403);
+      res.send("Invalid API Key\n");
+      return;
+    } else {
+      // System shortName exists and the API Key is valid.
+      res.status(200).end();
+    }
+
+  }
+
