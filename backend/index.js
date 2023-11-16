@@ -118,6 +118,7 @@ app.post('/:shortName/upload', upload.single('call'), uploads.upload, async func
 /*------    SYSTEMS   ----------*/
 app.get('/systems', addSystemClients, systems.get_systems);
 app.post('/:shortName/contact', systems.contact_system);
+app.post('/:shortName/authorize', systems.authorize_system);
 
 /*------    TALKGROUPS   ----------*/
 app.get('/:shortName/talkgroups', talkgroups.get_talkgroups);
