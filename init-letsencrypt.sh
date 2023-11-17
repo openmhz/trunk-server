@@ -15,7 +15,7 @@ if ! [ -x "$(command -v docker compose)" ]; then
   exit 1
 fi
 
-domains=("$DOMAIN_NAME" "account.$DOMAIN_NAME" "admin.$DOMAIN_NAME" "api.$DOMAIN_NAME")
+domains=("$DOMAIN_NAME" "account.$DOMAIN_NAME" "admin.$DOMAIN_NAME" "api.$DOMAIN_NAME" "www.$DOMAIN_NAME")
 
 rsa_key_size=4096
 data_path="./data/certbot"
