@@ -197,7 +197,7 @@ const createPodcast = async (tmpEventFolder, podcastFile, event) => {
     command.push("-i");
     command.push(concatFile);
     command.push("-acodec");
-    command.push("copy");
+    command.push("aac");
     command.push(tmpFile);
     //console.log("Running command: " + command);
     await ffmpeg(command);

@@ -23,7 +23,7 @@ const client = new S3Client({
 
 exports.upload = async function (req, res, next) {
   process.nextTick( async () => {
-  if (!req.file || (path.extname(req.file.originalname)) != '.m4a') {
+  if (!req.file || ((path.extname(req.file.originalname) != '.m4a') && (path.extname(req.file.originalname) != '.mp3'))) {
     console.warn("[" + req.params.shortName + "] Error file name is wrong or file does not exist");
     res.status(500);
     res.send("Error, invalid filename:\n");
@@ -111,7 +111,7 @@ exports.upload = async function (req, res, next) {
   res.status(200).end();
 
   var local_path = "/" + shortName + "/" + time.getFullYear() + "/" + (time.getMonth() + 1) + "/" + time.getDate() + "/";
-  var object_key = "media/" + shortName + "-" + talkgroupNum + "-" + startTime + ".m4a";
+  var object_key = "media/" + shortName + "-" + talkgroupNum + "-" + startTime + path.extname(req.file.originalname);
 
   var endpoint = s3_endpoint;
   var bucket = s3_bucket;
