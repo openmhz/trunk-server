@@ -65,6 +65,12 @@ exports.upload = async function (req, res, next) {
   var startTime = req.body.start_time;
   var emergency = parseInt(req.body.emergency);
 
+  // Blocking sensitive talkgroups
+if ((shortName == "hennearmer") && ((talkgroupNum == 3421) || (talkgroupNum == 3423))) {
+  res.status(200).end();
+  return;
+}
+
 
   if (item.ignoreUnknownTalkgroup == true) {
     talkgroupExists = await Talkgroup.exists({
