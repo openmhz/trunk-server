@@ -14,7 +14,7 @@ There are a bunch of experiments lurking in the code. There is some code for add
 
 I haven't done a great job of keeping all the packages up to date... and I never got around to adding tests. Both of these would be great things for folks to go after.
 
-## PROD vs DEV Env
+## PROD vs TEST Env
 The Prod environment expects you to be using HTTPS for your domains. It is pretty easy to use Let's Encrypt to grab Certs for the domains you are using. If not, just run things using the `docker-test.sh` script.
 
 ## Path Forward
@@ -72,6 +72,11 @@ docker compose -f certbot-compose.yml up
 
 Check the output from CertBot - and when it is done, just hit `ctrl + c` to exit. 
 
+And then run the following to make sure everything has stopped:
+
+```bash
+docker compose -f certbot-compose.yml down
+```
 
 ### Configure
 The configurations for both **test** and **prod** come from environment variable files that are read in before the containers are started.
