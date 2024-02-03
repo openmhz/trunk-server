@@ -43,8 +43,9 @@ CNAMEs also need to be created for the various services. Create the CNAMEs below
 - api
 - account
 - admin
+- www
 
-After doing this, you should have the following domains: `api.domain.com`, `account.domain.com`,  `admin.domain.com`
+After doing this, you should have the following domains: `api.domain.com`, `account.domain.com`,  `admin.domain.com`, `www.domain.com`
 
 ### S3 Storage
 Currently, both **test** and **prod** expect to use S3-based storage instead of local storage. Switching to use local storage would be relatively easy - but for the sake of testing, let's just say use something S3-compatible. Make sure that ~/.aws/credentials has the credentials you'd like to use with your S3-compatible storage provider.. IE:
@@ -53,6 +54,24 @@ Currently, both **test** and **prod** expect to use S3-based storage instead of 
 aws_access_key_id = [..]
 aws_secret_access_key = [..]
 ```
+
+# Automatically renewing SSL Certificates
+
+SSL certs are automatically fetched from Let's Encrypt using the CertBot tool. The approach taken is based on this [Medium post](https://pentacent.medium.com/nginx-and-lets-encrypt-with-docker-in-less-than-5-minutes-b4b8a60d3a71) and accompanying [GitHub repo](https://github.com/wmnnd/nginx-certbot/tree/master). 
+
+You do need to jump start the process and do an initial fetch. To get started, make sure you have your `prod.env` file filled out. If you don't, copy prod.env.example to prod.env and fill in the details. Make sure **DOMAIN_NAME** and **REACT_APP_ADMIN_EMAIL** are correct and are the version you want to use in production. Those values will be used when requesting an SSL cert from Let's Encrypt.
+
+This script uses Let's Encrypt's [Certbot tool](https://eff-certbot.readthedocs.io/en/latest/).
+
+In the main directory of the **Trunk Server** repo, run the following commands:
+
+```bash
+source prod.env
+docker compose -f certbot-compose.yml up
+```
+
+Check the output from CertBot - and when it is done, just hit `ctrl + c` to exit. 
+
 
 ### Configure
 The configurations for both **test** and **prod** come from environment variable files that are read in before the containers are started.
