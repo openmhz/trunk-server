@@ -2,7 +2,7 @@
 #
 # docker build -t mongo .
 
-FROM mongo:5.0
+FROM mongo:5-focal
 
 MAINTAINER Luke Berndt <lukekb@gmail.com>
 
