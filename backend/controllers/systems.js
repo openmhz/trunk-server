@@ -127,6 +127,7 @@ exports.get_systems = async function (req, res) {
         lastActive: results[result].lastActive,
         callAvg: results[result].callAvg,
         description: results[result].description,
+        status: results[result].status,
         allowContact: results[result].allowContact,
         clientCount: clientCount
       }

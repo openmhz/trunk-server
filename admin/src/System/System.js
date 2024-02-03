@@ -236,7 +236,6 @@ const System = () => {
       setGroupOrder(newOrder);
     }
   }, [groupsData])
-
   useEffect(() => {
     if (isSystemsSuccess && systemsData.stats[shortName]) {
       processStatistics(systemsData.stats[shortName])
@@ -328,7 +327,12 @@ const System = () => {
                 <Header size="small">Description</Header>
                 {system.description}
               </Segment>
-
+              {system.status.length>0 &&
+              <Segment>
+                <Header size="small">Status Message</Header>
+                {system.status}
+              </Segment>
+              }
               <Segment clearing={true}>
                 <Button
                   color="red"

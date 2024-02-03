@@ -18,6 +18,8 @@ const SystemForm = (props) => {
   const [name, setName] = useState("");
   const [shortName, setShortName] = useState("");
   const [description, setDescription] = useState("");
+  const [status, setStatus] = useState("");
+  const [showStatus, setShowStatus] = useState(false);
   const [systemType, setSystemType] = useState("state");
   const [systemState, setSystemState] = useState("");
   const [city, setCity] = useState("");
@@ -29,6 +31,7 @@ const SystemForm = (props) => {
   const [nameError, setNameError] = useState(false);
   const [shortNameError, setShortNameError] = useState(false);
   const [descriptionError, setDescriptionError] = useState(false);
+  const [statusError, setStatusError] = useState(false);
   const [systemStateError, setSystemStateError] = useState(false);
   const [cityError, setCityError] = useState(false);
   const [countyError, setCountyError] = useState(false);
@@ -40,6 +43,8 @@ const SystemForm = (props) => {
       setName(props.system.name);
       setShortName(props.system.shortName);
       setDescription(props.system.description);
+      setStatus(props.system.status);
+      setShowStatus(props.system.status.length > 0);
       setSystemType(props.system.systemType);
       setCity(props.system.city);
       setSystemState(props.system.state)
@@ -80,6 +85,14 @@ const SystemForm = (props) => {
       error = true;
     } else {
       setDescriptionError(false);
+    }
+
+    if (showStatus && status.length < 4) {
+      setStatusError(true);
+      messages.push("If showing a aStatus message it must be at least 4 characters");
+      error = true;
+    } else {
+      setStatusError(false);
     }
 
     if (
@@ -130,11 +143,16 @@ const SystemForm = (props) => {
     return error;
   }
 
+  const handleShowStatusCheckboxChange = () => {
+    if (showStatus) {
+      setStatus("");
+    }
+    setShowStatus((current) => !current);
+  }
 
   const handleAllowContactCheckboxChange = () => {
     setAllowContact((current) => !current);
   }
-
 
   const handleScreenNameCheckboxChange = () => {
     setShowScreenName((current) => !current);
@@ -152,6 +170,7 @@ const SystemForm = (props) => {
         name,
         shortName,
         description,
+        status,
         systemType,
         city,
         state: systemState,
@@ -303,7 +322,24 @@ const SystemForm = (props) => {
           rows={2}
           placeholder="Description of system..."
         />
-
+        <Divider horizontal> System Status </Divider>
+        <Form.Field>
+          <Checkbox
+            onChange={handleShowStatusCheckboxChange}
+            checked={showStatus}
+            label="Show Status Message" />
+        </Form.Field>
+        <Form.TextArea
+          label="Status Message"
+          name="status"
+          onChange={e => setStatus(e.target.value)}
+          error={statusError}
+          value={status}
+          disabled={!showStatus}
+          rows={1}
+          placeholder="System status..."
+        />
+        Only needed if things are not working. Provide notification on maintenance or is you know if some channels are not available.
         <Divider horizontal><Icon name="marker" />Location</Divider>
         <Form.Group inline>
           <label>System Type</label>

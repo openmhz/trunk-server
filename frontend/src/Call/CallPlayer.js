@@ -14,13 +14,16 @@ import {
   Sticky,
   Menu,
   Icon,
-  Sidebar
+  Sidebar,
+  Message,
+  MessageHeader
 } from "semantic-ui-react";
 import "./CallPlayer.css";
 import queryString from '../query-string';
 import io from 'socket.io-client';
 import { useCallLink } from "./components/CallLinks";
 import "./CallPlayer.css";
+import { set } from "date-fns";
 
 
 const socket = io(process.env.REACT_APP_BACKEND_SERVER);
@@ -30,6 +33,7 @@ const socket = io(process.env.REACT_APP_BACKEND_SERVER);
 function CallPlayer(props) {
 
   const { shortName } = useParams();
+  const system = props.system;
   const selectCallId = props.selectCallId;
   const callsData = props.callsData;
   const handleNewer = props.handleNewer;
@@ -45,6 +49,7 @@ function CallPlayer(props) {
 
   const backgroundAutoplay = useSelector((state) => state.callPlayer.backgroundAutoplay);
   const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
+  const [statusVisible, setStatusVisible] = useState(false);
   const [autoPlay, setAutoPlay] = useState(true);
   const [currentCall, setCurrentCall] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -160,15 +165,31 @@ useEffect(() => {
     }
   }, [selectCallId])
 
+  useEffect(() => {
+    if (system.status && system.status.length > 0) {
+        setStatusVisible(true);
+    }
+  }, [system])
+
+  const handleStatusDismiss = () => {
+    setStatusVisible(false);
+  }
 
   return (
     <div ref={positionRef}>
       <Container className="main" >
+        {statusVisible &&
+      <Sticky offset={60} context={positionRef}>
+            <Message floating onDismiss={handleStatusDismiss} warning> <MessageHeader>System Status</MessageHeader>{system.status}</Message>
+            </Sticky>
+        }
         <Sidebar.Pushable>
           <Sidebar.Pusher
             style={{ minHeight: '100vh' }}
           >
+
             <div ref={loadNewerRef} />
+            
             <ListCalls callsData={callsData} activeCallId={currentCallId} talkgroups={talkgroupsData ? talkgroupsData.talkgroups : false} playCall={playCall} />
             <div ref={loadOlderRef} style={{ height: 50 }} />
           </Sidebar.Pusher>
