@@ -5,7 +5,7 @@
 
 # Load environment variables from prod.env.example
 if [ -f prod.env ]; then
-    source test.env
+    source prod.env
 fi
 
 # Rest of the script...
