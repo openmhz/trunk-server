@@ -73,6 +73,8 @@ services:
       - S3_BUCKET
       - S3_PROFILE
       - S3_REGION
+      - OTEL_SERVICE_NAME
+      - HONEYCOMB_API_KEY
     volumes:
       - "~/.aws:/home/app/.aws"
     depends_on:
