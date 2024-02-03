@@ -1,0 +1,38 @@
+version: "3"
+services:
+  nginx:
+    build:
+      context: ./nginx-proxy
+      args:
+        STAGE: "cert"
+    environment:
+      - DOMAIN_NAME
+    image: "nginx:${TAG}-cert"
+    networks:
+      - proxy
+    ports:
+      - "80:80"
+    restart: always
+    volumes:
+      - ${PWD}/data/log/syslog:/var/log/syslog
+      - ${PWD}/data/log/nginx:/var/log/nginx
+      - ${PWD}/data/certbot/www/:/var/www/certbot/:ro
+      - ${PWD}/data/certbot/conf/:/etc/letsencrypt/:ro
+    command: /bin/bash -c "envsubst '$$DOMAIN_NAME' < /etc/nginx/conf.d/site.template > /etc/nginx/conf.d/default.conf && while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ${PWD}/data/certbot/www/:/var/www/certbot/:rw
+      - ${PWD}/data/certbot/conf/:/etc/letsencrypt/:rw
+    entrypoint: "certbot certonly --webroot -w /var/www/certbot \
+    --staging \
+    --email ${REACT_APP_ADMIN_EMAIL} \
+    -d ${DOMAIN_NAME} -d www.${DOMAIN_NAME} -d api.${DOMAIN_NAME} -d admin.${DOMAIN_NAME}\
+    --rsa-key-size $rsa_key_size \
+    --agree-tos \
+    --force-renewal"
+
+networks:
+  proxy:
+  node:
