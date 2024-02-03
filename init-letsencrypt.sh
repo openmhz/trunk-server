@@ -4,9 +4,11 @@
 
 
 # Load environment variables from prod.env.example
-if [ -f prod.env ]; then
-    source prod.env
-fi
+#if [ -f prod.env ]; then
+#    source prod.env
+#fi
+
+source test.env
 
 # Rest of the script...
 
