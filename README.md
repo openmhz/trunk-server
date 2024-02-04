@@ -242,14 +242,14 @@ It is a huge pain to upgrade MongoDB in place. It turns out to be easier to dump
 
 Rough Playbook (use common sense, I may not have this exact):
 - get into the shell of the mongo container
-- `mongodump  --db scanner —out /data/db/backup`
+- `mongodump --uri="mongodb://127.0.0.1" --db scanner --out /data/db/backup`
 - exit contianer and go back to host machine
 - `cd data/db`
 - `rm *` erase everything... but not the sub-directories because that is where the backup is
 - upgrade to the latest version of mongo
 - build and launch the mongo container, which will create an empty DB
 - get into the shell of the mongo container
-- `mongorestore --db scanner --drop /data/db/backup/`
+- `mongorestore  --db scanner --drop /data/db/backup/scanner`
 
 ### Privlege Port Error
 
