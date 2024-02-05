@@ -116,15 +116,6 @@ exports.upload = async function (req, res, next) {
           span.end();
           return;
         }
-        span.end();
-      });
-    });
-
-
-
-    // Parse the request and validate the data
-    context.with(ctx, () => {
-      tracer.startActiveSpan('validate-fields', async (span) => {
 
         // Blocking sensitive talkgroups
         if ((shortName == "hennearmer") && ((talkgroupNum == 3421) || (talkgroupNum == 3423))) {
