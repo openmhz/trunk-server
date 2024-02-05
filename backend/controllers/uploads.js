@@ -24,7 +24,8 @@ const client = new S3Client({
 });
 
 exports.upload = async function (req, res, next) {
-  const tracer = trace.getTracer('upload-tracer');
+
+  const tracer = opentelemetry.trace.getTracer('upload-tracer');
 
 
   process.nextTick(async () => {
