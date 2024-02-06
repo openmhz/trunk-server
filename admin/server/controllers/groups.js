@@ -110,7 +110,7 @@ exports.deleteGroup = async function (req, res, next) {
 
 
 exports.reorderGroups =  function (req, res, next) {
-  console.log(req.body)
+
   //router.post('/system/:shortName/group_order', isLoggedIn, function(req, res) {
     process.nextTick(async function () {
     const system = await System.findOne({ shortName: req.params.shortName.toLowerCase() });
@@ -131,7 +131,7 @@ exports.reorderGroups =  function (req, res, next) {
       });
       return;
     }
-    console.log(req.body)
+
     if (!req.body.groupOrder) {
       res.status(500);
       res.json({
@@ -142,8 +142,6 @@ exports.reorderGroups =  function (req, res, next) {
     }
     var groupOrder = JSON.parse(req.body.groupOrder);
     for (var i = 0; i < groupOrder.length; i++) {
-
-      console.log("in group: " + groupOrder[i] + " position: " + i);
       const group = await Group.findOneAndUpdate(
         {
           _id: new mongoose.Types.ObjectId(groupOrder[i]),
@@ -177,10 +175,8 @@ exports.reorderGroups =  function (req, res, next) {
 };
 
 exports.upsertGroup = function (req, res, next) {
-  console.log(req.body)
   //router.post('/system/:shortName/group/:groupId?', isLoggedIn, function(req, res) {
   process.nextTick(async function () {
-    console.log(req.body)
     let system = await System.findOne({ shortName: req.params.shortName.toLowerCase() });
 
     if (!system) {
