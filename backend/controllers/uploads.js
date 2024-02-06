@@ -70,96 +70,89 @@ exports.upload = async function (req, res, next) {
     }
 
     let item = null;
-    const ctx = propagation.setBaggage(
-      context.active(),
-      propagation.createBaggage({
-        for_the_children: { shortName: shortName, talkgroupNum: talkgroupNum, startTime: startTime },
-      }),
-    );
+    const span = opentelemetry.trace.getActiveSpan();
+    span.setAttribute('call.shortName', shortName);
+    span.setAttribute('call.talkgroupNum', talkgroupNum);
+    span.setAttribute('call.startTime', startTime);
+
+
 
     // Validate that the system exists and the API key is correct
-    context.with(ctx, () => {
-      tracer.startActiveSpan('validate-system', async (span) => {
-        try {
-          item = await System.findOne({ 'shortName': shortName }, ["key", "ignoreUnknownTalkgroup"]);
-        } catch (err) {
-          span.setStatus({
-            code: opentelemetry.SpanStatusCode.ERROR,
-            message: "Error /:shortName/upload - Error: " + err,
-          });
-          console.warn("[" + req.params.shortName + "] Error /:shortName/upload - Error: " + err);
-          res.status(500);
-          res.send("Error, invalid shortName:\n" + err);
-          span.end();
-          return;
-        }
 
-        if (!item) {
-          span.setStatus({
-            code: opentelemetry.SpanStatusCode.ERROR,
-            message: "Error /:shortName/upload API Key Mismatch - Provided key: " + apiKey,
-          });
-          console.info("[" + req.params.shortName + "] Error /:shortName/upload ShortName does not exist");
-          res.status(500);
-          res.send("ShortName does not exist: " + shortName + "\n");
-          span.end();
-          return;
-        }
-        if (apiKey != item.key) {
-          span.setStatus({
-            code: opentelemetry.SpanStatusCode.ERROR,
-            message: "Error /:shortName/upload API Key Mismatch - Provided key: " + apiKey,
-          });
-          console.warn("[" + req.params.shortName + "] Error /:shortName/upload API Key Mismatch - Provided key: " + apiKey);
-          res.status(500);
-          res.send("API Keys do not match!\n");
-          span.end();
-          return;
-        }
-
-        // Blocking sensitive talkgroups
-        if ((shortName == "hennearmer") && ((talkgroupNum == 3421) || (talkgroupNum == 3423))) {
-          span.setStatus({
-            code: opentelemetry.SpanStatusCode.ERROR,
-            message: "Sensitive Talkgroup",
-          });
-          res.status(200).end();
-          span.end();
-          return;
-        }
-
-        if (item.ignoreUnknownTalkgroup == true) {
-          talkgroupExists = await Talkgroup.exists({
-            'shortName': shortName,
-            'num': talkgroupNum
-          });
-
-          if (!talkgroupExists) {
-            try {
-              fs.unlinkSync(req.file.path)
-              //file removed
-            } catch (err) {
-              console.log("[" + call.shortName + "] error deleting: " + req.file.path);
-            }
-
-            res.status(500);
-            res.send("Talkgroup does not exist, skipping.\n");
-            span.setStatus({
-              code: opentelemetry.SpanStatusCode.ERROR,
-              message: "Ignore Unknown Talkgroup Set - Talkgroup does not exist: " + talkgroupNum + " ShortName: " + shortName,
-            });
-            span.end();
-            return;
-          }
-        }
-        // Add in an API Key check
-
-
-
-        res.status(200).end();
-        span.end();
+    try {
+      item = await System.findOne({ 'shortName': shortName }, ["key", "ignoreUnknownTalkgroup"]);
+    } catch (err) {
+      span.setStatus({
+        code: opentelemetry.SpanStatusCode.ERROR,
+        message: "Error /:shortName/upload - Error: " + err,
       });
-    });
+      console.warn("[" + req.params.shortName + "] Error /:shortName/upload - Error: " + err);
+      res.status(500);
+      res.send("Error, invalid shortName:\n" + err);
+      return;
+    }
+
+    if (!item) {
+      span.setStatus({
+        code: opentelemetry.SpanStatusCode.ERROR,
+        message: "Error /:shortName/upload API Key Mismatch - Provided key: " + apiKey,
+      });
+      console.info("[" + req.params.shortName + "] Error /:shortName/upload ShortName does not exist");
+      res.status(500);
+      res.send("ShortName does not exist: " + shortName + "\n");
+      return;
+    }
+    if (apiKey != item.key) {
+      span.setStatus({
+        code: opentelemetry.SpanStatusCode.ERROR,
+        message: "Error /:shortName/upload API Key Mismatch - Provided key: " + apiKey,
+      });
+      console.warn("[" + req.params.shortName + "] Error /:shortName/upload API Key Mismatch - Provided key: " + apiKey);
+      res.status(500);
+      res.send("API Keys do not match!\n");
+      return;
+    }
+
+    // Blocking sensitive talkgroups
+    if ((shortName == "hennearmer") && ((talkgroupNum == 3421) || (talkgroupNum == 3423))) {
+      span.setStatus({
+        code: opentelemetry.SpanStatusCode.ERROR,
+        message: "Sensitive Talkgroup",
+      });
+      res.status(200).end();
+      return;
+    }
+
+    if (item.ignoreUnknownTalkgroup == true) {
+      talkgroupExists = await Talkgroup.exists({
+        'shortName': shortName,
+        'num': talkgroupNum
+      });
+
+      if (!talkgroupExists) {
+        try {
+          fs.unlinkSync(req.file.path)
+          //file removed
+        } catch (err) {
+          console.log("[" + call.shortName + "] error deleting: " + req.file.path);
+        }
+
+        res.status(500);
+        res.send("Talkgroup does not exist, skipping.\n");
+        span.setStatus({
+          code: opentelemetry.SpanStatusCode.ERROR,
+          message: "Ignore Unknown Talkgroup Set - Talkgroup does not exist: " + talkgroupNum + " ShortName: " + shortName,
+        });
+
+        return;
+      }
+    }
+    // Add in an API Key check
+
+
+
+    res.status(200).end();
+
 
     var local_path = "/" + shortName + "/" + time.getFullYear() + "/" + (time.getMonth() + 1) + "/" + time.getDate() + "/";
     var object_key = "media/" + shortName + "-" + talkgroupNum + "-" + startTime + path.extname(req.file.originalname);
@@ -186,98 +179,82 @@ exports.upload = async function (req, res, next) {
       len: -1
     });
 
-    // Upload the file to S3
-    context.with(ctx, () => {
-      tracer.startActiveSpan('upload-call', async (span) => {
-        try {
-          if (req.body.call_length) {
-            call.len = parseFloat(req.body.call_length);
-          } else {
-            call.len = (stopTime - time) / 1000;
-          }
-        } catch (err) {
-          console.error(err);
-        }
-        let fileContent;
-        try {
-          fileContent = fs.readFileSync(req.file.path);
-          //s3Src = fs.createReadStream(req.file.path);
-        } catch (err) {
-          span.setStatus({
-            code: opentelemetry.SpanStatusCode.ERROR,
-            message: "Unable to open file: " + req.file.path + " Error: " + err,
-          });
-          span.end();
-          console.error("[" + call.shortName + "] Unable to open file: " + req.file.path + " Error: " + err);
-          return;
-        }
-        const command = new PutObjectCommand({
-          Bucket: s3_bucket,
-          Key: object_key,
-          Body: fileContent,
-          ACL: 'public-read'
-        });
 
-        try {
-          await client.send(command);
-
-        } catch (err) {
-          span.setStatus({
-            code: opentelemetry.SpanStatusCode.ERROR,
-            message: "Upload Error: " + err + " Filename: " + call.name + " content-length: " + req.headers['content-length'] + " Key: " + object_key + " Bucket: " + s3_bucket,
-          });
-          console.warn("[" + call.shortName + "] Upload Error: " + err + " Filename: " + call.name + " content-length: " + req.headers['content-length'] + " Key: " + object_key + " Bucket: " + s3_bucket);
-          /*res.status(500);
-          sysStats.addError(call.toObject());
-          res.contentType('json');
-          res.status(500);
-          res.send(JSON.stringify({
-            success: false,
-            error: "File Upload"
-          }));*/
-        }
-        span.end();
+    try {
+      if (req.body.call_length) {
+        call.len = parseFloat(req.body.call_length);
+      } else {
+        call.len = (stopTime - time) / 1000;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    let fileContent;
+    try {
+      fileContent = fs.readFileSync(req.file.path);
+      //s3Src = fs.createReadStream(req.file.path);
+    } catch (err) {
+      span.setStatus({
+        code: opentelemetry.SpanStatusCode.ERROR,
+        message: "Unable to open file: " + req.file.path + " Error: " + err,
       });
+      console.error("[" + call.shortName + "] Unable to open file: " + req.file.path + " Error: " + err);
+      return;
+    }
+    const command = new PutObjectCommand({
+      Bucket: s3_bucket,
+      Key: object_key,
+      Body: fileContent,
+      ACL: 'public-read'
     });
 
-    // Save Call to the database
-    context.with(ctx, () => {
-      tracer.startActiveSpan('save-call', async (span) => {
-        try {
-          await call.save();
-          sysStats.addCall(call.toObject());
-          // we only want to notify clients if the clip is longer than 1 second.
-          if (call.len >= 1) {
-            req.call = call.toObject();
-            next();
-          }
-        } catch (err) {
-          console.warn("[" + call.shortName + "] Error saving call: " + err);
-          span.setStatus({
-            code: opentelemetry.SpanStatusCode.ERROR,
-            message: "Error saving call: " + err,
-          });
-          /*res.status(500);
-          sysStats.addError(call.toObject());
-          res.contentType('json');
-          res.status(500);
-          res.send(JSON.stringify({
-            success: false,
-            error: "File Upload"
-          }));*/
-        }
+    try {
+      await client.send(command);
 
-        try {
-          fs.unlinkSync(req.file.path);
-        } catch (err) {
-          console.warn("There was an Error uploading an deleting: " + req.file.path);
-        };
-
-        span.end();
+    } catch (err) {
+      span.setStatus({
+        code: opentelemetry.SpanStatusCode.ERROR,
+        message: "Upload Error: " + err + " Filename: " + call.name + " content-length: " + req.headers['content-length'] + " Key: " + object_key + " Bucket: " + s3_bucket,
       });
-    });
+      console.warn("[" + call.shortName + "] Upload Error: " + err + " Filename: " + call.name + " content-length: " + req.headers['content-length'] + " Key: " + object_key + " Bucket: " + s3_bucket);
+      /*res.status(500);
+      sysStats.addError(call.toObject());
+      res.contentType('json');
+      res.status(500);
+      res.send(JSON.stringify({
+        success: false,
+        error: "File Upload"
+      }));*/
+    }
+    
+    try {
+      await call.save();
+      sysStats.addCall(call.toObject());
+      // we only want to notify clients if the clip is longer than 1 second.
+      if (call.len >= 1) {
+        req.call = call.toObject();
+        next();
+      }
+    } catch (err) {
+      console.warn("[" + call.shortName + "] Error saving call: " + err);
+      span.setStatus({
+        code: opentelemetry.SpanStatusCode.ERROR,
+        message: "Error saving call: " + err,
+      });
+      /*res.status(500);
+      sysStats.addError(call.toObject());
+      res.contentType('json');
+      res.status(500);
+      res.send(JSON.stringify({
+        success: false,
+        error: "File Upload"
+      }));*/
+    }
+
+    try {
+      fs.unlinkSync(req.file.path);
+    } catch (err) {
+      console.warn("There was an Error uploading an deleting: " + req.file.path);
+    };
   });
-
-
-
 }
