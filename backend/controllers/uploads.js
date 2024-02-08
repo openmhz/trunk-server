@@ -22,7 +22,7 @@ const client = new S3Client({
   credentials: fromIni({ profile: s3_profile }),
   endpoint: s3_endpoint,
   region: s3_region,
-  maxAttempts: 1
+  maxAttempts: 3
 });
 
 exports.upload = async function (req, res, next) {
