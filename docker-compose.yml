@@ -36,7 +36,7 @@ services:
     logging:
       driver: syslog
       options:
-        tag: "mongo"
+        tag: "certbot"
 
   mongo:
     build:
