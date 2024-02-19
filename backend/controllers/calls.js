@@ -2,7 +2,7 @@
 const { ObjectId } = require('mongodb');
 var { callModel: Call } = require("../models/call");
 const Group = require("../models/group");
-
+const opentelemetry = require('@opentelemetry/api');
 var defaultNumResults = 50;
 
 var channels = {};
