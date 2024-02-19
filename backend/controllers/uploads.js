@@ -1,8 +1,6 @@
 var path = require('path');
 var fs = require('fs');
 const opentelemetry = require('@opentelemetry/api');
-
-var { context, propagation, trace } = require('@opentelemetry/api');
 var sysStats = require("../sys_stats");
 var System = require("../models/system");
 var Talkgroup = require("../models/talkgroup");
@@ -26,9 +24,6 @@ const client = new S3Client({
 });
 
 exports.upload = async function (req, res, next) {
-
-  const tracer = trace.getTracer('upload-tracer');
-
 
   process.nextTick(async () => {
     if (!req.file || ((path.extname(req.file.originalname) != '.m4a') && (path.extname(req.file.originalname) != '.mp3'))) {

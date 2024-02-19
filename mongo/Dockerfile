@@ -2,7 +2,7 @@
 #
 # docker build -t mongo .
 
-FROM mongo:5-focal
+FROM mongo:7-jammy
 
 MAINTAINER Luke Berndt <lukekb@gmail.com>
 
