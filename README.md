@@ -261,7 +261,7 @@ https://docs.docker.com/engine/security/rootless/#exposing-privileged-ports
 
 ## Setting up Logging
 I have had good luck with Loggly. Their free tier provides enough capabilities for most small sites.
-The Doocker Logging Driver works well and is easy to install:
+The Docker Logging Driver works well and is easy to install:
 
 https://documentation.solarwinds.com/en/Success_Center/loggly/Content/admin/docker-logging-driver.htm
 
