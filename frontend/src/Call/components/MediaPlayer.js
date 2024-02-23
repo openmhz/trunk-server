@@ -66,15 +66,17 @@ const MediaPlayer = (props) => {
     const audio = audioRef.current.audioEl.current;
 
     setSourceIndex(0);
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: "Waiting for Call...",
-      album: 'OpenMHz',
-      artwork: [
-        { src: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-        { src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
-        { src: '/android-chrome-192x192.png', sizes: '512x512', type: 'image/png' },
-      ]
-    });
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: "Waiting for Call...",
+        album: 'OpenMHz',
+        artwork: [
+          { src: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+          { src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/android-chrome-192x192.png', sizes: '512x512', type: 'image/png' },
+        ]
+      });
+    }
     audio.src = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV////////////////////////////////////////////AAAAAExhdmM1OC4xMwAAAAAAAAAAAAAAACQDkAAAAAAAAAGw9wrNaQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/+MYxAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxDsAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxHYAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV";
     const playPromise = audio.play();
 

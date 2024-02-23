@@ -58,7 +58,6 @@ exports.listUserSystems = async function (req,res,next) {
   }
   const users = await User.find({}, "_id email firstName lastName lastLogin");
   let list = [];
-  console.log(users);
   for (let index = 0; index < users.length; index++) {
     let user = users[index].toObject();
     const userId = new mongoose.Types.ObjectId(user._id);

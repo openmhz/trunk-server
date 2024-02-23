@@ -14,7 +14,7 @@ There are a bunch of experiments lurking in the code. There is some code for add
 
 I haven't done a great job of keeping all the packages up to date... and I never got around to adding tests. Both of these would be great things for folks to go after.
 
-## PROD vs DEV Env
+## PROD vs TEST Env
 The Prod environment expects you to be using HTTPS for your domains. It is pretty easy to use Let's Encrypt to grab Certs for the domains you are using. If not, just run things using the `docker-test.sh` script.
 
 ## Path Forward
@@ -43,8 +43,9 @@ CNAMEs also need to be created for the various services. Create the CNAMEs below
 - api
 - account
 - admin
+- www
 
-After doing this, you should have the following domains: `api.domain.com`, `account.domain.com`,  `admin.domain.com`
+After doing this, you should have the following domains: `api.domain.com`, `account.domain.com`,  `admin.domain.com`, `www.domain.com`
 
 ### S3 Storage
 Currently, both **test** and **prod** expect to use S3-based storage instead of local storage. Switching to use local storage would be relatively easy - but for the sake of testing, let's just say use something S3-compatible. Make sure that ~/.aws/credentials has the credentials you'd like to use with your S3-compatible storage provider.. IE:
@@ -52,6 +53,29 @@ Currently, both **test** and **prod** expect to use S3-based storage instead of 
 [default]
 aws_access_key_id = [..]
 aws_secret_access_key = [..]
+```
+
+# Automatically renewing SSL Certificates
+
+SSL certs are automatically fetched from Let's Encrypt using the CertBot tool. The approach taken is based on this [Medium post](https://pentacent.medium.com/nginx-and-lets-encrypt-with-docker-in-less-than-5-minutes-b4b8a60d3a71) and accompanying [GitHub repo](https://github.com/wmnnd/nginx-certbot/tree/master). 
+
+You do need to jump start the process and do an initial fetch. To get started, make sure you have your `prod.env` file filled out. If you don't, copy prod.env.example to prod.env and fill in the details. Make sure **DOMAIN_NAME** and **REACT_APP_ADMIN_EMAIL** are correct and are the version you want to use in production. Those values will be used when requesting an SSL cert from Let's Encrypt.
+
+This script uses Let's Encrypt's [Certbot tool](https://eff-certbot.readthedocs.io/en/latest/).
+
+In the main directory of the **Trunk Server** repo, run the following commands:
+
+```bash
+source prod.env
+docker compose -f certbot-compose.yml up
+```
+
+Check the output from CertBot - and when it is done, just hit `ctrl + c` to exit. 
+
+And then run the following to make sure everything has stopped:
+
+```bash
+docker compose -f certbot-compose.yml down
 ```
 
 ### Configure
@@ -218,14 +242,14 @@ It is a huge pain to upgrade MongoDB in place. It turns out to be easier to dump
 
 Rough Playbook (use common sense, I may not have this exact):
 - get into the shell of the mongo container
-- `mongodump  --db scanner —out /data/db/backup`
+- `mongodump --uri="mongodb://127.0.0.1" --db scanner --out /data/db/backup`
 - exit contianer and go back to host machine
 - `cd data/db`
 - `rm *` erase everything... but not the sub-directories because that is where the backup is
 - upgrade to the latest version of mongo
 - build and launch the mongo container, which will create an empty DB
 - get into the shell of the mongo container
-- `mongorestore --db scanner --drop /data/db/backup/`
+- `mongorestore  --db scanner --drop /data/db/backup/scanner`
 
 ### Privlege Port Error
 
@@ -237,7 +261,7 @@ https://docs.docker.com/engine/security/rootless/#exposing-privileged-ports
 
 ## Setting up Logging
 I have had good luck with Loggly. Their free tier provides enough capabilities for most small sites.
-The Doocker Logging Driver works well and is easy to install:
+The Docker Logging Driver works well and is easy to install:
 
 https://documentation.solarwinds.com/en/Success_Center/loggly/Content/admin/docker-logging-driver.htm
 

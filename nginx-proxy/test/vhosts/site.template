@@ -1,7 +1,13 @@
+
 server {
 	listen 80;
 
   server_name ${DOMAIN_NAME} www.${DOMAIN_NAME};
+
+
+	location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
 
    location /static {
 		proxy_pass http://frontend:3000;
@@ -30,6 +36,10 @@ server {
 
   server_name account.${DOMAIN_NAME};
 
+	location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
    location / {
 				proxy_pass http://account:3009;
 				include /etc/nginx/proxy.conf;
@@ -42,6 +52,10 @@ server {
 
   server_name admin.${DOMAIN_NAME};
 
+	location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
    location / {
 				proxy_pass http://admin:3008;
 				include /etc/nginx/proxy.conf;
@@ -53,6 +67,10 @@ server {
 	listen 80;
 
 	server_name api.${DOMAIN_NAME};
+
+	location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
 
 	location / {
 		proxy_pass http://backend:3005;

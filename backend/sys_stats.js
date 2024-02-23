@@ -10,10 +10,7 @@ var spots = (24 * 60) / timePeriod; // the number of spots needed to keep track 
 
 
 async function updateActiveSystems() {
-
     // Go through all of the Systems
-
-
     for await (let item of System.find()) {
         // go through all the systems
         // if you have recieved some calls during that last period, make the system active
