@@ -11,6 +11,7 @@ var systemSchema = mongoose.Schema({
   city: String,
   state: String,
   description: String,
+  status: String,
   showScreenName: Boolean,
   allowContact: {
 		type: Boolean,

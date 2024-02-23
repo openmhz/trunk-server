@@ -14,7 +14,9 @@ import {
   Label,
   Menu,
   Icon,
-  Sidebar
+  Sidebar,
+  Message,
+  Sticky
 } from "semantic-ui-react";
 import "./CallPlayer.css";
 import queryString from '../query-string';
@@ -447,9 +449,10 @@ function Calls(props) {
           </Menu.Item>
         </Menu.Menu>
       </Menu>
+
       {activityVisible
         ? <Activity navigate={handleActivityNavigate} />
-        : <CallPlayer callsData={callsData} selectCallId={selectCallId} initialCallId={initialCallId} handleNewer={handleNewer} handleOlder={handleOlder} />
+        : <CallPlayer system={system} callsData={callsData} selectCallId={selectCallId} initialCallId={initialCallId} handleNewer={handleNewer} handleOlder={handleOlder} />
       }
     </div>
   );

@@ -10,6 +10,7 @@ var systemSchema = mongoose.Schema({
   city: String,
   state: String,
   description: String,
+  status: String,
   showScreenName: Boolean,
   planType: {type: Number, default: 0},
   userId:  mongoose.Schema.Types.ObjectId,

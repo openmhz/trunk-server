@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from 'react-router-dom';
 import MediaPlayer from "./components/MediaPlayer";
-import SupportModal from "./components/SupportModal";
+import SupportModal from "../Common/SupportModal";
 import CallInfo from "./components/CallInfo";
 import ListCalls from "./components/ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
@@ -14,13 +14,18 @@ import {
   Sticky,
   Menu,
   Icon,
-  Sidebar
+  Sidebar,
+  Message,
+  MessageHeader,
+  Button,
+  ButtonContent
 } from "semantic-ui-react";
 import "./CallPlayer.css";
 import queryString from '../query-string';
 import io from 'socket.io-client';
 import { useCallLink } from "./components/CallLinks";
 import "./CallPlayer.css";
+import { set } from "date-fns";
 
 
 const socket = io(process.env.REACT_APP_BACKEND_SERVER);
@@ -30,6 +35,7 @@ const socket = io(process.env.REACT_APP_BACKEND_SERVER);
 function CallPlayer(props) {
 
   const { shortName } = useParams();
+  const system = props.system;
   const selectCallId = props.selectCallId;
   const callsData = props.callsData;
   const handleNewer = props.handleNewer;
@@ -45,6 +51,7 @@ function CallPlayer(props) {
 
   const backgroundAutoplay = useSelector((state) => state.callPlayer.backgroundAutoplay);
   const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
+  const [statusVisible, setStatusVisible] = useState(false);
   const [autoPlay, setAutoPlay] = useState(true);
   const [currentCall, setCurrentCall] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -160,15 +167,31 @@ useEffect(() => {
     }
   }, [selectCallId])
 
+  useEffect(() => {
+    if (system.status && system.status.length > 0) {
+        setStatusVisible(true);
+    }
+  }, [system])
+
+  const handleStatusDismiss = () => {
+    setStatusVisible(false);
+  }
 
   return (
     <div ref={positionRef}>
       <Container className="main" >
+        {statusVisible &&
+      <Sticky offset={60} context={positionRef}>
+            <Message floating onDismiss={handleStatusDismiss} warning> <MessageHeader>System Status</MessageHeader>{system.status}</Message>
+            </Sticky>
+        }
         <Sidebar.Pushable>
           <Sidebar.Pusher
             style={{ minHeight: '100vh' }}
           >
+
             <div ref={loadNewerRef} />
+            
             <ListCalls callsData={callsData} activeCallId={currentCallId} talkgroups={talkgroupsData ? talkgroupsData.talkgroups : false} playCall={playCall} />
             <div ref={loadOlderRef} style={{ height: 50 }} />
           </Sidebar.Pusher>
@@ -184,7 +207,12 @@ useEffect(() => {
         <Menu.Item active={autoPlay} onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
         <MediaPlayer call={currentCall} playSilence={silenceCount} onEnded={callEnded} onPlayPause={handlePlayPause} />
         <Menu.Menu position="right" className="desktop-only">
-          <Menu.Item><SupportModal /></Menu.Item>
+          <Menu.Item><SupportModal trigger={<Button color='grey' animated='fade'>
+    <ButtonContent visible color="red">
+      <Icon name='heart' /> Donate
+    </ButtonContent>
+    <ButtonContent hidden>Thank You</ButtonContent>
+  </Button>} /></Menu.Item>
           <Menu.Item><a href={callDownload}><Icon name="download" />Download</a></Menu.Item>
           <Menu.Item><a href={callLink}><Icon name="at" />Link</a></Menu.Item>
         </Menu.Menu>

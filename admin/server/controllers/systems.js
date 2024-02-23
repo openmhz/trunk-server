@@ -61,7 +61,7 @@ exports.listUserSystems = async function (req,res,next) {
   for (let index = 0; index < users.length; index++) {
     let user = users[index].toObject();
     const userId = new mongoose.Types.ObjectId(user._id);
-    const systems = await System.find({ userId: userId }, "name shortName description systemType city state county country lastActive");
+    const systems = await System.find({ userId: userId }, "name shortName description status systemType city state county country lastActive");
 
     user["systems"] = systems;
     list.push(user);
@@ -89,6 +89,7 @@ exports.listAllSystems = async function (req, res, next) {
       name,
       shortName,
       description,
+      status,
       systemType,
       city,
       state,
@@ -105,6 +106,7 @@ exports.listAllSystems = async function (req, res, next) {
       name,
       shortName,
       description,
+      status,
       systemType,
       city,
       state,
@@ -153,6 +155,7 @@ exports.listSystems = async function (req, res, next) {
       name,
       shortName,
       description,
+      status,
       systemType,
       city,
       state,
@@ -167,6 +170,7 @@ exports.listSystems = async function (req, res, next) {
       name,
       shortName,
       description,
+      status,
       systemType,
       city,
       state,
@@ -359,6 +363,7 @@ exports.updateSystem = async function (req, res, next) {
   res.locals.system.county = res.locals.county;
   res.locals.system.country = res.locals.country;
   res.locals.system.description = res.locals.description;
+  res.locals.system.status = res.locals.status;
   res.locals.system.systemType = res.locals.systemType;
   res.locals.system.showScreenName = res.locals.showScreenName;
   res.locals.system.allowContact = res.locals.allowContact;
@@ -377,6 +382,7 @@ exports.updateSystem = async function (req, res, next) {
     name,
     shortName,
     description,
+    status,
     systemType,
     city,
     state,
@@ -391,6 +397,7 @@ exports.updateSystem = async function (req, res, next) {
     name,
     shortName,
     description,
+    status,
     systemType,
     city,
     state,
@@ -428,7 +435,7 @@ exports.validateSystem = async function (req, res, next) {
     res.locals.name = req.body.name.replace(/[^\w\s\.\,\-\_]/gi, '');
 
     if (!req.body.description || (req.body.description.length < 2)) {
-      console.error("ERROR: Validate System - req.body.description");
+      console.error("ERROR: Validate System - req.body.description: " + req.body.description);
       res.status(500)
       res.json({
         success: false,
@@ -436,7 +443,9 @@ exports.validateSystem = async function (req, res, next) {
       });
       return;
     }
-    res.locals.description = req.body.description.replace(/[^\w\s\.\,\-\_]/gi, '');
+    res.locals.description = req.body.description.replace(/[^\w\s\.\,\-\_\(\)\'\"\!\?\*\&\^\%\$\#\@\r\n\t\`\~\[\]\/\\]/gi, '');
+
+    res.locals.status = req.body.status.replace(/[^\w\s\.\,\-\_\(\)\'\"\!\?\*\&\^\%\$\#\@\r\n\t\`\~\[\]\/\\]/gi, '');
 
     if (!req.body.shortName || (req.body.shortName.length < 2)) {
       console.error("ERROR: Validate System - req.body.shortName");
@@ -546,6 +555,7 @@ exports.createSystem = async function (req, res, next) {
     name,
     shortName,
     description,
+    status,
     systemType,
     city,
     state,
@@ -558,6 +568,7 @@ exports.createSystem = async function (req, res, next) {
     name,
     shortName,
     description,
+    status,
     systemType,
     city,
     state,
@@ -584,6 +595,7 @@ exports.createSystem = async function (req, res, next) {
     name,
     shortName,
     description,
+    status,
     systemType,
     city,
     state,
@@ -598,6 +610,7 @@ exports.createSystem = async function (req, res, next) {
     name,
     shortName,
     description,
+    status,
     systemType,
     city,
     state,
