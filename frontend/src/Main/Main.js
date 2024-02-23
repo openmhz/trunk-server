@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from 'react-router-dom'
 import SystemCard from "../System/SystemCard";
+import SupportModal from "../Common/SupportModal";
 import "./Main.css";
 import { createMedia } from "@artsy/fresnel";
 import {
@@ -295,12 +296,14 @@ const Main = (props) => {
               <Grid.Row textAlign='center'>
                 <Grid.Column style={{ paddingBottom: '4em', paddingTop: '2em', maxWidth: 450 }}>
                   <ButtonGroup size='large'>
-                    <Button color='red' animated='fade' href="https://patreon.com/OpenMHz">
+                    <SupportModal trigger={
+                    <Button color='red' animated='fade'>
                       <ButtonContent visible>
                         <Icon name='heart' /> Donate
                       </ButtonContent>
                       <ButtonContent hidden>Thank You</ButtonContent>
                     </Button>
+                    } />
                     <Button href="https://podcasts.apple.com/us/podcast/openmhz/id1675187518">
                     <Icon name='podcast' /> Events Podcast
                     </Button>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from 'react-router-dom';
 import MediaPlayer from "./components/MediaPlayer";
-import SupportModal from "./components/SupportModal";
+import SupportModal from "../Common/SupportModal";
 import CallInfo from "./components/CallInfo";
 import ListCalls from "./components/ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
@@ -16,7 +16,9 @@ import {
   Icon,
   Sidebar,
   Message,
-  MessageHeader
+  MessageHeader,
+  Button,
+  ButtonContent
 } from "semantic-ui-react";
 import "./CallPlayer.css";
 import queryString from '../query-string';
@@ -205,7 +207,12 @@ useEffect(() => {
         <Menu.Item active={autoPlay} onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
         <MediaPlayer call={currentCall} playSilence={silenceCount} onEnded={callEnded} onPlayPause={handlePlayPause} />
         <Menu.Menu position="right" className="desktop-only">
-          <Menu.Item><SupportModal /></Menu.Item>
+          <Menu.Item><SupportModal trigger={<Button color='grey' animated='fade'>
+    <ButtonContent visible color="red">
+      <Icon name='heart' /> Donate
+    </ButtonContent>
+    <ButtonContent hidden>Thank You</ButtonContent>
+  </Button>} /></Menu.Item>
           <Menu.Item><a href={callDownload}><Icon name="download" />Download</a></Menu.Item>
           <Menu.Item><a href={callLink}><Icon name="at" />Link</a></Menu.Item>
         </Menu.Menu>

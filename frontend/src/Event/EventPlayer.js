@@ -1,21 +1,21 @@
-import React, { useEffect, useLayoutEffect, useState, useRef } from "react";
-import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
-import { skipToken } from '@reduxjs/toolkit/query'
+import React, { useEffect, useState, useRef } from "react";
+import {  useNavigate } from 'react-router-dom';
 import MediaPlayer from "../Call/components/MediaPlayer";
 
-import SupportModal from "../Call/components/SupportModal";
+import SupportModal from "../Common/SupportModal";
 import EventCallInfo from "./EventCallInfo";
 import ListEventCalls from "./ListEventCalls";
-import { useSelector, useDispatch } from 'react-redux'
+import { useDispatch } from 'react-redux'
 
 import {
   Container,
-  Label,
   Rail,
   Sticky,
   Menu,
   Icon,
-  Sidebar
+  Sidebar,
+  Button,
+  ButtonContent
 } from "semantic-ui-react";
 
 
@@ -118,7 +118,12 @@ function EventPlayer(props) {
         <Menu.Item active={autoPlay} onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
         <MediaPlayer call={currentCall} onEnded={callEnded} onPlayPause={handlePlayPause} />
         <Menu.Menu position="right" className="desktop-only">
-          <Menu.Item><SupportModal /></Menu.Item>
+          <Menu.Item><SupportModal trigger={<Button color='grey' animated='fade'>
+    <ButtonContent visible color="red">
+      <Icon name='heart' /> Donate
+    </ButtonContent>
+    <ButtonContent hidden>Thank You</ButtonContent>
+  </Button>} /></Menu.Item>
           <Menu.Item><a href={callDownload}><Icon name="download" />Download</a></Menu.Item>
           <Menu.Item><a href={callLink}><Icon name="at" />Link</a></Menu.Item>
         </Menu.Menu>

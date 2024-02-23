@@ -123,12 +123,10 @@ function SystemCard(props) {
                 {description}
               </Grid.Column>
             </Grid.Row>
-            {statusMessage.length &&
+            {statusMessage &&
               <Grid.Row>
                 <Grid.Column>
-  
                 <Popup content={system.status} trigger={<Button icon labelPosition='left' size='mini'><Icon name="info"/>{statusMessage}</Button>} />
-
                 </Grid.Column>
               </Grid.Row>
             }
