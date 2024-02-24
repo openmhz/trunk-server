@@ -96,6 +96,7 @@ async function csv_import(shortName, filename, callback) {
           var row = data[i];
           if (!( "Decimal" in row) || !("Description" in row) || !("Alpha Tag" in row)) {
             console.error("Error: csv import column header error");
+            console.error(row)
             callback("Column Headers are required - Required Columns: 'Decimal' 'Decscription' 'Alpha Tag' Optional Column: 'Priority' ", null);
             return
           }
