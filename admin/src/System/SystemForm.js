@@ -40,11 +40,12 @@ const SystemForm = (props) => {
 
   useEffect(() => {
     if (props.isEditing && props.system) {
+      var statusSet = (props.system.status && props.system.status.length > 0 ) ? true : false;
       setName(props.system.name);
       setShortName(props.system.shortName);
       setDescription(props.system.description);
       setStatus(props.system.status);
-      setShowStatus(props.system.status.length > 0);
+      setShowStatus(statusSet);
       setSystemType(props.system.systemType);
       setCity(props.system.city);
       setSystemState(props.system.state)
