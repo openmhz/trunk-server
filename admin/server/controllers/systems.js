@@ -445,8 +445,12 @@ exports.validateSystem = async function (req, res, next) {
     }
     res.locals.description = req.body.description.replace(/[^\w\s\.\,\-\_\(\)\'\"\!\?\*\&\^\%\$\#\@\r\n\t\`\~\[\]\/\\]/gi, '');
 
-    res.locals.status = req.body.status.replace(/[^\w\s\.\,\-\_\(\)\'\"\!\?\*\&\^\%\$\#\@\r\n\t\`\~\[\]\/\\]/gi, '');
-
+    if (req.body.status) {
+      res.locals.status = req.body.status.replace(/[^\w\s\.\,\-\_\(\)\'\"\!\?\*\&\^\%\$\#\@\r\n\t\`\~\[\]\/\\]/gi, '');
+    } else {
+      res.locals.status = "";
+    }
+    
     if (!req.body.shortName || (req.body.shortName.length < 2)) {
       console.error("ERROR: Validate System - req.body.shortName");
       res.status(500)
