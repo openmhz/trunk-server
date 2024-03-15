@@ -66,6 +66,10 @@ exports.contact_system = async function(req, res) {
         Email: admin_email,
         Name: site_name + " Admin"
       },
+      ReplyTo: {
+        Email: req.body.email,
+        Name: req.body.name
+      },
       To: [{
         Email: user.email,
         Name: user.firstName + " " + user.lastName
