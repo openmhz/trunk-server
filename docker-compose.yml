@@ -22,7 +22,7 @@ services:
       - ${PWD}/data/certbot/conf/:/etc/letsencrypt/:ro
     depends_on:
       - backend
-      - frontend
+      - frontend 
       - account
       - admin
     command: /bin/bash -c "envsubst '$$DOMAIN_NAME' < /etc/nginx/conf.d/site.template > /etc/nginx/conf.d/default.conf && while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g 'daemon off;'"

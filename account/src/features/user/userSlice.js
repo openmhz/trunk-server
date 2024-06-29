@@ -2,6 +2,7 @@ import {
     createSlice,
     createAsyncThunk
 } from '@reduxjs/toolkit'
+//import { terms } from '../../../server/controllers/users';
 
 
 export const authenticateUser = createAsyncThunk(
@@ -102,6 +103,22 @@ export const confirmEmail = createAsyncThunk(
     }
 )
 
+export const acceptTerms = createAsyncThunk(
+    'user/acceptTerms',
+    async (user) => {
+        const url = process.env.REACT_APP_ACCOUNT_SERVER + "/users/" + user.userId + "/terms/";
+        const res = await fetch(url, {
+            method: 'POST',
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+              }
+        }).then(
+            (data) => data.json()
+        )
+        return res;
+    }
+)
 
 
 export const sendConfirmEmail = createAsyncThunk(
@@ -172,7 +189,8 @@ export const userSlice = createSlice({
         firstName: "",
         lastName: "",
         location: "",
-        screenName: ""
+        screenName: "",
+        terms: 0,
     },
 
     reducers: {
@@ -197,6 +215,7 @@ export const userSlice = createSlice({
                 state.lastName = payload.user.lastName;
                 state.location = payload.user.location;
                 state.screenName = payload.user.screenName;
+                state.terms = payload.user.terms;
             } else {
                 state.authenticated = false;
                 state.hasAuthenticated = true;
@@ -215,6 +234,12 @@ export const userSlice = createSlice({
             state.authenticated = false;
             state.hasAuthenticated = true;
         },
+        [acceptTerms.fulfilled]: (state, data) => {
+            const {payload} = data;
+            if (payload.success) {
+                state.terms = payload.user.terms;
+            }
+        },
         [authenticateUser.fulfilled]: (state, data) => {
             const {payload} = data;
             if (payload.success) {
@@ -227,6 +252,7 @@ export const userSlice = createSlice({
                 state.lastName = payload.user.lastName;
                 state.location = payload.user.location;
                 state.screenName = payload.user.screenName;
+                state.terms = payload.user.terms;
             } else {
                 state.authenticated = false;
                 state.hasAuthenticated = true;

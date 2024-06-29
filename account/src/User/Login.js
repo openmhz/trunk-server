@@ -1,8 +1,7 @@
-
 import {  useState } from "react";
 import { useNavigate, useSearchParams, Link  } from 'react-router-dom';
 import { loginUser  } from "../features/user/userSlice";
-import {  useDispatch } from 'react-redux'
+import {  useDispatch } from 'react-redux';
 import {
   Container,
   Header,
@@ -15,7 +14,7 @@ import {
   Divider
 } from "semantic-ui-react";
 
-// ----------------------------------------------------
+
 const dividerStyle = {
   marginTop: "40px"
 };
@@ -25,7 +24,7 @@ const forgotStyle = {
   textAlign: "right"
 };
 
-// ----------------------------------------------------
+
 
 
 const Login = (props) => {
@@ -41,7 +40,7 @@ const Login = (props) => {
     event.preventDefault();
     const result = await dispatch(loginUser({email,password})).unwrap();
     if (result.success) {
-
+        
         if (nextLocation) {
           switch (nextLocation) {
             case "frontend":
@@ -62,11 +61,15 @@ const Login = (props) => {
     } else {
       console.error(result);
       setLoginMessage(result.message);
-      if (result.message === "unconfirmed email") {
+      if (result.reason === "unconfirmed email") {
         /*data.userId = response.data.userId;
         dispatch(loginEmailError(data));*/
         navigate("/wait-confirm-email");
-      } 
+      }
+      /*
+      if (result.reason === "unaccepted TOS") {
+        navigate("/terms");
+      }*/
     }
   }
 

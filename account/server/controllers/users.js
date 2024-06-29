@@ -37,14 +37,16 @@ exports.authenticated = function (req, res, next) {
       screenName,
       location,
       email,
-      admin
+      admin,
+      terms
     }) => ({
       firstName,
       lastName,
       screenName,
       location,
       email,
-      admin
+      admin,
+      terms
     }))(
       req.user
     );
@@ -71,7 +73,8 @@ exports.login = function (req, res, next) {
       console.log("No user");
       return res.json({
         success: false,
-        message: info.message
+        message: info.message,
+        reason: info.reason
       });
     }
     // ***********************************************************************
@@ -99,6 +102,7 @@ exports.login = function (req, res, next) {
           return res.json({
             success: false,
             message: "unconfirmed email",
+            reason: "unconfirmed email",
             userId: user.id
           });
         });
@@ -111,14 +115,16 @@ exports.login = function (req, res, next) {
         screenName,
         location,
         email,
-        admin
+        admin,
+        terms
       }) => ({
         firstName,
         lastName,
         screenName,
         location,
         email,
-        admin
+        admin,
+        terms
       }))(
         user
       );
@@ -480,8 +486,16 @@ exports.terms = async function (req, res, next) {
     });
     return;
   });
+  var clientUser = (({
+    terms
+  }) => ({
+    terms
+  }))(
+    user
+  );
   res.json({
-    success: true
+    success: true,
+    user: clientUser
   });
   return;
 }

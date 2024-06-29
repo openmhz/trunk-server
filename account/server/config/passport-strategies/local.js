@@ -28,18 +28,23 @@ const local = new LocalStrategy({
 	});
 	if (!user) {
 		console.error("Auth Error - user not found: " + email);
-		return done(null, false, { message: `Invalid email or password` })
+		return done(null, false, { message: `Invalid email or password`, reason: "invalid" })
 	}
 	if (!user.confirmEmail) {
 		console.error("Auth Error - user has not confirmed email: " + email);
-		return done(null, false, { message: `User's email is not confirmed` })
+		return done(null, false, { message: `User's email is not confirmed`, reason: "unconfirmed email"})
 	}
+	/*
+	if (user.terms != 1.1) {
+		console.error("Auth Error - user has not accepted TOS: " + email);
+		return done(null, false, { message: `User has not accepted the Terms of Service`, reason: "unaccepted TOS"})
+	}*/
 	user.comparePassword(password, (err, isMatch) => {
 		if (isMatch) {
 			return done(null, user)
 		} else {
 			console.error("Auth Error - password mismatch: " + email);
-			return done(null, false, { message: "Invalid email or password" })
+			return done(null, false, { message: "Invalid email or password", reason: "invalid"})
 		}
 	})
 })
