@@ -1,0 +1,751 @@
+apiVersion: v1
+data:
+  .gitignore: |
+    # Ignore everything in this directory
+    *
+    # Except this file
+    !.gitignore
+  access.log: |
+    192.168.1.249 - - [08/Jan/2024:15:47:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmTtT HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:47:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmU74 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:47:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmVao HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:47:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmVb2 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:47:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmX2Y HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:47:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmX2x HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:47:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmYWK HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:47:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmYWi HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:47:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmZ-3 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:47:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmZ-R HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:47:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmbRn HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:47:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmbRp HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfmcvy HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmcvX HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmeNI HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmeNg HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfmfr4 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmfrT HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmhIr HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmhJH HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfmim- HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfmimb HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmkEl HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmkEL HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfmli4 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmliT HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmnAG HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfmn9s HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmodZ HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfmodx HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfmq5L HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:48:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfmq5S HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmrZU HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmrZ7 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfmt0p HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfmt1D HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmuUd HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmuV0 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmvyI HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfmvyj HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmxQV HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmxQ5 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfmyto HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfmyuB HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfm-LZ HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfm-L- HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfm_pe HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfm_pI HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfn1H4 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfn1HR HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfn2kq HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:49:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfn2ku HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfn4CZ HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfn4Ct HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfn5gn HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfn5gM HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfn78A HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfn78l HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfn8bo HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfn8c5 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnA3g HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnA3t HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnBXL HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnBXl HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnC_W HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnC_7 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnESn HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnET8 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnFwY HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnFww HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnHOO HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:50:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnHOR HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnIs2 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnIsQ HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnKK9 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnKJm HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnLnX HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnLnv HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnNFI HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnNFh HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnOj5 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnOjN HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnQBA HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnQAo HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnRea HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnRey HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnT6M HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnT6m HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnUaS HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnUa4 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnW1t HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:51:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnW1q HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnXVx HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnXVY HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnYze HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnYzG HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnaR5 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnaRU HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfnbuo HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnbvB HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfndMY HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfndMx HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfneqI HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfneqg HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfngI7 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfngIV HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfnhlo HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnhmD HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnjDX HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnjDv HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnkhL HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:52:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnkhT HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfnm90 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfnm9I HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfnnd0 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfnncp HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfnp4Z HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfnp4o HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnqYK HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnqYj HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfns04 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfns0T HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfntTo HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfntU8 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfnuxb HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfnuxz HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnwPb HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnwPG HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnxtI HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfnxt4 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnzKr HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:53:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfnzKp HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfn-ob HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfn-o_ HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfo0GK HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfo0Gp HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfo1j_ HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfo1kO HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfo3Br HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfo3CC HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfo4fb HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfo4fz HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfo67G HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfo67g HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfo7b3 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfo7bU HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfo92n HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfo93D HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoAWy HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoAWZ HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoB-K HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:54:56 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoB-G HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoDS0 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoDSS HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoEvq HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoEwE HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoGNW HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoGNi HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:18 +0000] "GET / HTTP/1.1" 404 185 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:18 +0000] "GET /favicon.ico HTTP/1.1" 404 185 "http://admin.openmhz.test/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoHrJ HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoHra HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:26 +0000] "GET / HTTP/1.1" 404 185 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoJJT HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoJJ5 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoKmn HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoKn4 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:33 +0000] "GET / HTTP/1.1" 404 124 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1.2 Safari/605.1.15"
+    192.168.1.249 - - [08/Jan/2024:15:55:33 +0000] "GET /static/css/main.9b2469a9.css HTTP/1.1" 404 124 "http://admin.openmhz.test/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1.2 Safari/605.1.15"
+    192.168.1.249 - - [08/Jan/2024:15:55:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoMEa HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoMF2 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoNig HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoNiH HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoPA3 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:55:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoPAP HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoS5X HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:02 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoS5v HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoTZL HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:08 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoTZj HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoV11 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:14 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoV1O HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoWUp HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:20 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoWVD HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoXyW HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:26 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoXyq HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:30 +0000] "GET / HTTP/1.1" 404 185 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoZQh HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:32 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoZQG HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:33 +0000] "GET / HTTP/1.1" 404 185 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfoauP HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:38 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfoau3 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfocLp HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:44 +0000] "GET /socket.io/?EIO=4&transport=polling&t=OpfocM3 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfodi7 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:50 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfodi6 HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:55 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfoewi HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:55 +0000] "GET /socket.io/?EIO=4&transport=polling&t=Opfoewm HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:56 +0000] "GET /authenticated HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:56 +0000] "GET /login?nextLocation=admin HTTP/1.1" 404 185 "http://openmhz.test:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:56:56 +0000] "GET /favicon.ico HTTP/1.1" 404 185 "http://account.openmhz.test/login?nextLocation=admin" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:57:02 +0000] "GET / HTTP/1.1" 404 185 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:57:06 +0000] "GET / HTTP/1.1" 404 185 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:57:06 +0000] "GET /favicon.ico HTTP/1.1" 404 185 "http://openmhz.test/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:57:09 +0000] "GET / HTTP/1.1" 404 185 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    192.168.1.249 - - [08/Jan/2024:15:57:17 +0000] "GET / HTTP/1.1" 404 124 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1.2 Safari/605.1.15"
+    192.168.1.249 - - [08/Jan/2024:15:57:23 +0000] "GET / HTTP/1.1" 404 124 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1.2 Safari/605.1.15"
+    192.168.1.249 - - [08/Jan/2024:16:10:36 +0000] "GET / HTTP/1.1" 404 124 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1.2 Safari/605.1.15"
+    192.168.1.249 - - [08/Jan/2024:16:10:37 +0000] "GET / HTTP/1.1" 404 124 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1.2 Safari/605.1.15"
+  error.log: |
+    2023/04/09 13:55:07 [emerg] 1#1: host not found in upstream "backend" in /etc/nginx/conf.d/default.conf:58
+    2023/05/28 14:44:36 [emerg] 1#1: host not found in upstream "backend" in /etc/nginx/conf.d/default.conf:58
+    2023/05/29 12:30:56 [emerg] 1#1: host not found in upstream "admin" in /etc/nginx/conf.d/default.conf:46
+    2023/05/29 13:32:38 [emerg] 1#1: host not found in upstream "frontend" in /etc/nginx/conf.d/default.conf:7
+    2023/06/07 01:37:58 [emerg] 1#1: host not found in upstream "backend" in /etc/nginx/conf.d/default.conf:58
+    2023/06/07 02:37:34 [emerg] 1#1: host not found in upstream "frontend" in /etc/nginx/conf.d/default.conf:7
+    2023/06/09 00:47:55 [emerg] 1#1: host not found in upstream "account" in /etc/nginx/conf.d/default.conf:34
+    2023/06/09 01:12:34 [emerg] 1#1: host not found in upstream "account" in /etc/nginx/conf.d/default.conf:34
+    2023/06/09 01:18:40 [emerg] 1#1: host not found in upstream "account" in /etc/nginx/conf.d/default.conf:34
+    2023/06/09 01:44:46 [emerg] 1#1: host not found in upstream "frontend" in /etc/nginx/conf.d/default.conf:7
+    2023/06/09 02:38:06 [emerg] 1#1: host not found in upstream "account" in /etc/nginx/conf.d/default.conf:34
+    2023/06/09 02:39:43 [emerg] 1#1: host not found in upstream "backend" in /etc/nginx/conf.d/default.conf:58
+    2023/06/09 12:16:22 [emerg] 1#1: host not found in upstream "frontend" in /etc/nginx/conf.d/default.conf:7
+    2023/06/09 15:02:13 [emerg] 1#1: host not found in upstream "admin" in /etc/nginx/conf.d/default.conf:46
+    2023/06/10 11:27:27 [emerg] 1#1: host not found in upstream "frontend" in /etc/nginx/conf.d/default.conf:7
+    2023/06/11 13:17:39 [emerg] 1#1: host not found in upstream "account" in /etc/nginx/conf.d/default.conf:34
+    2023/06/11 14:07:19 [emerg] 1#1: host not found in upstream "frontend" in /etc/nginx/conf.d/default.conf:7
+    2023/06/11 15:23:14 [emerg] 1#1: host not found in upstream "account" in /etc/nginx/conf.d/default.conf:34
+    2023/06/15 11:28:32 [emerg] 1#1: host not found in upstream "frontend" in /etc/nginx/conf.d/default.conf:7
+    2023/06/28 01:39:29 [emerg] 1#1: host not found in upstream "account" in /etc/nginx/conf.d/default.conf:34
+    2023/12/05 15:02:45 [emerg] 1#1: host not found in upstream "frontend" in /etc/nginx/conf.d/default.conf:7
+    2023/12/05 15:08:10 [emerg] 1#1: host not found in upstream "account" in /etc/nginx/conf.d/default.conf:34
+    2023/12/06 13:53:10 [emerg] 1#1: host not found in upstream "frontend" in /etc/nginx/conf.d/default.conf:7
+    2023/12/06 15:31:58 [emerg] 1#1: host not found in upstream "backend" in /etc/nginx/conf.d/default.conf:58
+    2023/12/21 01:56:38 [emerg] 1#1: host not found in upstream "frontend" in /etc/nginx/conf.d/default.conf:7
+    2024/01/08 15:47:26 [warn] 8#8: conflicting server name "openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 15:47:26 [warn] 8#8: conflicting server name "www.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 15:47:26 [warn] 8#8: conflicting server name "account.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 15:47:26 [warn] 8#8: conflicting server name "admin.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 15:47:26 [warn] 8#8: conflicting server name "api.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 15:56:02 [warn] 8#8: conflicting server name "openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 15:56:02 [warn] 8#8: conflicting server name "www.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 15:56:02 [warn] 8#8: conflicting server name "account.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 15:56:02 [warn] 8#8: conflicting server name "admin.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 15:56:02 [warn] 8#8: conflicting server name "api.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:01:12 [warn] 8#8: conflicting server name "openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:01:12 [warn] 8#8: conflicting server name "www.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:01:12 [warn] 8#8: conflicting server name "account.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:01:12 [warn] 8#8: conflicting server name "admin.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:01:12 [warn] 8#8: conflicting server name "api.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:08:47 [emerg] 8#8: host not found in upstream "account" in /etc/nginx/conf.d/default.conf:43
+    2024/01/08 16:08:48 [warn] 8#8: conflicting server name "openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:08:48 [warn] 8#8: conflicting server name "www.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:08:48 [warn] 8#8: conflicting server name "account.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:08:48 [warn] 8#8: conflicting server name "admin.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:08:48 [warn] 8#8: conflicting server name "api.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:20:38 [warn] 8#8: conflicting server name "openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:20:38 [warn] 8#8: conflicting server name "www.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:20:38 [warn] 8#8: conflicting server name "account.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:20:38 [warn] 8#8: conflicting server name "admin.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:20:38 [warn] 8#8: conflicting server name "api.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:22:24 [warn] 8#8: conflicting server name "openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:22:24 [warn] 8#8: conflicting server name "www.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:22:24 [warn] 8#8: conflicting server name "account.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:22:24 [warn] 8#8: conflicting server name "admin.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 16:22:24 [warn] 8#8: conflicting server name "api.openmhz.test" on 0.0.0.0:80, ignored
+    2024/01/08 22:31:32 [notice] 14#14: signal process started
+    2024/01/09 04:31:32 [notice] 19#19: signal process started
+    2024/01/09 10:31:32 [notice] 24#24: signal process started
+    2024/01/09 16:31:32 [notice] 29#29: signal process started
+    2024/01/09 22:31:32 [notice] 34#34: signal process started
+    2024/01/10 04:31:32 [notice] 39#39: signal process started
+    2024/01/10 10:31:32 [notice] 44#44: signal process started
+    2024/01/10 16:31:32 [notice] 49#49: signal process started
+    2024/01/10 22:31:32 [notice] 54#54: signal process started
+    2024/01/11 04:31:32 [notice] 59#59: signal process started
+    2024/01/11 10:31:32 [notice] 64#64: signal process started
+    2024/01/11 16:31:32 [notice] 69#69: signal process started
+    2024/01/11 22:31:32 [notice] 74#74: signal process started
+    2024/01/12 04:31:32 [notice] 79#79: signal process started
+    2024/01/12 10:31:32 [notice] 84#84: signal process started
+    2024/01/12 16:31:32 [notice] 89#89: signal process started
+    2024/01/12 22:31:32 [notice] 94#94: signal process started
+    2024/01/13 04:31:32 [notice] 99#99: signal process started
+    2024/01/13 10:31:32 [notice] 104#104: signal process started
+    2024/01/13 16:31:32 [notice] 109#109: signal process started
+    2024/01/13 22:31:32 [notice] 114#114: signal process started
+    2024/01/14 04:31:32 [notice] 119#119: signal process started
+    2024/01/14 10:31:32 [notice] 124#124: signal process started
+    2024/01/14 16:31:32 [notice] 129#129: signal process started
+    2024/01/14 22:31:32 [notice] 134#134: signal process started
+    2024/01/15 04:31:32 [notice] 139#139: signal process started
+    2024/01/15 10:31:32 [notice] 144#144: signal process started
+    2024/01/15 16:31:32 [notice] 149#149: signal process started
+    2024/01/15 22:31:32 [notice] 154#154: signal process started
+    2024/01/16 02:18:18 [emerg] 8#8: host not found in upstream "backend" in /etc/nginx/conf.d/default.conf:58
+    2024/01/16 08:18:19 [notice] 14#14: signal process started
+    2024/01/16 14:18:19 [notice] 19#19: signal process started
+    2024/01/16 20:18:19 [notice] 24#24: signal process started
+    2024/01/17 02:18:19 [notice] 29#29: signal process started
+    2024/01/17 08:18:19 [notice] 34#34: signal process started
+    2024/01/17 14:18:19 [notice] 39#39: signal process started
+    2024/01/17 20:18:19 [notice] 44#44: signal process started
+    2024/01/18 02:18:19 [notice] 49#49: signal process started
+    2024/01/18 08:18:19 [notice] 54#54: signal process started
+    2024/01/18 14:18:19 [notice] 59#59: signal process started
+    2024/01/18 20:18:19 [notice] 64#64: signal process started
+    2024/01/19 02:18:19 [notice] 69#69: signal process started
+    2024/01/19 08:18:19 [notice] 74#74: signal process started
+    2024/01/19 14:18:19 [notice] 79#79: signal process started
+    2024/01/19 20:18:19 [notice] 84#84: signal process started
+    2024/01/20 02:18:19 [notice] 89#89: signal process started
+    2024/01/20 08:18:19 [notice] 94#94: signal process started
+    2024/01/20 14:18:19 [notice] 99#99: signal process started
+    2024/01/20 20:18:19 [notice] 104#104: signal process started
+    2024/01/21 02:18:19 [notice] 109#109: signal process started
+    2024/01/21 08:18:19 [notice] 114#114: signal process started
+    2024/01/21 14:18:19 [notice] 119#119: signal process started
+    2024/01/21 20:18:19 [notice] 124#124: signal process started
+    2024/01/22 02:18:19 [notice] 129#129: signal process started
+    2024/01/22 08:18:19 [notice] 134#134: signal process started
+    2024/01/22 14:18:19 [notice] 139#139: signal process started
+    2024/01/22 20:18:19 [notice] 144#144: signal process started
+    2024/01/23 02:18:19 [notice] 149#149: signal process started
+    2024/01/23 08:18:19 [notice] 154#154: signal process started
+    2024/01/23 14:18:19 [notice] 159#159: signal process started
+    2024/01/23 20:18:19 [notice] 164#164: signal process started
+    2024/01/24 02:18:19 [notice] 169#169: signal process started
+    2024/01/24 08:18:19 [notice] 174#174: signal process started
+    2024/01/24 14:18:19 [notice] 179#179: signal process started
+    2024/01/24 20:18:19 [notice] 184#184: signal process started
+    2024/01/25 02:18:19 [notice] 189#189: signal process started
+    2024/01/25 08:18:19 [notice] 194#194: signal process started
+    2024/01/25 14:18:19 [notice] 199#199: signal process started
+    2024/01/25 20:18:19 [notice] 204#204: signal process started
+    2024/01/26 02:18:19 [notice] 209#209: signal process started
+    2024/01/26 08:18:20 [notice] 214#214: signal process started
+    2024/01/26 14:18:20 [notice] 219#219: signal process started
+    2024/01/26 20:18:20 [notice] 224#224: signal process started
+    2024/01/27 02:18:20 [notice] 229#229: signal process started
+    2024/01/27 08:18:20 [notice] 234#234: signal process started
+    2024/01/27 13:53:10 [emerg] 8#8: host not found in upstream "frontend" in /etc/nginx/conf.d/default.conf:7
+    2024/01/27 14:12:06 [emerg] 8#8: host not found in upstream "admin" in /etc/nginx/conf.d/default.conf:46
+    2024/01/27 20:12:07 [notice] 14#14: signal process started
+    2024/01/28 02:12:07 [notice] 19#19: signal process started
+    2024/01/28 08:12:07 [notice] 24#24: signal process started
+    2024/01/28 14:12:07 [notice] 29#29: signal process started
+    2024/01/28 20:12:07 [notice] 34#34: signal process started
+    2024/01/29 02:12:07 [notice] 39#39: signal process started
+    2024/01/29 08:12:07 [notice] 44#44: signal process started
+    2024/01/29 14:12:07 [notice] 49#49: signal process started
+    2024/01/29 20:12:07 [notice] 54#54: signal process started
+    2024/01/30 02:12:07 [notice] 59#59: signal process started
+    2024/01/30 08:12:07 [notice] 64#64: signal process started
+    2024/01/30 14:12:07 [notice] 69#69: signal process started
+    2024/01/30 20:12:07 [notice] 74#74: signal process started
+    2024/01/31 02:12:07 [notice] 79#79: signal process started
+    2024/01/31 08:12:07 [notice] 84#84: signal process started
+    2024/01/31 14:12:07 [notice] 89#89: signal process started
+    2024/01/31 20:12:07 [notice] 94#94: signal process started
+    2024/02/01 02:12:07 [notice] 99#99: signal process started
+    2024/02/01 08:12:07 [notice] 104#104: signal process started
+    2024/02/01 14:12:07 [notice] 109#109: signal process started
+    2024/02/01 20:12:07 [notice] 114#114: signal process started
+    2024/02/02 02:12:07 [notice] 119#119: signal process started
+    2024/02/02 08:12:07 [notice] 124#124: signal process started
+    2024/02/02 14:12:07 [notice] 129#129: signal process started
+    2024/02/02 20:12:07 [notice] 134#134: signal process started
+    2024/02/03 02:12:07 [notice] 139#139: signal process started
+    2024/02/03 08:12:08 [notice] 144#144: signal process started
+    2024/02/03 14:12:08 [notice] 149#149: signal process started
+    2024/02/03 20:12:08 [notice] 154#154: signal process started
+    2024/02/04 02:12:08 [notice] 159#159: signal process started
+    2024/02/04 08:12:08 [notice] 164#164: signal process started
+    2024/02/04 14:12:08 [notice] 169#169: signal process started
+    2024/02/04 20:12:08 [notice] 174#174: signal process started
+    2024/02/05 02:12:08 [notice] 179#179: signal process started
+    2024/02/05 08:12:08 [notice] 184#184: signal process started
+    2024/02/05 14:12:08 [notice] 189#189: signal process started
+    2024/02/05 20:12:08 [notice] 194#194: signal process started
+    2024/02/06 02:12:08 [notice] 199#199: signal process started
+    2024/02/06 08:12:08 [notice] 204#204: signal process started
+    2024/02/06 14:12:08 [notice] 209#209: signal process started
+    2024/02/06 20:12:08 [notice] 214#214: signal process started
+    2024/02/07 02:12:08 [notice] 219#219: signal process started
+    2024/02/07 08:12:08 [notice] 224#224: signal process started
+    2024/02/07 14:12:08 [notice] 229#229: signal process started
+    2024/02/07 20:12:08 [notice] 234#234: signal process started
+    2024/02/08 02:12:08 [notice] 239#239: signal process started
+    2024/02/08 08:12:08 [notice] 244#244: signal process started
+    2024/02/08 14:12:08 [notice] 249#249: signal process started
+    2024/02/08 20:12:08 [notice] 254#254: signal process started
+    2024/02/09 02:12:08 [notice] 259#259: signal process started
+    2024/02/09 08:12:08 [notice] 264#264: signal process started
+    2024/02/09 14:12:08 [notice] 269#269: signal process started
+    2024/02/09 20:12:08 [notice] 274#274: signal process started
+    2024/02/10 02:12:08 [notice] 279#279: signal process started
+    2024/02/10 08:12:08 [notice] 284#284: signal process started
+    2024/02/10 14:12:08 [notice] 289#289: signal process started
+    2024/02/10 20:12:08 [notice] 294#294: signal process started
+    2024/02/11 02:12:08 [notice] 299#299: signal process started
+    2024/02/11 08:12:08 [notice] 304#304: signal process started
+    2024/02/11 14:12:08 [notice] 309#309: signal process started
+    2024/02/11 20:12:08 [notice] 314#314: signal process started
+    2024/02/12 02:12:08 [notice] 319#319: signal process started
+    2024/02/12 08:12:08 [notice] 324#324: signal process started
+    2024/02/12 14:12:08 [notice] 329#329: signal process started
+    2024/02/12 20:12:08 [notice] 334#334: signal process started
+    2024/02/13 02:12:08 [notice] 339#339: signal process started
+    2024/02/13 08:12:08 [notice] 344#344: signal process started
+    2024/02/13 14:12:08 [notice] 349#349: signal process started
+    2024/02/13 20:12:08 [notice] 354#354: signal process started
+    2024/02/14 02:12:08 [notice] 359#359: signal process started
+    2024/02/14 08:12:08 [notice] 364#364: signal process started
+    2024/02/14 14:12:08 [notice] 369#369: signal process started
+    2024/02/14 20:12:08 [notice] 374#374: signal process started
+    2024/02/15 02:12:08 [notice] 379#379: signal process started
+    2024/02/15 08:12:08 [notice] 384#384: signal process started
+    2024/02/15 14:12:08 [notice] 389#389: signal process started
+    2024/02/15 20:12:08 [notice] 394#394: signal process started
+    2024/02/16 02:04:59 [emerg] 9#9: host not found in upstream "backend" in /etc/nginx/conf.d/default.conf:58
+    2024/02/16 02:35:00 [emerg] 8#8: host not found in upstream "frontend" in /etc/nginx/conf.d/default.conf:7
+    2024/02/16 08:35:01 [notice] 14#14: signal process started
+    2024/02/16 14:35:01 [notice] 19#19: signal process started
+    2024/02/16 20:35:01 [notice] 24#24: signal process started
+    2024/02/17 02:35:01 [notice] 29#29: signal process started
+    2024/02/17 08:35:01 [notice] 34#34: signal process started
+    2024/02/17 14:35:01 [notice] 39#39: signal process started
+    2024/02/17 15:07:07 [emerg] 8#8: host not found in upstream "account" in /etc/nginx/conf.d/default.conf:34
+    2024/02/17 21:07:07 [notice] 14#14: signal process started
+    2024/02/18 03:07:07 [notice] 19#19: signal process started
+    2024/02/18 09:07:07 [notice] 24#24: signal process started
+    2024/02/18 15:07:07 [notice] 29#29: signal process started
+    2024/02/18 21:07:07 [notice] 34#34: signal process started
+    2024/02/19 03:07:07 [notice] 39#39: signal process started
+    2024/02/19 09:07:07 [notice] 44#44: signal process started
+    2024/02/19 15:07:07 [notice] 49#49: signal process started
+    2024/02/19 21:07:07 [notice] 54#54: signal process started
+    2024/02/20 03:07:07 [notice] 59#59: signal process started
+    2024/02/20 09:07:07 [notice] 64#64: signal process started
+    2024/02/20 15:07:07 [notice] 69#69: signal process started
+    2024/02/20 21:07:07 [notice] 74#74: signal process started
+    2024/02/21 03:07:07 [notice] 79#79: signal process started
+    2024/02/21 09:07:07 [notice] 84#84: signal process started
+    2024/02/21 15:07:07 [notice] 89#89: signal process started
+    2024/02/21 21:07:07 [notice] 94#94: signal process started
+    2024/02/22 03:07:07 [notice] 99#99: signal process started
+    2024/02/22 09:07:07 [notice] 104#104: signal process started
+    2024/02/22 15:07:08 [notice] 109#109: signal process started
+    2024/02/22 21:07:08 [notice] 114#114: signal process started
+    2024/02/25 04:40:32 [notice] 14#14: signal process started
+    2024/02/25 10:40:32 [notice] 19#19: signal process started
+    2024/02/25 16:40:32 [notice] 24#24: signal process started
+    2024/02/25 22:40:32 [notice] 29#29: signal process started
+    2024/02/26 04:40:32 [notice] 34#34: signal process started
+    2024/02/26 10:40:32 [notice] 39#39: signal process started
+    2024/02/26 16:40:32 [notice] 44#44: signal process started
+    2024/02/26 22:40:32 [notice] 49#49: signal process started
+    2024/02/27 04:40:32 [notice] 54#54: signal process started
+    2024/02/27 10:40:32 [notice] 59#59: signal process started
+    2024/02/27 16:40:32 [notice] 64#64: signal process started
+    2024/02/27 22:40:32 [notice] 69#69: signal process started
+    2024/02/28 04:40:32 [notice] 74#74: signal process started
+    2024/02/28 10:40:32 [notice] 79#79: signal process started
+    2024/02/28 16:40:32 [notice] 84#84: signal process started
+    2024/02/28 22:40:32 [notice] 89#89: signal process started
+    2024/02/29 04:40:32 [notice] 94#94: signal process started
+    2024/02/29 10:40:32 [notice] 99#99: signal process started
+    2024/02/29 16:40:32 [notice] 104#104: signal process started
+    2024/02/29 22:40:32 [notice] 109#109: signal process started
+    2024/03/01 04:40:32 [notice] 114#114: signal process started
+    2024/03/01 10:40:32 [notice] 119#119: signal process started
+    2024/03/01 16:40:32 [notice] 124#124: signal process started
+    2024/03/01 22:40:32 [notice] 129#129: signal process started
+    2024/03/02 04:40:32 [notice] 134#134: signal process started
+    2024/03/02 10:40:32 [notice] 139#139: signal process started
+    2024/03/02 16:40:32 [notice] 144#144: signal process started
+    2024/03/02 22:40:32 [notice] 149#149: signal process started
+    2024/03/03 04:40:32 [notice] 154#154: signal process started
+    2024/03/03 10:40:32 [notice] 159#159: signal process started
+    2024/03/03 16:40:32 [notice] 164#164: signal process started
+    2024/03/03 22:40:32 [notice] 169#169: signal process started
+    2024/03/04 04:40:32 [notice] 174#174: signal process started
+    2024/03/04 10:40:32 [notice] 179#179: signal process started
+    2024/03/04 16:40:32 [notice] 184#184: signal process started
+    2024/03/04 22:40:32 [notice] 189#189: signal process started
+    2024/03/05 04:40:32 [notice] 194#194: signal process started
+    2024/03/05 10:40:32 [notice] 199#199: signal process started
+    2024/03/05 16:40:32 [notice] 204#204: signal process started
+    2024/03/05 22:40:32 [notice] 209#209: signal process started
+    2024/03/06 04:40:32 [notice] 214#214: signal process started
+    2024/03/06 10:40:32 [notice] 219#219: signal process started
+    2024/03/06 16:40:32 [notice] 224#224: signal process started
+    2024/03/06 22:40:32 [notice] 229#229: signal process started
+    2024/03/07 04:40:32 [notice] 234#234: signal process started
+    2024/03/07 10:40:32 [notice] 239#239: signal process started
+    2024/03/07 16:40:32 [notice] 244#244: signal process started
+    2024/03/07 22:40:32 [notice] 249#249: signal process started
+    2024/03/08 04:40:32 [notice] 254#254: signal process started
+    2024/03/08 10:40:32 [notice] 259#259: signal process started
+    2024/03/08 16:40:32 [notice] 264#264: signal process started
+    2024/03/08 22:40:32 [notice] 269#269: signal process started
+    2024/03/09 04:40:32 [notice] 274#274: signal process started
+    2024/03/09 10:40:32 [notice] 279#279: signal process started
+    2024/03/09 16:40:32 [notice] 284#284: signal process started
+    2024/03/09 22:40:32 [notice] 289#289: signal process started
+    2024/03/10 04:40:32 [notice] 294#294: signal process started
+    2024/03/10 10:40:32 [notice] 299#299: signal process started
+    2024/03/10 16:40:32 [notice] 304#304: signal process started
+    2024/03/10 22:40:32 [notice] 309#309: signal process started
+    2024/03/11 04:40:32 [notice] 314#314: signal process started
+    2024/03/11 10:40:32 [notice] 319#319: signal process started
+    2024/03/11 16:40:32 [notice] 324#324: signal process started
+    2024/03/11 22:40:32 [notice] 329#329: signal process started
+    2024/03/12 04:40:32 [notice] 334#334: signal process started
+    2024/03/12 10:40:32 [notice] 339#339: signal process started
+    2024/03/12 16:40:32 [notice] 344#344: signal process started
+    2024/03/12 22:40:32 [notice] 349#349: signal process started
+    2024/03/13 04:40:32 [notice] 354#354: signal process started
+    2024/03/13 10:40:32 [notice] 359#359: signal process started
+    2024/03/13 16:40:32 [notice] 364#364: signal process started
+    2024/03/13 22:40:32 [notice] 369#369: signal process started
+    2024/03/14 04:40:32 [notice] 374#374: signal process started
+    2024/03/14 10:40:32 [notice] 379#379: signal process started
+    2024/03/14 16:40:32 [notice] 384#384: signal process started
+    2024/03/14 22:40:32 [notice] 389#389: signal process started
+    2024/03/15 04:40:32 [notice] 394#394: signal process started
+    2024/03/15 10:40:32 [notice] 399#399: signal process started
+    2024/03/15 16:40:33 [notice] 404#404: signal process started
+    2024/03/15 22:40:33 [notice] 409#409: signal process started
+    2024/03/16 04:40:33 [notice] 414#414: signal process started
+    2024/03/16 10:40:33 [notice] 419#419: signal process started
+    2024/03/16 16:40:33 [notice] 424#424: signal process started
+    2024/03/16 22:40:33 [notice] 429#429: signal process started
+    2024/03/17 04:40:33 [notice] 434#434: signal process started
+    2024/03/17 10:40:33 [notice] 439#439: signal process started
+    2024/03/17 16:40:33 [notice] 444#444: signal process started
+    2024/03/17 22:40:33 [notice] 449#449: signal process started
+    2024/03/18 04:40:33 [notice] 454#454: signal process started
+    2024/03/18 10:40:33 [notice] 459#459: signal process started
+    2024/03/18 16:40:33 [notice] 464#464: signal process started
+    2024/03/18 22:40:33 [notice] 469#469: signal process started
+    2024/03/19 04:40:33 [notice] 474#474: signal process started
+    2024/03/19 10:40:33 [notice] 479#479: signal process started
+    2024/03/19 16:40:33 [notice] 484#484: signal process started
+    2024/03/19 22:40:33 [notice] 489#489: signal process started
+    2024/03/20 04:40:33 [notice] 494#494: signal process started
+    2024/03/20 10:40:33 [notice] 499#499: signal process started
+    2024/03/20 16:40:33 [notice] 504#504: signal process started
+    2024/03/20 22:40:33 [notice] 509#509: signal process started
+    2024/03/21 04:40:33 [notice] 514#514: signal process started
+    2024/03/21 10:40:33 [notice] 519#519: signal process started
+    2024/03/21 16:40:33 [notice] 524#524: signal process started
+    2024/03/21 22:40:33 [notice] 529#529: signal process started
+    2024/03/22 04:40:33 [notice] 534#534: signal process started
+    2024/03/22 10:40:33 [notice] 539#539: signal process started
+    2024/03/22 16:40:33 [notice] 544#544: signal process started
+    2024/03/22 22:40:33 [notice] 549#549: signal process started
+    2024/03/23 04:40:33 [notice] 554#554: signal process started
+    2024/03/23 10:40:33 [notice] 559#559: signal process started
+    2024/03/23 16:40:33 [notice] 564#564: signal process started
+    2024/03/23 22:40:33 [notice] 569#569: signal process started
+    2024/03/24 04:40:33 [notice] 574#574: signal process started
+    2024/03/24 10:40:33 [notice] 579#579: signal process started
+    2024/03/24 16:40:33 [notice] 584#584: signal process started
+    2024/03/24 22:40:33 [notice] 589#589: signal process started
+    2024/03/25 04:40:33 [notice] 594#594: signal process started
+    2024/03/25 10:40:33 [notice] 599#599: signal process started
+    2024/03/25 16:40:33 [notice] 604#604: signal process started
+    2024/03/25 22:40:33 [notice] 609#609: signal process started
+    2024/03/26 04:40:33 [notice] 614#614: signal process started
+    2024/03/26 10:40:33 [notice] 619#619: signal process started
+    2024/03/26 16:40:33 [notice] 624#624: signal process started
+    2024/03/26 22:40:33 [notice] 629#629: signal process started
+    2024/03/27 04:40:33 [notice] 634#634: signal process started
+    2024/03/27 10:40:33 [notice] 639#639: signal process started
+    2024/03/27 16:40:33 [notice] 644#644: signal process started
+    2024/03/27 22:40:33 [notice] 649#649: signal process started
+    2024/03/28 04:40:33 [notice] 654#654: signal process started
+    2024/03/28 10:40:33 [notice] 659#659: signal process started
+    2024/03/28 16:40:33 [notice] 664#664: signal process started
+    2024/03/28 22:40:33 [notice] 669#669: signal process started
+    2024/03/29 04:40:33 [notice] 674#674: signal process started
+    2024/03/29 10:40:33 [notice] 679#679: signal process started
+    2024/03/29 16:40:33 [notice] 684#684: signal process started
+    2024/03/29 22:40:33 [notice] 689#689: signal process started
+    2024/03/30 04:40:33 [notice] 694#694: signal process started
+    2024/03/30 10:40:33 [notice] 699#699: signal process started
+    2024/03/30 16:40:33 [notice] 704#704: signal process started
+    2024/03/30 22:40:33 [notice] 709#709: signal process started
+    2024/03/31 04:40:33 [notice] 714#714: signal process started
+    2024/03/31 10:40:33 [notice] 719#719: signal process started
+    2024/03/31 16:40:33 [notice] 724#724: signal process started
+    2024/03/31 22:40:33 [notice] 729#729: signal process started
+    2024/04/01 04:40:33 [notice] 734#734: signal process started
+    2024/04/01 10:40:33 [notice] 739#739: signal process started
+    2024/04/01 16:40:33 [notice] 744#744: signal process started
+    2024/04/01 22:40:33 [notice] 749#749: signal process started
+    2024/04/02 04:40:33 [notice] 754#754: signal process started
+    2024/04/02 10:40:33 [notice] 759#759: signal process started
+    2024/04/02 16:40:33 [notice] 764#764: signal process started
+    2024/04/02 22:40:33 [notice] 769#769: signal process started
+    2024/04/03 04:40:33 [notice] 774#774: signal process started
+    2024/04/03 10:40:33 [notice] 779#779: signal process started
+    2024/04/03 16:40:33 [notice] 784#784: signal process started
+    2024/04/03 22:40:33 [notice] 789#789: signal process started
+    2024/04/04 04:40:33 [notice] 794#794: signal process started
+    2024/04/04 10:40:33 [notice] 799#799: signal process started
+    2024/04/04 16:40:33 [notice] 804#804: signal process started
+    2024/04/04 22:40:33 [notice] 809#809: signal process started
+    2024/04/05 04:40:33 [notice] 814#814: signal process started
+    2024/04/05 10:40:33 [notice] 819#819: signal process started
+    2024/04/05 16:40:33 [notice] 824#824: signal process started
+    2024/04/05 22:40:33 [notice] 829#829: signal process started
+    2024/04/06 04:40:33 [notice] 834#834: signal process started
+    2024/04/06 10:40:33 [notice] 839#839: signal process started
+    2024/04/06 16:40:33 [notice] 844#844: signal process started
+    2024/04/06 22:40:33 [notice] 849#849: signal process started
+    2024/04/07 04:40:33 [notice] 854#854: signal process started
+    2024/04/07 10:40:33 [notice] 859#859: signal process started
+    2024/04/07 16:40:33 [notice] 864#864: signal process started
+    2024/04/07 22:40:33 [notice] 869#869: signal process started
+    2024/04/08 04:40:33 [notice] 874#874: signal process started
+    2024/04/08 10:40:33 [notice] 879#879: signal process started
+    2024/04/08 16:40:34 [notice] 884#884: signal process started
+    2024/04/08 22:40:34 [notice] 889#889: signal process started
+    2024/04/09 04:40:34 [notice] 894#894: signal process started
+    2024/04/09 10:40:34 [notice] 899#899: signal process started
+    2024/04/09 16:40:34 [notice] 904#904: signal process started
+    2024/04/09 22:40:34 [notice] 909#909: signal process started
+    2024/04/10 04:40:34 [notice] 914#914: signal process started
+    2024/04/10 10:40:34 [notice] 919#919: signal process started
+    2024/04/10 16:40:34 [notice] 924#924: signal process started
+    2024/04/10 22:40:34 [notice] 929#929: signal process started
+    2024/04/11 04:40:34 [notice] 934#934: signal process started
+    2024/04/11 10:40:34 [notice] 939#939: signal process started
+    2024/04/11 16:40:34 [notice] 944#944: signal process started
+    2024/04/11 22:40:34 [notice] 949#949: signal process started
+    2024/04/12 04:40:34 [notice] 954#954: signal process started
+    2024/04/12 10:40:34 [notice] 959#959: signal process started
+    2024/04/12 16:40:34 [notice] 964#964: signal process started
+    2024/04/12 22:40:34 [notice] 969#969: signal process started
+    2024/04/13 04:40:34 [notice] 974#974: signal process started
+    2024/04/13 10:40:34 [notice] 979#979: signal process started
+    2024/04/13 16:40:34 [notice] 984#984: signal process started
+    2024/04/13 22:40:34 [notice] 989#989: signal process started
+    2024/04/14 04:40:34 [notice] 994#994: signal process started
+    2024/04/14 10:40:34 [notice] 999#999: signal process started
+    2024/04/14 16:40:34 [notice] 1004#1004: signal process started
+    2024/04/14 22:40:34 [notice] 1009#1009: signal process started
+    2024/04/15 04:40:34 [notice] 1014#1014: signal process started
+    2024/04/15 10:40:34 [notice] 1019#1019: signal process started
+    2024/04/15 16:40:34 [notice] 1024#1024: signal process started
+    2024/04/15 22:40:34 [notice] 1029#1029: signal process started
+    2024/04/16 04:40:34 [notice] 1034#1034: signal process started
+    2024/04/16 10:40:34 [notice] 1039#1039: signal process started
+    2024/04/16 16:40:34 [notice] 1044#1044: signal process started
+    2024/04/16 22:40:34 [notice] 1049#1049: signal process started
+    2024/04/17 04:40:34 [notice] 1054#1054: signal process started
+    2024/04/17 10:40:34 [notice] 1059#1059: signal process started
+    2024/04/17 16:40:34 [notice] 1064#1064: signal process started
+    2024/04/17 22:40:34 [notice] 1069#1069: signal process started
+    2024/04/18 04:40:34 [notice] 1074#1074: signal process started
+    2024/04/18 10:40:34 [notice] 1079#1079: signal process started
+    2024/04/18 16:40:34 [notice] 1084#1084: signal process started
+    2024/04/18 22:40:34 [notice] 1089#1089: signal process started
+    2024/04/19 04:40:34 [notice] 1094#1094: signal process started
+    2024/04/19 10:40:34 [notice] 1099#1099: signal process started
+    2024/04/19 16:40:34 [notice] 1104#1104: signal process started
+    2024/04/19 22:40:34 [notice] 1109#1109: signal process started
+    2024/04/20 04:40:34 [notice] 1114#1114: signal process started
+    2024/04/20 10:40:34 [notice] 1119#1119: signal process started
+    2024/04/20 16:40:34 [notice] 1124#1124: signal process started
+    2024/04/20 22:40:34 [notice] 1129#1129: signal process started
+    2024/04/21 04:40:34 [notice] 1134#1134: signal process started
+    2024/04/21 10:40:34 [notice] 1139#1139: signal process started
+    2024/04/21 16:40:34 [notice] 1144#1144: signal process started
+    2024/04/21 22:40:34 [notice] 1149#1149: signal process started
+    2024/04/22 04:40:34 [notice] 1154#1154: signal process started
+    2024/04/22 10:40:34 [notice] 1159#1159: signal process started
+    2024/04/22 16:40:34 [notice] 1164#1164: signal process started
+    2024/04/22 22:40:34 [notice] 1169#1169: signal process started
+    2024/04/23 04:40:34 [notice] 1174#1174: signal process started
+    2024/04/23 10:40:34 [notice] 1179#1179: signal process started
+    2024/04/23 16:40:34 [notice] 1184#1184: signal process started
+    2024/04/23 22:40:34 [notice] 1189#1189: signal process started
+    2024/04/24 04:40:34 [notice] 1194#1194: signal process started
+    2024/04/24 10:40:34 [notice] 1199#1199: signal process started
+    2024/04/24 16:40:34 [notice] 1204#1204: signal process started
+    2024/04/24 22:40:34 [notice] 1209#1209: signal process started
+    2024/04/25 04:40:34 [notice] 1214#1214: signal process started
+    2024/04/25 10:40:34 [notice] 1219#1219: signal process started
+    2024/04/25 16:40:34 [notice] 1224#1224: signal process started
+    2024/04/25 22:40:34 [notice] 1229#1229: signal process started
+    2024/04/26 04:40:34 [notice] 1234#1234: signal process started
+    2024/04/26 10:40:34 [notice] 1239#1239: signal process started
+    2024/04/26 16:40:34 [notice] 1244#1244: signal process started
+    2024/04/26 22:40:34 [notice] 1249#1249: signal process started
+    2024/04/27 04:40:34 [notice] 1254#1254: signal process started
+    2024/04/27 10:40:35 [notice] 1259#1259: signal process started
+    2024/04/27 16:40:35 [notice] 1264#1264: signal process started
+    2024/04/27 22:40:35 [notice] 1269#1269: signal process started
+    2024/04/28 04:40:35 [notice] 1274#1274: signal process started
+    2024/04/28 10:40:35 [notice] 1279#1279: signal process started
+    2024/06/19 13:11:09 [emerg] 9#9: host not found in upstream "admin" in /etc/nginx/conf.d/default.conf:60
+    2024/06/19 19:11:12 [notice] 14#14: signal process started
+    2024/06/20 01:11:12 [notice] 19#19: signal process started
+    2024/06/20 07:11:12 [notice] 24#24: signal process started
+    2024/06/20 13:11:12 [notice] 29#29: signal process started
+    2024/06/20 19:11:12 [notice] 34#34: signal process started
+    2024/06/21 01:11:12 [notice] 39#39: signal process started
+    2024/06/22 22:27:02 [notice] 14#14: signal process started
+    2024/06/23 04:27:02 [notice] 19#19: signal process started
+    2024/06/23 10:27:02 [notice] 24#24: signal process started
+    2024/06/23 21:47:55 [notice] 14#14: signal process started
+    2024/06/24 03:47:55 [notice] 19#19: signal process started
+    2024/06/24 09:47:55 [notice] 24#24: signal process started
+    2024/06/24 15:47:55 [notice] 29#29: signal process started
+    2024/06/24 21:47:55 [notice] 34#34: signal process started
+    2024/06/25 03:47:55 [notice] 39#39: signal process started
+    2024/06/25 09:47:55 [notice] 44#44: signal process started
+    2024/06/25 15:47:55 [notice] 49#49: signal process started
+    2024/06/25 21:47:55 [notice] 54#54: signal process started
+    2024/06/26 03:47:55 [notice] 59#59: signal process started
+    2024/06/26 09:47:55 [notice] 64#64: signal process started
+    2024/06/26 15:47:55 [notice] 69#69: signal process started
+    2024/06/26 21:47:55 [notice] 74#74: signal process started
+    2024/06/27 03:47:55 [notice] 79#79: signal process started
+    2024/06/27 09:47:55 [notice] 84#84: signal process started
+    2024/06/27 15:47:55 [notice] 89#89: signal process started
+    2024/06/27 21:47:56 [notice] 94#94: signal process started
+    2024/06/28 03:47:56 [notice] 99#99: signal process started
+    2024/06/28 09:47:56 [notice] 104#104: signal process started
+    2024/06/28 15:47:56 [notice] 109#109: signal process started
+    2024/06/28 21:47:56 [notice] 114#114: signal process started
+    2024/06/29 03:47:56 [notice] 119#119: signal process started
+    2024/06/29 09:47:56 [notice] 124#124: signal process started
+    2024/06/29 15:47:56 [notice] 129#129: signal process started
+    2024/06/29 21:47:56 [notice] 134#134: signal process started
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: nginx
+  name: nginx-cm1

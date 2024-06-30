@@ -1,0 +1,16 @@
+apiVersion: v1
+data:
+  credentials: |+
+    [backblaze]
+    aws_access_key_id = 001f1dc91aa33620000000005
+    aws_secret_access_key = K001/LeqeOr8IemB838wRrn1TQQUmbk
+
+    [backblaze-account]
+    aws_access_key_id = 001f1dc91aa33620000000004
+    aws_secret_access_key = K001nf+hqf94jpngSi2kVKvLnyDH1DE
+
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: backend
+  name: backend-cm0

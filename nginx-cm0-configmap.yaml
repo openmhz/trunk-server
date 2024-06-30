@@ -1,0 +1,12 @@
+apiVersion: v1
+data:
+  .gitignore: |
+    # Ignore everything in this directory
+    *
+    # Except this file
+    !.gitignore
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: nginx
+  name: nginx-cm0

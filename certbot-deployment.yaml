@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.34.0 (cbf2835db)
+  labels:
+    io.kompose.service: certbot
+  name: certbot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: certbot
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.34.0 (cbf2835db)
+      labels:
+        io.kompose.service: certbot
+    spec:
+      containers:
+        - command:
+            - /bin/sh
+            - -c
+            - trap exit TERM; while :; do certbot renew; sleep 12h & wait ${!}; done;
+          image: certbot/certbot:latest
+          name: certbot
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/www/certbot
+              name: certbot-claim0
+      restartPolicy: Always
+      volumes:
+        - name: certbot-claim0
+          persistentVolumeClaim:
+            claimName: certbot-claim0
