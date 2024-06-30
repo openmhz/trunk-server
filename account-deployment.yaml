@@ -24,7 +24,7 @@ spec:
         - env:
             - name: MONGO_NODE_DRIVER_HOST
               value: mongo
-          image: acount:-
+          image: account:-
           name: account
           ports:
             - containerPort: 3009

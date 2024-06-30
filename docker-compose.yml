@@ -141,7 +141,7 @@ services:
         - REACT_APP_SITE_NAME
         - REACT_APP_ADMIN_EMAIL
         - NODE_ENV
-    image: "acount:${TAG}-${STAGE}"
+    image: "account:${TAG}-${STAGE}"
     environment:
       - MONGO_NODE_DRIVER_HOST=mongo
       - MAILJET_KEY
