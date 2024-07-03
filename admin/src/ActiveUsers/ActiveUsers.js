@@ -22,10 +22,20 @@ const ActiveUsers = () => {
           <Header as="h1">Email of Active Users</Header>
 
 
+          <Header as="h3">List</Header>
           {users &&
             users.map((user) =>
 
-            <span>{user}, </span>
+            <span>{user.firstName} {user.lastName} &lt;{user.email}&gt;, </span>
+          )}
+
+          <Header as="h3">CSV</Header>
+
+          First Name, Last Name, Email
+          {users &&
+            users.map((user) =>
+           <span>{user.firstName}, {user.lastName}, {user.email} <br/></span>
+          
           )}
 
         </Container>

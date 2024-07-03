@@ -35,7 +35,7 @@ exports.listActiveUsers = async function (req,res,next) {
 
     if (!users.hasOwnProperty(system.userId.toString())) {
       const user = await User.findById(system.userId, "_id email firstName lastName lastLogin");
-      users[system.userId.toString()] = user.email;
+      users[system.userId.toString()] = { email: user.email, firstName: user.firstName, lastName: user.lastName };   
     }
 
   }
