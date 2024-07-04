@@ -4,6 +4,18 @@ on:
   push:
     branches: [ "master" ]
 
+env:
+  # Setting an environment variable with the value of a configuration variable
+  REACT_APP_GOOGLE_ANALYTICS: ${{ vars.REACT_APP_GOOGLE_ANALYTICS}}
+  REACT_APP_BACKEND_SERVER: ${{ vars.REACT_APP_BACKEND_SERVER}}
+  REACT_APP_FRONTEND_SERVER: ${{ vars.REACT_APP_FRONTEND_SERVER}}
+  REACT_APP_ADMIN_SERVER: ${{ vars.REACT_APP_ADMIN_SERVER}}
+  REACT_APP_SOCKET_SERVER: ${{ vars.REACT_APP_SOCKET_SERVER}}
+  REACT_APP_ACCOUNT_SERVER: ${{ vars.REACT_APP_ACCOUNT_SERVER}}
+  REACT_APP_COOKIE_DOMAIN: ${{ vars.REACT_APP_COOKIE_DOMAIN}}
+  REACT_APP_ADMIN_EMAIL: ${{ vars.REACT_APP_ADMIN_EMAIL}}
+  REACT_APP_SITE_NAME: ${{ vars.REACT_APP_SITE_NAME}}
+
 jobs:
   push_to_registry:
     strategy:
