@@ -16,7 +16,7 @@ env:
   REACT_APP_ADMIN_EMAIL: ${{ vars.REACT_APP_ADMIN_EMAIL}}
   REACT_APP_SITE_NAME: ${{ vars.REACT_APP_SITE_NAME}}
   STAGE: ${{ vars.STAGE}}
-  
+
 jobs:
   push_to_registry:
     strategy:
@@ -47,3 +47,4 @@ jobs:
           platforms: linux/arm64,linux/amd64
           push: true
           tags: ${{ vars.DOCKER_NAMESPACE }}/trunk-server-${{ matrix.service }}:latest
+          build-args: STAGE=${{vars.STAGE}}
