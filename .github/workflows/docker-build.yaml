@@ -15,7 +15,8 @@ env:
   REACT_APP_COOKIE_DOMAIN: ${{ vars.REACT_APP_COOKIE_DOMAIN}}
   REACT_APP_ADMIN_EMAIL: ${{ vars.REACT_APP_ADMIN_EMAIL}}
   REACT_APP_SITE_NAME: ${{ vars.REACT_APP_SITE_NAME}}
-
+  STAGE: ${{ vars.STAGE}}
+  
 jobs:
   push_to_registry:
     strategy:
