@@ -8,7 +8,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
  */
 
 const Restricted = ({ children }) => {
-  const { authenticated, hasAuthenticated,terms } = useSelector((state) => state.user);
+  const { authenticated, hasAuthenticated, terms } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -22,8 +22,9 @@ const Restricted = ({ children }) => {
     if (authenticated) {
       if ((pathname != "/terms") && (terms != 1.1)) {
         navigate("/terms")
+      } else {
+        return children;
       }
-      return children;
     }
     else {
       navigate("/login")
