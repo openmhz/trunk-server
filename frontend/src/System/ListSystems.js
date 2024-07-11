@@ -21,6 +21,7 @@ import { useGetSystemsQuery, } from '../features/api/apiSlice'
 import StateLinkList from "./StateLinkList";
 import SystemsByState from "./SystemsByState";
 import InternationList from "./InternationList";
+import TrendingList from "./TrendingList";
 // ----------------------------------------------------
 
 const ListSystems = (props) => {
@@ -46,6 +47,10 @@ const ListSystems = (props) => {
     }
   }
 
+  let popularSystems = [];
+  if (isSuccess && systems.systems)
+    popularSystems = systems.systems.sort((a, b) => b.clientCount - a.clientCount).slice(0, 4);
+
   const handleContactClick = (system) => {
     setContactSystem(system);
     setContactVisible(true);
@@ -54,6 +59,7 @@ const ListSystems = (props) => {
   const stateList = StateLinkList(states);
   const systemsByState = SystemsByState(states, handleContactClick);
   const international = InternationList(other, handleContactClick);
+  const trending = TrendingList(popularSystems, handleContactClick);
 
   return (
     <div ref={contextRef}>
@@ -71,6 +77,7 @@ const ListSystems = (props) => {
                 </List.Content>
               </List.Item>
             </List>
+            {trending}
             {systemsByState}
             {international}
           </Grid.Column>
