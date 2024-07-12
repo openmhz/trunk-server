@@ -33,7 +33,7 @@ function CallInfo(props) {
       callFreq = Math.round(freq * 1000) / 1000;
     }
 
-    srcList = currentCall.srcList.map((source, index) => <List.Item key={index}>{source.src}[{source.pos}]</List.Item>);
+    srcList = currentCall.srcList.map((source, index) => <List.Item key={index}>{source.src}[{source.pos}] {source.tag}</List.Item>);
     callLength = currentCall.len;
     talkgroupNum = currentCall.talkgroupNum;
     callDownload = currentCall.url;
