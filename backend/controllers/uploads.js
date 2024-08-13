@@ -9,6 +9,13 @@ var { callModel: Call } = require("../models/call");
 
 const { PutObjectCommand, S3Client } = require("@aws-sdk/client-s3");
 const { fromIni } = require("@aws-sdk/credential-providers");
+const { NodeHttpHandler } = require('@smithy/node-http-handler');
+const https = require('https');
+
+const agent = new https.Agent({
+  maxSockets: 150
+});
+
 
 var s3_endpoint = process.env['S3_ENDPOINT'] != null ? process.env['S3_ENDPOINT'] : 'https://s3.us-west-1.wasabisys.com';
 var s3_region = process.env['S3_REGION'] != null ? process.env['S3_REGION'] : 'us-west-1';
@@ -17,10 +24,14 @@ var s3_profile = process.env['S3_PROFILE'] != null ? process.env['S3_PROFILE'] :
 
 
 const client = new S3Client({
+  requestHandler: new NodeHttpHandler({
+    httpsAgent: agent
+  }),
   credentials: fromIni({ profile: s3_profile }),
   endpoint: s3_endpoint,
   region: s3_region,
   maxAttempts: 3
+
 });
 
 exports.upload = async function (req, res, next) {
