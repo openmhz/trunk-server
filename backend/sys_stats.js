@@ -18,12 +18,17 @@ async function updateActiveSystems() {
             item.active = true;
             item.callAvg = callTotals[item.shortName][0] / timePeriod;
             item.lastActive = new Date();
-            await item.save();
         } else {
             item.active = false;
             item.callAvg = 0;
-            await item.save();
         }
+        let fromDate = new Date(Date.now() - 60 * 60 * 24 * 30 * 1000);
+        if (item.lastActive < fromDate) {
+            item.active = false;
+        } else {
+            item.active = true;
+        }
+        await item.save();
     };
 }
 
