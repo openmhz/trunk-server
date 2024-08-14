@@ -100,7 +100,8 @@ exports.contact_system = async function(req, res) {
 exports.get_systems = async function (req, res) {
   let fromDate = new Date(Date.now() - 60 * 60 * 24 * 30 * 1000);
   //const results = await System.find({lastActive: {$gte: fromDate}}).populate('userId', "screenName").catch( err => {
-  const results = await System.find({active: true}).populate('userId', "screenName").catch( err => {
+  //const results = await System.find({active: true}).populate('userId', "screenName").catch( err => {
+  const results = await System.find({active: true}).catch( err => {
      console.error("Error - get_systems: " + err.message);
      res.status(500);
       res.json({
@@ -132,11 +133,13 @@ exports.get_systems = async function (req, res) {
         allowContact: results[result].allowContact,
         clientCount: clientCount
       }
+      /*
       if (results[result].showScreenName && results[result].userId) {
         system.screenName = results[result].userId.screenName
       } else {
         system.screenName = null;
-      }
+      }*/
+      system.screenName = null;
       systemList.push(system);
     }
     res.contentType('json');
