@@ -13,20 +13,20 @@ async function updateActiveSystems() {
     // Go through all of the Systems
     for await (let item of System.find()) {
         // go through all the systems
-        // if you have recieved some calls during that last period, make the system active
+        // if you have received some calls during that last period, make the system active
         if ((callTotals[item.shortName] != undefined) && (callTotals[item.shortName][0] > 0)) {
-            item.active = true;
+            //item.active = true;
             item.callAvg = callTotals[item.shortName][0] / timePeriod;
             item.lastActive = new Date();
         } else {
-            item.active = false;
+            //item.active = false;
             item.callAvg = 0;
         }
         let fromDate = new Date(Date.now() - 60 * 60 * 24 * 30 * 1000);
-        if (item.lastActive < fromDate) {
-            item.active = false;
-        } else {
+        if ((item.lastActive != null) && (item.lastActive > fromDate)) {
             item.active = true;
+        } else {
+            item.active = false;
         }
         await item.save();
     };
