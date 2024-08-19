@@ -12,6 +12,9 @@ const mailjet = new Mailjet({
   apiSecret: process.env['MAILJET_SECRET']
 });
 
+var systemList = [];
+var systemListTime = Date.now();
+
 exports.contact_system = async function(req, res) {
   var system = await System.findOne({
     shortName: req.params.shortName.toLowerCase()
@@ -97,11 +100,59 @@ exports.contact_system = async function(req, res) {
 
 }
 
-exports.get_systems = async function (req, res) {
+async function load_systems(systemClients) {
   let fromDate = new Date(Date.now() - 60 * 60 * 24 * 30 * 1000);
-  //const results = await System.find({lastActive: {$gte: fromDate}}).populate('userId', "screenName").catch( err => {
+  const results = await System.find({lastActive: {$gte: fromDate}}).populate('userId', "screenName").catch( err => {
   //const results = await System.find({active: true}).populate('userId', "screenName").catch( err => {
-  const results = await System.find({active: true}).catch( err => {
+  //const results = await System.find({active: true}).catch( err => {  // super simple query
+     console.error("Error - get_systems: " + err.message);
+  });
+    systemList = [];
+    for (var result in results) {
+
+      var clientCount = 0;
+      if (systemClients.hasOwnProperty(results[result].shortName)) {
+        clientCount = systemClients[results[result].shortName];
+      }
+      var system = {
+        name: results[result].name,
+        shortName: results[result].shortName,
+        systemType: results[result].systemType,
+        county: results[result].county,
+        country: results[result].country,
+        city: results[result].city,
+        state: results[result].state,
+        active: results[result].active,
+        lastActive: results[result].lastActive,
+        callAvg: results[result].callAvg,
+        description: results[result].description,
+        status: results[result].status,
+        allowContact: results[result].allowContact,
+        clientCount: clientCount
+      }
+      /*
+      if (results[result].showScreenName && results[result].userId) {
+        system.screenName = results[result].userId.screenName
+      } else {
+        system.screenName = null;
+      }*/
+      system.screenName = null;
+      systemList.push(system);
+    }
+
+}
+
+
+exports.get_systems = async function (req, res) {
+  if ((systemList.length == 0) || (systemListTime < (Date.now() - 60 * 1000 * 15))) {
+    await load_systems(req.systemClients);
+    systemListTime = Date.now();
+  }
+
+  let fromDate = new Date(Date.now() - 60 * 60 * 24 * 30 * 1000);
+  const results = await System.find({lastActive: {$gte: fromDate}}).populate('userId', "screenName").catch( err => {
+  //const results = await System.find({active: true}).populate('userId', "screenName").catch( err => {
+  //const results = await System.find({active: true}).catch( err => {  // super simple query
      console.error("Error - get_systems: " + err.message);
      res.status(500);
       res.json({
