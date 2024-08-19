@@ -13,7 +13,7 @@ const { NodeHttpHandler } = require('@smithy/node-http-handler');
 const https = require('https');
 
 const agent = new https.Agent({
-  maxSockets: 150
+  maxSockets: 250
 });
 
 
