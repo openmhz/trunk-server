@@ -21,7 +21,7 @@ var s3_endpoint = process.env['S3_ENDPOINT'] != null ? process.env['S3_ENDPOINT'
 var s3_region = process.env['S3_REGION'] != null ? process.env['S3_REGION'] : 'us-west-1';
 var s3_bucket = process.env['S3_BUCKET'] != null ? process.env['S3_BUCKET'] : 'openmhz-west';
 var s3_profile = process.env['S3_PROFILE'] != null ? process.env['S3_PROFILE'] : 'wasabi-account';
-
+var s3_public_url = process.env['S3_PUBLIC_URL'] != null ? process.env['S3_PUBLIC_URL'] : s3_endpoint + "/" + s3_bucket;
 
 const client = new S3Client({
   requestHandler: new NodeHttpHandler({
@@ -165,7 +165,7 @@ exports.upload = async function (req, res, next) {
 
     var endpoint = s3_endpoint;
     var bucket = s3_bucket;
-    var url = s3_endpoint + "/" + s3_bucket + "/" + object_key;
+    var url = s3_public_url + "/" + object_key;
 
     var call = new Call({
       shortName: shortName,
