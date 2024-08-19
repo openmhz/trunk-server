@@ -149,50 +149,6 @@ exports.get_systems = async function (req, res) {
     systemListTime = Date.now();
   }
 
-  let fromDate = new Date(Date.now() - 60 * 60 * 24 * 30 * 1000);
-  const results = await System.find({lastActive: {$gte: fromDate}}).populate('userId', "screenName").catch( err => {
-  //const results = await System.find({active: true}).populate('userId', "screenName").catch( err => {
-  //const results = await System.find({active: true}).catch( err => {  // super simple query
-     console.error("Error - get_systems: " + err.message);
-     res.status(500);
-      res.json({
-        success: false,
-        message: err
-      });
-      return;
-  });
-    var systemList = [];
-    for (var result in results) {
-
-      var clientCount = 0;
-      if (req.systemClients.hasOwnProperty(results[result].shortName)) {
-        clientCount = req.systemClients[results[result].shortName];
-      }
-      var system = {
-        name: results[result].name,
-        shortName: results[result].shortName,
-        systemType: results[result].systemType,
-        county: results[result].county,
-        country: results[result].country,
-        city: results[result].city,
-        state: results[result].state,
-        active: results[result].active,
-        lastActive: results[result].lastActive,
-        callAvg: results[result].callAvg,
-        description: results[result].description,
-        status: results[result].status,
-        allowContact: results[result].allowContact,
-        clientCount: clientCount
-      }
-      /*
-      if (results[result].showScreenName && results[result].userId) {
-        system.screenName = results[result].userId.screenName
-      } else {
-        system.screenName = null;
-      }*/
-      system.screenName = null;
-      systemList.push(system);
-    }
     res.contentType('json');
     res.send(JSON.stringify({
       success: true,
