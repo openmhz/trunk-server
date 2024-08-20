@@ -77,6 +77,7 @@ exports.addError = function (call) {
 
 // Keeps track of the number of calls for each talkgroup for a system
 exports.addCall = function (call) {
+/*
     // if you haven't started keeping track of stats for the System yet
     if (talkgroupStats[call.shortName] === undefined) {
         talkgroupStats[call.shortName] = {};
@@ -122,7 +123,7 @@ exports.addCall = function (call) {
     // add to the call count and total length, Call Average is calc by dividing the two...
     sysErrors[call.freq].totalLen += call.len;
     sysErrors[call.freq].errors += call.errorCount;
-    sysErrors[call.freq].spikes += call.spikeCount;
+    sysErrors[call.freq].spikes += call.spikeCount;*/
 }
 
 
@@ -149,7 +150,7 @@ exports.shiftStats = async function () {
         }
     }
     console.log("Finished Shifting Upload Errors at: " + new Date());
-
+/*
     // for each system in decodeErrorsFreq
     for (let shortName in decodeErrorsFreq) {
 
@@ -266,7 +267,7 @@ exports.shiftStats = async function () {
             await SystemStat.updateOne(query, update, options);
         }
     }
-    console.log("Finished Shifting Talkgroup Stats at: " + new Date());
+    console.log("Finished Shifting Talkgroup Stats at: " + new Date());*/
     updateActiveSystems();
     console.log("Finished Updating Active Systems at: " + new Date());
 }
