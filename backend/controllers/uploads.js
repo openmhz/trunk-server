@@ -56,38 +56,38 @@ exports.upload = async function (req, res, next) {
       // Extract and parse request data
 
 
-        var shortName = req.params.shortName.toLowerCase();
-        var apiKey = req.body.api_key;
-        var talkgroupNum = parseInt(req.body.talkgroup_num);
-        var freq = parseFloat(req.body.freq);
-        var time = new Date(parseInt(req.body.start_time) * 1000);
-        var stopTime = new Date();
-        if (req.body.stop_time) {
-          var stopTime = new Date(parseInt(req.body.stop_time) * 1000);
-        }
-        var startTime = req.body.start_time;
-        var emergency = parseInt(req.body.emergency);
+      var shortName = req.params.shortName.toLowerCase();
+      var apiKey = req.body.api_key;
+      var talkgroupNum = parseInt(req.body.talkgroup_num);
+      var freq = parseFloat(req.body.freq);
+      var time = new Date(parseInt(req.body.start_time) * 1000);
+      var stopTime = new Date();
+      if (req.body.stop_time) {
+        var stopTime = new Date(parseInt(req.body.stop_time) * 1000);
+      }
+      var startTime = req.body.start_time;
+      var emergency = parseInt(req.body.emergency);
 
-        let errorCount = parseInt(req.body.error_count);
-        let spikeCount = parseInt(req.body.spike_count);
+      let errorCount = parseInt(req.body.error_count);
+      let spikeCount = parseInt(req.body.spike_count);
 
-        if (Number.isNaN(errorCount)) {
-          errorCount = 0;
-        }
-        if (Number.isNaN(spikeCount)) {
-          spikeCount = 0;
-        }
+      if (Number.isNaN(errorCount)) {
+        errorCount = 0;
+      }
+      if (Number.isNaN(spikeCount)) {
+        spikeCount = 0;
+      }
 
-        try {
-          var srcList = JSON.parse(req.body.source_list);
-        } catch (err) {
-          var srcList = [];
-          console.warn("[" + req.params.shortName + "] Error /:shortName/upload Parsing Source/Freq List -  Error: " + err);
-          res.status(500);
-          res.send("Error parsing sourcelist " + err);
-          return;
-        }
-        parseSpan.end();
+      try {
+        var srcList = JSON.parse(req.body.source_list);
+      } catch (err) {
+        var srcList = [];
+        console.warn("[" + req.params.shortName + "] Error /:shortName/upload Parsing Source/Freq List -  Error: " + err);
+        res.status(500);
+        res.send("Error parsing sourcelist " + err);
+        return;
+      }
+      parseSpan.end();
 
 
       let item = null;
