@@ -129,7 +129,7 @@ exports.addCall = function (call) {
 // This gets called when a Time Period is up
 exports.shiftStats = async function () {
 
-
+    console.log("Started Shifting Stats at: " + new Date());
     // for all the systems in Error Stats
     for (var shortName in uploadErrors) {
         if (uploadErrors.hasOwnProperty(shortName)) {
@@ -148,7 +148,7 @@ exports.shiftStats = async function () {
             uploadErrors[shortName][0] = 0;
         }
     }
-
+    console.log("Finished Shifting Upload Errors at: " + new Date());
 
     // for each system in decodeErrorsFreq
     for (let shortName in decodeErrorsFreq) {
@@ -196,7 +196,7 @@ exports.shiftStats = async function () {
         }
     }
 
-
+    console.log("Finished Shifting Decode Errors at: " + new Date());
 
     // for each system in talkgroupStats
     for (let shortName in talkgroupStats) {
@@ -266,7 +266,9 @@ exports.shiftStats = async function () {
             await SystemStat.updateOne(query, update, options);
         }
     }
+    console.log("Finished Shifting Talkgroup Stats at: " + new Date());
     updateActiveSystems();
+    console.log("Finished Updating Active Systems at: " + new Date());
 }
 exports.callTotals = function (shortName) {
     return callTotals[shortName];
