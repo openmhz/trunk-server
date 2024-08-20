@@ -5,7 +5,6 @@ var sysStats = require("../sys_stats");
 var System = require("../models/system");
 var Talkgroup = require("../models/talkgroup");
 var { callModel: Call } = require("../models/call");
-const opentelemetry = require('@opentelemetry/api');
 const { trace } = opentelemetry;
 
 const { PutObjectCommand, S3Client } = require("@aws-sdk/client-s3");
