@@ -270,7 +270,7 @@ io.sockets.on('connection', function (client) {
 
         if (typeof clients[client.id] === "undefined") {
           console.error("How can it be undefined here!!");
-          console.error(clients[client.id]);
+          console.error(client.id);
           return;
         }
         if (group) {

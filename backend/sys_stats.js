@@ -15,19 +15,20 @@ async function updateActiveSystems() {
         // go through all the systems
         // if you have received some calls during that last period, make the system active
         if ((callTotals[item.shortName] != undefined) && (callTotals[item.shortName][0] > 0)) {
-            //item.active = true;
+            item.active = true;
             item.callAvg = callTotals[item.shortName][0] / timePeriod;
             item.lastActive = new Date();
         } else {
-            //item.active = false;
+            item.active = false;
             item.callAvg = 0;
         }
+        /*
         let fromDate = new Date(Date.now() - 60 * 60 * 24 * 30 * 1000);
         if ((item.lastActive != null) && (item.lastActive > fromDate)) {
             item.active = true;
         } else {
             item.active = false;
-        }
+        }*/
         await item.save();
     };
 }
@@ -76,6 +77,7 @@ exports.addError = function (call) {
 
 // Keeps track of the number of calls for each talkgroup for a system
 exports.addCall = function (call) {
+/*
     // if you haven't started keeping track of stats for the System yet
     if (talkgroupStats[call.shortName] === undefined) {
         talkgroupStats[call.shortName] = {};
@@ -121,14 +123,14 @@ exports.addCall = function (call) {
     // add to the call count and total length, Call Average is calc by dividing the two...
     sysErrors[call.freq].totalLen += call.len;
     sysErrors[call.freq].errors += call.errorCount;
-    sysErrors[call.freq].spikes += call.spikeCount;
+    sysErrors[call.freq].spikes += call.spikeCount;*/
 }
 
 
 // This gets called when a Time Period is up
 exports.shiftStats = async function () {
 
-
+    console.log("Started Shifting Stats at: " + new Date());
     // for all the systems in Error Stats
     for (var shortName in uploadErrors) {
         if (uploadErrors.hasOwnProperty(shortName)) {
@@ -147,8 +149,8 @@ exports.shiftStats = async function () {
             uploadErrors[shortName][0] = 0;
         }
     }
-
-
+    console.log("Finished Shifting Upload Errors at: " + new Date());
+/*
     // for each system in decodeErrorsFreq
     for (let shortName in decodeErrorsFreq) {
 
@@ -195,7 +197,7 @@ exports.shiftStats = async function () {
         }
     }
 
-
+    console.log("Finished Shifting Decode Errors at: " + new Date());
 
     // for each system in talkgroupStats
     for (let shortName in talkgroupStats) {
@@ -265,7 +267,9 @@ exports.shiftStats = async function () {
             await SystemStat.updateOne(query, update, options);
         }
     }
+    console.log("Finished Shifting Talkgroup Stats at: " + new Date());*/
     updateActiveSystems();
+    console.log("Finished Updating Active Systems at: " + new Date());
 }
 exports.callTotals = function (shortName) {
     return callTotals[shortName];
