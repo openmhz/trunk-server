@@ -54,7 +54,7 @@ exports.upload = async function (req, res, next) {
       }
 
       // Extract and parse request data
-      await trace.getTracer('upload-service').startActiveSpan('parse_request_data', async (parseSpan) => {
+
 
         var shortName = req.params.shortName.toLowerCase();
         var apiKey = req.body.api_key;
@@ -88,7 +88,7 @@ exports.upload = async function (req, res, next) {
           return;
         }
         parseSpan.end();
-      });
+
 
       let item = null;
 
