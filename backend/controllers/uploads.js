@@ -180,11 +180,7 @@ exports.upload = async function (req, res, next) {
         talkgroupSpan.end();
 
       }
-
       console.log("Finished checking talkgroup exists");
-
-
-
 
       // Prepare call object
       let call;
