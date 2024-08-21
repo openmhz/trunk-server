@@ -36,7 +36,7 @@ const client = new S3Client({
 
 exports.upload = async function (req, res, next) {
   const parentSpan = trace.getActiveSpan();
-  await trace.getTracer('upload-service').startActiveSpan('upload_handler', async (span) => {
+  await trace.getTracer('upload-service').startActiveSpan('upload_handler', { parent: parentSpan }, async (span) => {
     try {
       span.setAttribute('call.shortName', req.params.shortName.toLowerCase());
       span.setAttribute('call.talkgroup_num', req.body.talkgroup_num);
@@ -93,9 +93,9 @@ exports.upload = async function (req, res, next) {
       let item = null;
 
 
+      console.log("Finished parsing request data");
       // Validate that the system exists and the API key is correct
-
-      await trace.getTracer('upload-service').startActiveSpan('validate_system', async (validateSpan) => {
+      await trace.getTracer('upload-service').startActiveSpan('validate_system', { parent: span }, async (validateSpan) => {
 
         try {
           item = await System.findOne({ 'shortName': shortName }, ["key", "ignoreUnknownTalkgroup"]);
@@ -136,22 +136,25 @@ exports.upload = async function (req, res, next) {
         }
       });
 
+      console.log("Finished validating system API key");
       // Blocking sensitive talkgroups
-      await trace.getTracer('upload-service').startActiveSpan('check_sensitive_talkgroups', async (sensitiveSpan) => {
+      await trace.getTracer('upload-service').startActiveSpan('check_sensitive_talkgroups', { parent: span }, async (sensitiveSpan) => {
 
         if ((shortName == "hennearmer") && ((talkgroupNum == 3421) || (talkgroupNum == 3423))) {
           sensitiveSpan.setStatus({
             code: opentelemetry.SpanStatusCode.ERROR,
             message: "Sensitive Talkgroup",
           });
-          res.status(200).end();
+          //res.status(200).end();
           return;
         }
         sensitiveSpan.end();
       });
 
+      console.log("Finished checking sensitive talkgroups");
+
       if (item.ignoreUnknownTalkgroup == true) {
-        await trace.getTracer('upload-service').startActiveSpan('check_talkgroup_exists', async (talkgroupSpan) => {
+        await trace.getTracer('upload-service').startActiveSpan('check_talkgroup_exists', { parent: span },  async (talkgroupSpan) => {
 
           talkgroupExists = await Talkgroup.exists({
             'shortName': shortName,
@@ -176,15 +179,15 @@ exports.upload = async function (req, res, next) {
           talkgroupSpan.end();
         });
       }
-      // Add in an API Key check
+
+      console.log("Finished checking talkgroup exists");
 
 
-
-      res.status(200).end();
+      
 
       // Prepare call object
       let call;
-      await trace.getTracer('upload-service').startActiveSpan('prepare_call_object', async (prepareSpan) => {
+      await trace.getTracer('upload-service').startActiveSpan('prepare_call_object', { parent: span }, async (prepareSpan) => {
 
         var local_path = "/" + shortName + "/" + time.getFullYear() + "/" + (time.getMonth() + 1) + "/" + time.getDate() + "/";
         var object_key = "media/" + shortName + "-" + talkgroupNum + "-" + startTime + path.extname(req.file.originalname);
@@ -226,9 +229,10 @@ exports.upload = async function (req, res, next) {
         prepareSpan.end();
       });
 
+      console.log("Finished preparing call object");
       let fileContent;
       // Upload file to S3
-      await trace.getTracer('upload-service').startActiveSpan('upload_to_s3', async (uploadSpan) => {
+      await trace.getTracer('upload-service').startActiveSpan('upload_to_s3',{ parent: span },  async (uploadSpan) => {
 
         try {
           fileContent = fs.readFileSync(req.file.path);
@@ -257,8 +261,9 @@ exports.upload = async function (req, res, next) {
         }
       });
 
+      console.log("Finished uploading to S3");
       // Save call to database
-      await trace.getTracer('upload-service').startActiveSpan('save_call', async (saveSpan) => {
+      await trace.getTracer('upload-service').startActiveSpan('save_call',{ parent: span },  async (saveSpan) => {
         try {
           await call.save();
           sysStats.addCall(call.toObject());
@@ -278,8 +283,10 @@ exports.upload = async function (req, res, next) {
           saveSpan.end();
         }
       });
+
+      console.log("Finished saving call to database");
       // Clean up temporary file
-      await trace.getTracer('upload-service').startActiveSpan('cleanup_temp_file', async (cleanupSpan) => {
+      await trace.getTracer('upload-service').startActiveSpan('cleanup_temp_file',{ parent: span },  async (cleanupSpan) => {
         try {
           fs.unlinkSync(req.file.path);
           cleanupSpan.setAttribute('file.deleted', true);
@@ -300,5 +307,7 @@ exports.upload = async function (req, res, next) {
     } finally {
       span.end();
     }
+
+    console.log("Finished processing call upload");
   });
 };
