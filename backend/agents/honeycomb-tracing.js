@@ -8,7 +8,7 @@ const {
 
 // uses the HONEYCOMB_API_KEY and OTEL_SERVICE_NAME environment variables
 const sdk = new HoneycombSDK({
-    sampleRate: 5,
+    sampleRate: 20,
     instrumentations: [
         getNodeAutoInstrumentations({
             // we recommend disabling fs autoinstrumentation since it can be noisy
