@@ -63,7 +63,7 @@ services:
     image: "backend:${TAG}-${STAGE}"
     pid: "host"
     environment:
-      - OTEL_SERVICE_NAME="test"
+      - OTEL_SERVICE_NAME="prod"
       - OTEL_EXPORTER_OTLP_PROTOCOL="http/protobuf"
       - OTEL_EXPORTER_OTLP_ENDPOINT="https://api.honeycomb.io:443"
       - OTEL_EXPORTER_OTLP_HEADERS="x-honeycomb-team=${HONEYCOMB_API_KEY}"

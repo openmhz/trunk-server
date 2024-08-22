@@ -146,6 +146,7 @@ async function load_systems(systemClients) {
 exports.get_systems = async function (req, res) {
   if ((systemList.length == 0) || (systemListTime < (Date.now() - 60 * 1000 * 15))) {
     await load_systems(req.systemClients);
+    console.log("System List Loaded - total: " + systemList.length);
     systemListTime = Date.now();
   }
 
