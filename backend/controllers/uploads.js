@@ -56,7 +56,7 @@ exports.upload = async function (req, res, next) {
       }
 
       // Extract and parse request data
-
+      const parseSpan = tracer.startSpan('parse_request_data');
 
       var shortName = req.params.shortName.toLowerCase();
       var apiKey = req.body.api_key;
@@ -91,14 +91,10 @@ exports.upload = async function (req, res, next) {
       }
       parseSpan.end();
 
-
       let item = null;
 
-
-      console.log("Finished parsing request data");
       // Validate that the system exists and the API key is correct
       const validateSpan = tracer.startSpan("validate_system");
-
 
       try {
         item = await System.findOne({ 'shortName': shortName }, ["key", "ignoreUnknownTalkgroup"]);
@@ -111,7 +107,7 @@ exports.upload = async function (req, res, next) {
             message: "ShortName does not exist",
           });
 
-          console.info("[" + req.params.shortName + "] Error /:shortName/upload ShortName does not exist");
+          console.warn("[" + req.params.shortName + "] Error /:shortName/upload ShortName does not exist");
           res.status(500);
           res.send("ShortName does not exist: " + shortName + "\n");
           return;
@@ -138,8 +134,6 @@ exports.upload = async function (req, res, next) {
         validateSpan.end();
       }
 
-
-      console.log("Finished validating system API key");
       // Blocking sensitive talkgroups
       const sensitiveSpan = tracer.startSpan("check_sensitive_talkgroups");
       if ((shortName == "hennearmer") && ((talkgroupNum == 3421) || (talkgroupNum == 3423))) {
@@ -147,13 +141,10 @@ exports.upload = async function (req, res, next) {
           code: opentelemetry.SpanStatusCode.ERROR,
           message: "Sensitive Talkgroup",
         });
-        //res.status(200).end();
+        res.status(200).end();
         return;
       }
       sensitiveSpan.end();
-
-
-      console.log("Finished checking sensitive talkgroups");
 
       if (item.ignoreUnknownTalkgroup == true) {
         const talkgroupSpan = tracer.startSpan("check_talkgroup_exists");
@@ -167,20 +158,16 @@ exports.upload = async function (req, res, next) {
             fs.unlinkSync(req.file.path)
             //file removed
           } catch (err) {
-            console.log("[" + call.shortName + "] error deleting: " + req.file.path);
+            console.error("[" + call.shortName + "] error deleting: " + req.file.path);
           }
-
           res.status(500);
           res.send("Talkgroup does not exist, skipping.\n");
-
-
-
           return;
         }
         talkgroupSpan.end();
-
       }
-      console.log("Finished checking talkgroup exists");
+
+      res.status(200).end();
 
       // Prepare call object
       let call;
@@ -225,8 +212,6 @@ exports.upload = async function (req, res, next) {
       prepareSpan.setAttribute('call.url', url);
       prepareSpan.end();
 
-
-      console.log("Finished preparing call object");
       let fileContent;
       // Upload file to S3
       const uploadSpan = tracer.startSpan('upload_to_s3');
@@ -253,8 +238,6 @@ exports.upload = async function (req, res, next) {
         uploadSpan.end();
       }
 
-
-      console.log("Finished uploading to S3");
       // Save call to database
       const saveSpan = tracer.startSpan('save_call');
 
@@ -277,8 +260,6 @@ exports.upload = async function (req, res, next) {
         saveSpan.end();
       }
 
-
-      console.log("Finished saving call to database");
       // Clean up temporary file
       const cleanupSpan = tracer.startSpan('cleanup_temp_file');
 
@@ -294,6 +275,7 @@ exports.upload = async function (req, res, next) {
 
 
     } catch (error) {
+      console.error("Error processing call upload: " + error);
       span.recordException(error);
       span.setStatus({
         code: opentelemetry.SpanStatusCode.ERROR,
@@ -302,7 +284,5 @@ exports.upload = async function (req, res, next) {
     } finally {
       span.end();
     }
-
-    console.log("Finished processing call upload");
   });
 };
