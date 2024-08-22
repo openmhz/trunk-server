@@ -1,4 +1,4 @@
-const tracing = require("./agents/honeycomb-tracing");
+const tracing = require("./agents/otel-tracing");
 var express = require("express");
 var configureExpress = require("./config/express");
 
