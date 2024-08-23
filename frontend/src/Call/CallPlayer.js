@@ -168,7 +168,7 @@ useEffect(() => {
   }, [selectCallId])
 
   useEffect(() => {
-    if (system.status && system.status.length > 0) {
+    if (system && system.status && system.status.length > 0) {
         setStatusVisible(true);
     }
   }, [system])
