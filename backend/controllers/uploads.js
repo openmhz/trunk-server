@@ -5,7 +5,7 @@ var sysStats = require("../sys_stats");
 var System = require("../models/system");
 var Talkgroup = require("../models/talkgroup");
 var { callModel: Call } = require("../models/call");
-const { trace } = opentelemetry;
+const { trace, context } = opentelemetry;
 
 const { PutObjectCommand, S3Client } = require("@aws-sdk/client-s3");
 const { fromIni } = require("@aws-sdk/credential-providers");
@@ -37,69 +37,80 @@ const client = new S3Client({
 
 exports.upload = async function (req, res, next) {
   const tracer = trace.getTracer("upload-service")
-  const parentSpan = trace.getActiveSpan();
-  await tracer.startActiveSpan('upload_handler', { parent: parentSpan }, async (span) => {
-    try {
-      span.setAttribute('call.shortName', req.params.shortName.toLowerCase());
-      span.setAttribute('call.talkgroup_num', req.body.talkgroup_num);
-      span.setAttribute('call.start_time', req.body.start_time);
+  return context.with(context.active(), async () => {
+    const parentSpan = trace.getActiveSpan(context.active());
+    await tracer.startActiveSpan('upload_handler', { parent: parentSpan }, async (span) => {
+      try {
+        span.setAttribute('call.shortName', req.params.shortName.toLowerCase());
+        span.setAttribute('call.talkgroup_num', req.body.talkgroup_num);
+        span.setAttribute('call.start_time', req.body.start_time);
 
-      if (!req.file || ((path.extname(req.file.originalname) != '.m4a') && (path.extname(req.file.originalname) != '.mp3'))) {
-        console.warn("[" + req.params.shortName + "] Error file name is wrong or file does not exist");
-        span.setStatus({
-          code: opentelemetry.SpanStatusCode.ERROR,
-          message: "Invalid file or filename",
+        if (!req.file || ((path.extname(req.file.originalname) != '.m4a') && (path.extname(req.file.originalname) != '.mp3'))) {
+          console.warn("[" + req.params.shortName + "] Error file name is wrong or file does not exist");
+          span.setStatus({
+            code: opentelemetry.SpanStatusCode.ERROR,
+            message: "Invalid file or filename",
+          });
+          res.status(500);
+          res.send("Error, invalid filename:\n");
+          return;
+        }
+
+        // Extract and parse request data
+
+
+        var shortName = req.params.shortName.toLowerCase();
+        var apiKey = req.body.api_key;
+        var talkgroupNum = parseInt(req.body.talkgroup_num);
+        var freq = parseFloat(req.body.freq);
+        var time = new Date(parseInt(req.body.start_time) * 1000);
+        var stopTime = new Date();
+        if (req.body.stop_time) {
+          var stopTime = new Date(parseInt(req.body.stop_time) * 1000);
+        }
+        var startTime = req.body.start_time;
+        var emergency = parseInt(req.body.emergency);
+
+        let errorCount = parseInt(req.body.error_count);
+        let spikeCount = parseInt(req.body.spike_count);
+
+        if (Number.isNaN(errorCount)) {
+          errorCount = 0;
+        }
+        if (Number.isNaN(spikeCount)) {
+          spikeCount = 0;
+        }
+
+        try {
+          var srcList = JSON.parse(req.body.source_list);
+        } catch (err) {
+          var srcList = [];
+          console.warn("[" + req.params.shortName + "] Error /:shortName/upload Parsing Source/Freq List -  Error: " + err);
+          res.status(500);
+          res.send("Error parsing sourcelist " + err);
+          return;
+        }
+
+
+        let item = null;
+
+        // Validate that the system exists and the API key is correct
+        await tracer.startActiveSpan('validate_system', { parent: trace.getActiveSpan(context.active()) }, async (validateSpan) => {
+
+          try {
+            item = await System.findOne({ 'shortName': shortName }, ["key", "ignoreUnknownTalkgroup"]);
+            validateSpan.setAttribute('system.exists', !!item);
+
+          } catch (err) {
+            validateSpan.recordException(err);
+            validateSpan.setStatus({
+              code: opentelemetry.SpanStatusCode.ERROR,
+              message: "Error validating system: " + err.message,
+            });
+          } finally {
+            validateSpan.end();
+          }
         });
-        res.status(500);
-        res.send("Error, invalid filename:\n");
-        return;
-      }
-
-      // Extract and parse request data
-      const parseSpan = tracer.startSpan('parse_request_data');
-
-      var shortName = req.params.shortName.toLowerCase();
-      var apiKey = req.body.api_key;
-      var talkgroupNum = parseInt(req.body.talkgroup_num);
-      var freq = parseFloat(req.body.freq);
-      var time = new Date(parseInt(req.body.start_time) * 1000);
-      var stopTime = new Date();
-      if (req.body.stop_time) {
-        var stopTime = new Date(parseInt(req.body.stop_time) * 1000);
-      }
-      var startTime = req.body.start_time;
-      var emergency = parseInt(req.body.emergency);
-
-      let errorCount = parseInt(req.body.error_count);
-      let spikeCount = parseInt(req.body.spike_count);
-
-      if (Number.isNaN(errorCount)) {
-        errorCount = 0;
-      }
-      if (Number.isNaN(spikeCount)) {
-        spikeCount = 0;
-      }
-
-      try {
-        var srcList = JSON.parse(req.body.source_list);
-      } catch (err) {
-        var srcList = [];
-        console.warn("[" + req.params.shortName + "] Error /:shortName/upload Parsing Source/Freq List -  Error: " + err);
-        res.status(500);
-        res.send("Error parsing sourcelist " + err);
-        return;
-      }
-      parseSpan.end();
-
-      let item = null;
-
-      // Validate that the system exists and the API key is correct
-      const validateSpan = tracer.startSpan("validate_system");
-
-      try {
-        item = await System.findOne({ 'shortName': shortName }, ["key", "ignoreUnknownTalkgroup"]);
-        validateSpan.setAttribute('system.exists', !!item);
-
 
         if (!item) {
           validateSpan.setStatus({
@@ -122,167 +133,158 @@ exports.upload = async function (req, res, next) {
           res.send("API Keys do not match!\n");
           return;
         }
-      } catch (err) {
-        validateSpan.recordException(err);
-        validateSpan.setStatus({
-          code: opentelemetry.SpanStatusCode.ERROR,
-          message: "Error validating system: " + err.message,
-        });
-        res.status(500).send("Error, invalid shortName:\n" + err);
-        return;
-      } finally {
-        validateSpan.end();
-      }
 
-      // Blocking sensitive talkgroups
-      const sensitiveSpan = tracer.startSpan("check_sensitive_talkgroups");
-      if ((shortName == "hennearmer") && ((talkgroupNum == 3421) || (talkgroupNum == 3423))) {
-        sensitiveSpan.setStatus({
-          code: opentelemetry.SpanStatusCode.ERROR,
-          message: "Sensitive Talkgroup",
-        });
-        res.status(200).end();
-        return;
-      }
-      sensitiveSpan.end();
 
-      if (item.ignoreUnknownTalkgroup == true) {
-        const talkgroupSpan = tracer.startSpan("check_talkgroup_exists");
-        talkgroupExists = await Talkgroup.exists({
-          'shortName': shortName,
-          'num': talkgroupNum
-        });
-
-        if (!talkgroupExists) {
-          try {
-            fs.unlinkSync(req.file.path)
-            //file removed
-          } catch (err) {
-            console.error("[" + call.shortName + "] error deleting: " + req.file.path);
-          }
-          res.status(500);
-          res.send("Talkgroup does not exist, skipping.\n");
+        // Blocking sensitive talkgroups
+        if ((shortName == "hennearmer") && ((talkgroupNum == 3421) || (talkgroupNum == 3423))) {
+          sensitiveSpan.setStatus({
+            code: opentelemetry.SpanStatusCode.ERROR,
+            message: "Sensitive Talkgroup",
+          });
+          res.status(200).end();
           return;
         }
-        talkgroupSpan.end();
-      }
-
-      res.status(200).end();
-
-      // Prepare call object
-      let call;
-      const prepareSpan = tracer.startSpan('prepare_call_object');
-
-      var local_path = "/" + shortName + "/" + time.getFullYear() + "/" + (time.getMonth() + 1) + "/" + time.getDate() + "/";
-      var object_key = "media/" + shortName + "-" + talkgroupNum + "-" + startTime + path.extname(req.file.originalname);
-
-      var endpoint = s3_endpoint;
-      var bucket = s3_bucket;
-      var url = s3_public_url + "/" + object_key;
-
-      call = new Call({
-        shortName: shortName,
-        talkgroupNum: talkgroupNum,
-        objectKey: object_key,
-        endpoint: endpoint,
-        bucket: bucket,
-        time: time,
-        name: talkgroupNum + "-" + startTime + ".m4a",
-        freq: freq,
-        errorCount: errorCount,
-        spikeCount: spikeCount,
-        url: url,
-        emergency: emergency,
-        path: local_path,
-        srcList: srcList,
-        len: -1
-      });
 
 
-      try {
-        if (req.body.call_length) {
-          call.len = parseFloat(req.body.call_length);
-        } else {
-          call.len = (stopTime - time) / 1000;
+        if (item.ignoreUnknownTalkgroup == true) {
+          talkgroupExists = await Talkgroup.exists({
+            'shortName': shortName,
+            'num': talkgroupNum
+          });
+
+          if (!talkgroupExists) {
+            try {
+              fs.unlinkSync(req.file.path)
+              //file removed
+            } catch (err) {
+              console.error("[" + call.shortName + "] error deleting: " + req.file.path);
+            }
+            res.status(500);
+            res.send("Talkgroup does not exist, skipping.\n");
+            return;
+          }
         }
-      } catch (err) {
-        console.error(err);
-      }
-      prepareSpan.setAttribute('call.object_key', object_key);
-      prepareSpan.setAttribute('call.url', url);
-      prepareSpan.end();
 
-      let fileContent;
-      // Upload file to S3
-      const uploadSpan = tracer.startSpan('upload_to_s3');
-      try {
-        fileContent = fs.readFileSync(req.file.path);
-        //s3Src = fs.createReadStream(req.file.path);
+        res.status(200).end();
 
-        const command = new PutObjectCommand({
-          Bucket: s3_bucket,
-          Key: object_key,
-          Body: fileContent,
-          ACL: 'public-read'
+        // Prepare call object
+        let call;
+        //const prepareSpan = tracer.startSpan('prepare_call_object');
+
+        var local_path = "/" + shortName + "/" + time.getFullYear() + "/" + (time.getMonth() + 1) + "/" + time.getDate() + "/";
+        var object_key = "media/" + shortName + "-" + talkgroupNum + "-" + startTime + path.extname(req.file.originalname);
+
+        var endpoint = s3_endpoint;
+        var bucket = s3_bucket;
+        var url = s3_public_url + "/" + object_key;
+
+        call = new Call({
+          shortName: shortName,
+          talkgroupNum: talkgroupNum,
+          objectKey: object_key,
+          endpoint: endpoint,
+          bucket: bucket,
+          time: time,
+          name: talkgroupNum + "-" + startTime + ".m4a",
+          freq: freq,
+          errorCount: errorCount,
+          spikeCount: spikeCount,
+          url: url,
+          emergency: emergency,
+          path: local_path,
+          srcList: srcList,
+          len: -1
         });
-        await client.send(command);
 
-      } catch (err) {
-        uploadSpan.recordException(err);
-        uploadSpan.setStatus({
-          code: opentelemetry.SpanStatusCode.ERROR,
-          message: "Upload Error: " + err.message,
+
+        try {
+          if (req.body.call_length) {
+            call.len = parseFloat(req.body.call_length);
+          } else {
+            call.len = (stopTime - time) / 1000;
+          }
+        } catch (err) {
+          console.error(err);
+        }
+        // prepareSpan.setAttribute('call.object_key', object_key);
+        // prepareSpan.setAttribute('call.url', url);
+        // prepareSpan.end();
+
+        let fileContent;
+        // Upload file to S3
+        await tracer.startActiveSpan('upload_to_s3', { parent: trace.getActiveSpan(context.active()) }, async (uploadSpan) => {
+          try {
+            fileContent = fs.readFileSync(req.file.path);
+            //s3Src = fs.createReadStream(req.file.path);
+
+            const command = new PutObjectCommand({
+              Bucket: s3_bucket,
+              Key: object_key,
+              Body: fileContent,
+              ACL: 'public-read'
+            });
+            await client.send(command);
+
+          } catch (err) {
+            uploadSpan.recordException(err);
+            uploadSpan.setStatus({
+              code: opentelemetry.SpanStatusCode.ERROR,
+              message: "Upload Error: " + err.message,
+            });
+            console.warn(`[${call.shortName}] Upload Error: ${err}`);
+          } finally {
+            uploadSpan.end();
+          }
         });
-        console.warn(`[${call.shortName}] Upload Error: ${err}`);
-      } finally {
-        uploadSpan.end();
-      }
+        // Save call to database
+        await tracer.startActiveSpan('save_call', { parent: trace.getActiveSpan(context.active()) }, async (saveSpan) => {
+          try {
+            await call.save();
+          } catch (err) {
+            saveSpan.recordException(err);
+            saveSpan.setStatus({
+              code: opentelemetry.SpanStatusCode.ERROR,
+              message: "Error saving call: " + err.message,
+            });
+            console.warn(`[${call.shortName}] Error saving call: ${err}`);
+          } finally {
+            saveSpan.end();
+          }
+        });
 
-      // Save call to database
-      const saveSpan = tracer.startSpan('save_call');
-
-      try {
-        await call.save();
+        // Update system stats
         sysStats.addCall(call.toObject());
+
         // we only want to notify clients if the clip is longer than 1 second.
         if (call.len >= 1) {
           req.call = call.toObject();
           next();
         }
-      } catch (err) {
-        saveSpan.recordException(err);
-        saveSpan.setStatus({
-          code: opentelemetry.SpanStatusCode.ERROR,
-          message: "Error saving call: " + err.message,
+
+        // Clean up temporary file
+        await tracer.startActiveSpan('cleanup_temp_file', { parent: trace.getActiveSpan(context.active()) }, async (cleanupSpan) => {
+          try {
+            fs.unlinkSync(req.file.path);
+            cleanupSpan.setAttribute('file.deleted', true);
+          } catch (err) {
+            cleanupSpan.recordException(err);
+            console.warn("There was an Error deleting: " + req.file.path);
+          } finally {
+            cleanupSpan.end();
+          }
         });
-        console.warn(`[${call.shortName}] Error saving call: ${err}`);
+
+
+      } catch (error) {
+        console.error("Error processing call upload: " + error);
+        span.recordException(error);
+        span.setStatus({
+          code: opentelemetry.SpanStatusCode.ERROR,
+          message: error.message,
+        });
       } finally {
-        saveSpan.end();
+        span.end();
       }
-
-      // Clean up temporary file
-      const cleanupSpan = tracer.startSpan('cleanup_temp_file');
-
-      try {
-        fs.unlinkSync(req.file.path);
-        cleanupSpan.setAttribute('file.deleted', true);
-      } catch (err) {
-        cleanupSpan.recordException(err);
-        console.warn("There was an Error deleting: " + req.file.path);
-      } finally {
-        cleanupSpan.end();
-      }
-
-
-    } catch (error) {
-      console.error("Error processing call upload: " + error);
-      span.recordException(error);
-      span.setStatus({
-        code: opentelemetry.SpanStatusCode.ERROR,
-        message: error.message,
-      });
-    } finally {
-      span.end();
-    }
+    });
   });
 };

@@ -1,6 +1,8 @@
 'use strict';
 
 const opentelemetry = require('@opentelemetry/sdk-node');
+const { MongoDBInstrumentation } = require('@opentelemetry/instrumentation-mongodb');
+
 const { TraceIdRatioBasedSampler } = require('@opentelemetry/sdk-trace-node');
 const { OTLPTraceExporter } =  require('@opentelemetry/exporter-trace-otlp-http');
 const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
@@ -24,6 +26,9 @@ const sdk = new opentelemetry.NodeSDK({
     traceExporter: new OTLPTraceExporter(),
     sampler: new TraceIdRatioBasedSampler(samplePercentage),
     instrumentations: [
+        new MongoDBInstrumentation({
+            // see under for available configuration
+          }),
         getNodeAutoInstrumentations({
             // we recommend disabling fs autoinstrumentation since it can be noisy
             // and expensive during startup
