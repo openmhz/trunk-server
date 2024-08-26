@@ -14,14 +14,15 @@ async function updateActiveSystems() {
     for await (let item of System.find()) {
         // go through all the systems
         // if you have received some calls during that last period, make the system active
-        if ((callTotals[item.shortName] != undefined) && (callTotals[item.shortName][0] > 0)) {
+        if ((callTotals[item.shortName] != undefined) && (callTotals[item.shortName] > 0)) {
             item.active = true;
-            item.callAvg = callTotals[item.shortName][0] / timePeriod;
+            item.callAvg = callTotals[item.shortName] / timePeriod;
             item.lastActive = new Date();
         } else {
             item.active = false;
             item.callAvg = 0;
         }
+        callTotals[item.shortName] = 0;
         /*
         let fromDate = new Date(Date.now() - 60 * 60 * 24 * 30 * 1000);
         if ((item.lastActive != null) && (item.lastActive > fromDate)) {
@@ -35,7 +36,7 @@ async function updateActiveSystems() {
 
 exports.initStats = async function () {
     // get the System Stats collection
-
+/*
     for await (const item of SystemStat.find()) {
         const obj = item.toObject();
         // Talkgroup Stats
@@ -57,12 +58,12 @@ exports.initStats = async function () {
         if (obj.callTotals !== undefined) {
             callTotals[obj.shortName] = obj.callTotals;
         }
-    };
+    };*/
 }
 
 // keeps track of the number of calls that get uploaded with an audio file
 exports.addError = function (call) {
-
+/*
     // if there is no Array associated with the system.
     if (uploadErrors[call.shortName] === undefined) {
         uploadErrors[call.shortName] = new Array();
@@ -72,12 +73,13 @@ exports.addError = function (call) {
     }
 
     // Add an error to the count for the current period.
-    uploadErrors[call.shortName][0]++;
+    uploadErrors[call.shortName][0]++;*/
 }
 
 // Keeps track of the number of calls for each talkgroup for a system
 exports.addCall = function (call) {
-    
+    callTotals[call.shortName]++;
+    /*
         // if you haven't started keeping track of stats for the System yet
         if (talkgroupStats[call.shortName] === undefined) {
             talkgroupStats[call.shortName] = {};
@@ -123,13 +125,13 @@ exports.addCall = function (call) {
         // add to the call count and total length, Call Average is calc by dividing the two...
         sysErrors[call.freq].totalLen += call.len;
         sysErrors[call.freq].errors += call.errorCount;
-        sysErrors[call.freq].spikes += call.spikeCount;
+        sysErrors[call.freq].spikes += call.spikeCount;*/
 }
 
 
 // This gets called when a Time Period is up
 exports.shiftStats = async function () {
-
+/*
     console.log("Started Shifting Stats at: " + new Date());
     // for all the systems in Error Stats
     for (var shortName in uploadErrors) {
@@ -225,7 +227,7 @@ exports.shiftStats = async function () {
     if (bulkOps.length > 0) {
         await SystemStat.bulkWrite(bulkOps);
     }
-    console.log("Finished writing to DB at: " + new Date());
+    console.log("Finished writing to DB at: " + new Date());*/
     updateActiveSystems();
     console.log("Finished Updating Active Systems at: " + new Date());
 }
