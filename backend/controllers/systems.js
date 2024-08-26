@@ -107,7 +107,7 @@ async function load_systems(systemClients) {
     //const results = await System.find({active: true}).catch( err => {  // super simple query
     console.error("Error - get_systems: " + err.message);
   });
-  systemList = [];
+  tempList = [];
   for (var result in results) {
 
     var clientCount = 0;
@@ -137,8 +137,10 @@ async function load_systems(systemClients) {
       system.screenName = null;
     }*/
     system.screenName = null;
-    systemList.push(system);
+    tempList.push(system);
   }
+  // don't update the systemList until we have all the data or else load_systems will be called multiple times
+  systemList = tempList;
   console.log("Loaded Systems: " + systemList.length + " that have been active since: " + fromDate);
 }
 
