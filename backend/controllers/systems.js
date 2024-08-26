@@ -145,8 +145,8 @@ async function load_systems(systemClients) {
 
 exports.get_systems = async function (req, res) {
   if ((systemList.length == 0) || (systemListTime < (Date.now() - 60 * 1000 * 2))) {
+    systemListTime = Date.now(); // set this first to prevent multiple calls to load_systems
     await load_systems(req.systemClients);
-    systemListTime = Date.now();
   }
 
   res.contentType('json');
