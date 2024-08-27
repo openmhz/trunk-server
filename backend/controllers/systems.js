@@ -2,6 +2,7 @@ var mongoose = require("mongoose");
 var User = require("../models/user");
 var System = require("../models/system");
 const Mailjet = require('node-mailjet');
+var schedule = require('node-schedule');
 
 var admin_email = process.env['REACT_APP_ADMIN_EMAIL'] != null ? process.env['REACT_APP_ADMIN_EMAIL'] : "luke@openmhz.com";
 var admin_server = process.env['REACT_APP_ADMIN_SERVER'] != null ? process.env['REACT_APP_ADMIN_SERVER'] : "https://admin.openmhz.com";
@@ -13,7 +14,6 @@ const mailjet = new Mailjet({
 });
 
 var systemList = [];
-var systemListTime = Date.now();
 
 exports.contact_system = async function (req, res) {
   var system = await System.findOne({
@@ -111,7 +111,7 @@ async function load_systems(systemClients) {
   for (var result in results) {
 
     var clientCount = 0;
-    if (systemClients.hasOwnProperty(results[result].shortName)) {
+    if (systemClients && systemClients.hasOwnProperty(results[result].shortName)) {
       clientCount = systemClients[results[result].shortName];
     }
     var system = {
@@ -146,11 +146,12 @@ async function load_systems(systemClients) {
 
 
 exports.get_systems = async function (req, res) {
+  /* going to use a cron job to update the system list every 2 minutes
   if ((systemList.length == 0) || (systemListTime < (Date.now() - 60 * 1000 * 2))) {
     console.log("Loading Systems - systemTime: " + systemListTime + " compare to: " + (Date.now() - 60 * 1000 * 2));
     systemListTime = Date.now(); // set this first to prevent multiple calls to load_systems
     await load_systems(req.systemClients);
-  }
+  }*/
 
   res.contentType('json');
   res.send(JSON.stringify({
@@ -192,4 +193,10 @@ exports.authorize_system = async function (req, res) {
   }
 
 }
+
+load_systems(clients);
+
+var statSched = schedule.scheduleJob('*/5 * * * *', function() {
+  load_systems(clients);
+});
 
