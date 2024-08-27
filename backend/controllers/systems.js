@@ -194,9 +194,9 @@ exports.authorize_system = async function (req, res) {
 
 }
 
-load_systems(clients);
+load_systems();
 
 var statSched = schedule.scheduleJob('*/5 * * * *', function() {
-  load_systems(clients);
+  load_systems();
 });
 
