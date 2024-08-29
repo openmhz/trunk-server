@@ -1,42 +1,39 @@
-var path = require('path');
-var fs = require('fs');
+const path = require('path');
+const fs = require('fs');
 const opentelemetry = require('@opentelemetry/api');
-var sysStats = require("../sys_stats");
-var System = require("../models/system");
-var Talkgroup = require("../models/talkgroup");
-var { callModel: Call } = require("../models/call");
+const sysStats = require("../sys_stats");
+const System = require("../models/system");
+const Talkgroup = require("../models/talkgroup");
+const { callModel: Call } = require("../models/call");
 const { trace, context } = opentelemetry;
 
-const { PutObjectCommand, S3Client } = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { fromIni } = require("@aws-sdk/credential-providers");
 const { NodeHttpHandler } = require('@smithy/node-http-handler');
 const https = require('https');
 
 const agent = new https.Agent({
-  maxSockets: 250
+  maxSockets: 250,
 });
 
-
-
-var s3_endpoint = process.env['S3_ENDPOINT'] != null ? process.env['S3_ENDPOINT'] : 'https://s3.us-west-1.wasabisys.com';
-var s3_region = process.env['S3_REGION'] != null ? process.env['S3_REGION'] : 'us-west-1';
-var s3_bucket = process.env['S3_BUCKET'] != null ? process.env['S3_BUCKET'] : 'openmhz-west';
-var s3_profile = process.env['S3_PROFILE'] != null ? process.env['S3_PROFILE'] : 'wasabi-account';
-var s3_public_url = process.env['S3_PUBLIC_URL'] != null ? process.env['S3_PUBLIC_URL'] : s3_endpoint + "/" + s3_bucket;
+const s3_endpoint = process.env['S3_ENDPOINT'] ?? 'https://s3.us-west-1.wasabisys.com';
+const s3_region = process.env['S3_REGION'] ?? 'us-west-1';
+const s3_bucket = process.env['S3_BUCKET'] ?? 'openmhz-west';
+const s3_profile = process.env['S3_PROFILE'] ?? 'wasabi-account';
+const s3_public_url = process.env['S3_PUBLIC_URL'] ?? `${s3_endpoint}/${s3_bucket}`;
 
 const client = new S3Client({
   requestHandler: new NodeHttpHandler({
-    httpsAgent: agent
+    httpsAgent: agent,
   }),
   credentials: fromIni({ profile: s3_profile }),
   endpoint: s3_endpoint,
   region: s3_region,
-  maxAttempts: 3
-
+  maxAttempts: 2,
 });
 
 exports.upload = async function (req, res, next) {
-  const tracer = trace.getTracer("upload-service")
+  const tracer = trace.getTracer("upload-service");
   return context.with(context.active(), async () => {
     const parentSpan = trace.getActiveSpan(context.active());
     await tracer.startActiveSpan('upload_handler', { parent: parentSpan }, async (span) => {
@@ -45,62 +42,46 @@ exports.upload = async function (req, res, next) {
         span.setAttribute('call.talkgroup_num', req.body.talkgroup_num);
         span.setAttribute('call.start_time', req.body.start_time);
 
-        if (!req.file || ((path.extname(req.file.originalname) != '.m4a') && (path.extname(req.file.originalname) != '.mp3'))) {
-          console.warn("[" + req.params.shortName + "] Error file name is wrong or file does not exist");
+        if (!req.file || !['.m4a', '.mp3'].includes(path.extname(req.file.originalname))) {
+          console.warn(`[${req.params.shortName}] Error file name is wrong or file does not exist`);
           span.setStatus({
             code: opentelemetry.SpanStatusCode.ERROR,
             message: "Invalid file or filename",
           });
-          res.status(500);
-          res.send("Error, invalid filename:\n");
+          res.status(500).send("Error, invalid filename:\n");
           return;
         }
 
-        // Extract and parse request data
-
-
-        var shortName = req.params.shortName.toLowerCase();
-        var apiKey = req.body.api_key;
-        var talkgroupNum = parseInt(req.body.talkgroup_num);
-        var freq = parseFloat(req.body.freq);
-        var time = new Date(parseInt(req.body.start_time) * 1000);
-        var stopTime = new Date();
+        const shortName = req.params.shortName.toLowerCase();
+        const apiKey = req.body.api_key;
+        const talkgroupNum = parseInt(req.body.talkgroup_num);
+        const freq = parseFloat(req.body.freq);
+        const time = new Date(parseInt(req.body.start_time) * 1000);
+        let stopTime = new Date();
         if (req.body.stop_time) {
-          var stopTime = new Date(parseInt(req.body.stop_time) * 1000);
+          stopTime = new Date(parseInt(req.body.stop_time) * 1000);
         }
-        var startTime = req.body.start_time;
-        var emergency = parseInt(req.body.emergency);
+        const startTime = req.body.start_time;
+        const emergency = parseInt(req.body.emergency);
 
-        let errorCount = parseInt(req.body.error_count);
-        let spikeCount = parseInt(req.body.spike_count);
+        let errorCount = parseInt(req.body.error_count) || 0;
+        let spikeCount = parseInt(req.body.spike_count) || 0;
 
-        if (Number.isNaN(errorCount)) {
-          errorCount = 0;
-        }
-        if (Number.isNaN(spikeCount)) {
-          spikeCount = 0;
-        }
-
+        let srcList = [];
         try {
-          var srcList = JSON.parse(req.body.source_list);
+          srcList = JSON.parse(req.body.source_list);
         } catch (err) {
-          var srcList = [];
-          console.warn("[" + req.params.shortName + "] Error /:shortName/upload Parsing Source/Freq List -  Error: " + err);
-          res.status(500);
-          res.send("Error parsing sourcelist " + err);
+          console.warn(`[${req.params.shortName}] Error /:shortName/upload Parsing Source/Freq List - Error: ${err}`);
+          res.status(500).send("Error parsing sourcelist " + err);
           return;
         }
-
 
         let item = null;
 
-        // Validate that the system exists and the API key is correct
         await tracer.startActiveSpan('validate_system', { parent: trace.getActiveSpan(context.active()) }, async (validateSpan) => {
-
           try {
-            item = await System.findOne({ 'shortName': shortName }, ["key", "ignoreUnknownTalkgroup"]);
+            item = await System.findOne({ shortName }, ["key", "ignoreUnknownTalkgroup"]);
             validateSpan.setAttribute('system.exists', !!item);
-
           } catch (err) {
             validateSpan.recordException(err);
             validateSpan.setStatus({
@@ -113,118 +94,78 @@ exports.upload = async function (req, res, next) {
         });
 
         if (!item) {
-          validateSpan.setStatus({
-            code: opentelemetry.SpanStatusCode.ERROR,
-            message: "ShortName does not exist",
-          });
-
-          console.warn("[" + req.params.shortName + "] Error /:shortName/upload ShortName does not exist");
-          res.status(500);
-          res.send("ShortName does not exist: " + shortName + "\n");
+          console.warn(`[${req.params.shortName}] Error /:shortName/upload ShortName does not exist`);
+          res.status(500).send("ShortName does not exist: " + shortName + "\n");
           return;
         }
-        if (apiKey != item.key) {
-          validateSpan.setStatus({
-            code: opentelemetry.SpanStatusCode.ERROR,
-            message: "API Key Mismatch",
-          });
-          console.warn("[" + req.params.shortName + "] Error /:shortName/upload API Key Mismatch - Provided key: " + apiKey);
-          res.status(500);
-          res.send("API Keys do not match!\n");
+        if (apiKey !== item.key) {
+          console.warn(`[${req.params.shortName}] Error /:shortName/upload API Key Mismatch - Provided key: ${apiKey}`);
+          res.status(500).send("API Keys do not match!\n");
           return;
         }
 
-
-        // Blocking sensitive talkgroups
-        if ((shortName == "hennearmer") && ((talkgroupNum == 3421) || (talkgroupNum == 3423))) {
-          sensitiveSpan.setStatus({
-            code: opentelemetry.SpanStatusCode.ERROR,
-            message: "Sensitive Talkgroup",
-          });
+        if (shortName === "hennearmer" && [3421, 3423].includes(talkgroupNum)) {
           res.status(200).end();
           return;
         }
 
-
-        if (item.ignoreUnknownTalkgroup == true) {
-          talkgroupExists = await Talkgroup.exists({
-            'shortName': shortName,
-            'num': talkgroupNum
+        if (item.ignoreUnknownTalkgroup) {
+          const talkgroupExists = await Talkgroup.exists({
+            shortName,
+            num: talkgroupNum,
           });
 
           if (!talkgroupExists) {
             try {
-              fs.unlinkSync(req.file.path)
-              //file removed
+              fs.unlinkSync(req.file.path);
             } catch (err) {
-              console.error("[" + call.shortName + "] error deleting: " + req.file.path);
+              console.error(`[${call.shortName}] error deleting: ${req.file.path}`);
             }
-            res.status(500);
-            res.send("Talkgroup does not exist, skipping.\n");
+            res.status(500).send("Talkgroup does not exist, skipping.\n");
             return;
           }
         }
 
         res.status(200).end();
 
-        // Prepare call object
-        let call;
-        //const prepareSpan = tracer.startSpan('prepare_call_object');
+        const local_path = `/${shortName}/${time.getFullYear()}/${time.getMonth() + 1}/${time.getDate()}/`;
+        const object_key = `media/${shortName}-${talkgroupNum}-${startTime}${path.extname(req.file.originalname)}`;
+        const url = `${s3_public_url}/${object_key}`;
 
-        var local_path = "/" + shortName + "/" + time.getFullYear() + "/" + (time.getMonth() + 1) + "/" + time.getDate() + "/";
-        var object_key = "media/" + shortName + "-" + talkgroupNum + "-" + startTime + path.extname(req.file.originalname);
-
-        var endpoint = s3_endpoint;
-        var bucket = s3_bucket;
-        var url = s3_public_url + "/" + object_key;
-
-        call = new Call({
-          shortName: shortName,
-          talkgroupNum: talkgroupNum,
+        const call = new Call({
+          shortName,
+          talkgroupNum,
           objectKey: object_key,
-          endpoint: endpoint,
-          bucket: bucket,
-          time: time,
-          name: talkgroupNum + "-" + startTime + ".m4a",
-          freq: freq,
-          errorCount: errorCount,
-          spikeCount: spikeCount,
-          url: url,
-          emergency: emergency,
+          endpoint: s3_endpoint,
+          bucket: s3_bucket,
+          time,
+          name: `${talkgroupNum}-${startTime}.m4a`,
+          freq,
+          errorCount,
+          spikeCount,
+          url,
+          emergency,
           path: local_path,
-          srcList: srcList,
-          len: -1
+          srcList,
+          len: req.body.call_length ? parseFloat(req.body.call_length) : (stopTime - time) / 1000,
         });
 
-
-        try {
-          if (req.body.call_length) {
-            call.len = parseFloat(req.body.call_length);
-          } else {
-            call.len = (stopTime - time) / 1000;
-          }
-        } catch (err) {
-          console.error(err);
-        }
-        // prepareSpan.setAttribute('call.object_key', object_key);
-        // prepareSpan.setAttribute('call.url', url);
-        // prepareSpan.end();
-
         let fileContent;
-        // Upload file to S3
         await tracer.startActiveSpan('upload_to_s3', { parent: trace.getActiveSpan(context.active()) }, async (uploadSpan) => {
           try {
             fileContent = fs.readFileSync(req.file.path);
-            //s3Src = fs.createReadStream(req.file.path);
 
             const command = new PutObjectCommand({
               Bucket: s3_bucket,
               Key: object_key,
               Body: fileContent,
-              ACL: 'public-read'
+              ACL: 'public-read',
             });
-            await client.send(command);
-
+            var result = await client.send(command);
+            if (result && result.$metadata.httpStatusCode !== 200) {
+              console.error(`[${shortName}] Upload Error status code: ${result.$metadata.httpStatusCode}`);
+              console.error(result);
+            } 
           } catch (err) {
             uploadSpan.recordException(err);
             uploadSpan.setStatus({
@@ -236,7 +177,7 @@ exports.upload = async function (req, res, next) {
             uploadSpan.end();
           }
         });
-        // Save call to database
+
         await tracer.startActiveSpan('save_call', { parent: trace.getActiveSpan(context.active()) }, async (saveSpan) => {
           try {
             await call.save();
@@ -252,16 +193,13 @@ exports.upload = async function (req, res, next) {
           }
         });
 
-        // Update system stats
         sysStats.addCall(call.toObject());
 
-        // we only want to notify clients if the clip is longer than 1 second.
         if (call.len >= 1) {
           req.call = call.toObject();
           next();
         }
 
-        // Clean up temporary file
         await tracer.startActiveSpan('cleanup_temp_file', { parent: trace.getActiveSpan(context.active()) }, async (cleanupSpan) => {
           try {
             fs.unlinkSync(req.file.path);
@@ -273,7 +211,6 @@ exports.upload = async function (req, res, next) {
             cleanupSpan.end();
           }
         });
-
 
       } catch (error) {
         console.error("Error processing call upload: " + error);

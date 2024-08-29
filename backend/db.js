@@ -1,4 +1,3 @@
-const { CloudWatchLogs } = require("aws-sdk");
 var { callModel: Call } = require("./models/call");
 var Event = require("./models/event");
 var Podcast = require("./models/podcast");
