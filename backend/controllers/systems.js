@@ -55,7 +55,6 @@ exports.contact_system = async function (req, res) {
     return;
   }
 
-  console.log(user);
   let message = "Thank you for contributing a feed to OpenMHz. A user has sent in a message about this feed:\n\n-------------------------------\n"
   message = message + "User Name: " + req.body.name + "\n";
   message = message + "User Email: " + req.body.email + "\n-------------------------------\n";
