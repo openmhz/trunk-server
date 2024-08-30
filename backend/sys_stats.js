@@ -12,12 +12,14 @@ var spots = (24 * 60) / timePeriod; // the number of spots needed to keep track 
 async function updateActiveSystems() {
     // Go through all of the Systems
     let siteTotal = 0;
+    let activeSystems = 0;
     for await (let item of System.find()) {
         // go through all the systems
         // if you have received some calls during that last period, make the system active
         if ((callTotals[item.shortName] != undefined) && (callTotals[item.shortName] > 0)) {
             item.active = true;
             siteTotal += callTotals[item.shortName];
+            activeSystems++;
             item.callAvg = callTotals[item.shortName] / timePeriod;
             item.lastActive = new Date();
         } else {
@@ -35,6 +37,7 @@ async function updateActiveSystems() {
         await item.save();
     };
     console.log("Site average uploads per minute: " + siteTotal / timePeriod);
+    console.log("Active Systems: " + activeSystems);
 }
 
 exports.initStats = async function () {
