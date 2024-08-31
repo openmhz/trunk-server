@@ -15,9 +15,8 @@ async function updateActiveSystems() {
     // Go through all of the Systems
     let siteTotal = 0;
     let activeSystems = 0;
-    console.log(callTotals);
+    
     for await (let item of System.find()) {
-        console.log("Checking: " + item.shortName);
         // go through all the systems
         // if you have received some calls during that last period, make the system active
         if ((callTotals[item.shortName] != undefined) && (callTotals[item.shortName] > 0)) {
