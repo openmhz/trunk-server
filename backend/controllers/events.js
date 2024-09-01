@@ -181,7 +181,9 @@ const createPodcast = async (tmpEventFolder, podcastFile, event) => {
     fs.writeFileSync(concatFile, concat, "utf8");
     // https://video.stackexchange.com/questions/21315/concatenating-split-media-files-using-concat-protocol
     //ffmpeg -f concat -safe 0 -i mylist.txt -c copy output
-    command.push("-hide_banner -loglevel error");
+    command.push("-hide_banner");
+    command.push("-loglevel");
+    command.push("error");
     command.push("-f");
     command.push("concat");
     command.push("-safe");
@@ -198,6 +200,9 @@ const createPodcast = async (tmpEventFolder, podcastFile, event) => {
     const chaptersFile = tmpEventFolder + "/CHAPTERS.txt"
     fs.writeFileSync(chaptersFile, chapters, "utf8");
     command = [];
+    command.push("-hide_banner");
+    command.push("-loglevel");
+    command.push("error");
     command.push("-i");
     command.push(tmpFile)
     command.push("-i");
