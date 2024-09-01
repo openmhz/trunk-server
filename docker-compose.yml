@@ -85,6 +85,7 @@ services:
       - HONEYCOMB_API_KEY
     volumes:
       - "~/.aws:/home/app/.aws"
+      - ${PWD}/data/stats:/data/stats
     depends_on:
       - mongo
     ports:
