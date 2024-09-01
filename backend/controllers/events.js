@@ -39,7 +39,7 @@ exports.getEvent = async function (req, res, next) {
         res.send(JSON.stringify(event));
     }
     catch (err) {
-        console.error(err);
+        console.error("Error fetching Event " + req.params.id + ": " + err);
         res.status(500);
         res.send(`Error fetching Event ${req.params.id}: ` + err);
     }
@@ -52,7 +52,7 @@ exports.getEvents = async function (req, res, next) {
         res.send(JSON.stringify(events));
     }
     catch (err) {
-        console.error(err);
+        console.error("Error fetching Events " + err);
         res.status(500);
         res.send("Error fetching Events" + err);
     }
@@ -62,23 +62,17 @@ exports.getEvents = async function (req, res, next) {
 
 async function downloadFile(folderName, url) {
     return new Promise((resolve, reject) => {
-        console.log("Trying to download: " + url)
         https.get(url, (response) => {
             const filename = new URL(url).pathname.split('/').pop();
             const filePath = `${folderName}/${filename}`;
-            console.log("Downloading to filename " + filename + " and filePath " + filePath);
             let stream = fs.createWriteStream(filePath);
-
             response.on("error", reject);
 
             stream.on("finish", () => {
                 stream.close();
-                console.log("Download Completed");
                 resolve();
             }).on("error", reject);
-
             response.pipe(stream);
-
         }).on("error", reject);
     });
 }
@@ -140,7 +134,6 @@ const ffmpeg = async (command) => {
             }
             else {
                 resolve(); // Call resolve here
-                console.log('DONE');
             }
         });
     });
@@ -168,7 +161,6 @@ const createChapters = (event) => {
         chapters = chapters + "END=" + (totalTime * 1000) + "\n";
         chapters = chapters + "title=" + escapeMetadata(call.talkgroupDescription) + "\n";
     }
-    console.log("Chapters: \n" + chapters);
     return chapters;
 }
 
@@ -179,7 +171,6 @@ const createPodcast = async (tmpEventFolder, podcastFile, event) => {
     let tmpFile = tmpEventFolder + "/tmp.m4a"
     for (const call of event.calls) {
         const filename = tmpEventFolder + "/" + new URL(call.url).pathname.split('/').pop();
-        console.log("Adding to podcast: " + filename)
         inputs.push(filename);
 
     }
@@ -190,6 +181,7 @@ const createPodcast = async (tmpEventFolder, podcastFile, event) => {
     fs.writeFileSync(concatFile, concat, "utf8");
     // https://video.stackexchange.com/questions/21315/concatenating-split-media-files-using-concat-protocol
     //ffmpeg -f concat -safe 0 -i mylist.txt -c copy output
+    command.push("-hide_banner -loglevel error");
     command.push("-f");
     command.push("concat");
     command.push("-safe");
@@ -199,7 +191,6 @@ const createPodcast = async (tmpEventFolder, podcastFile, event) => {
     command.push("-acodec");
     command.push("aac");
     command.push(tmpFile);
-    //console.log("Running command: " + command);
     await ffmpeg(command);
 
 
@@ -257,18 +248,15 @@ const packageEvent = (eventId) => {
         const podcastFile = tmpEventFolder + "/" + eventFolder + ".m4a";
         const s3ZipFile = "events/" + eventFolder + ".zip";
         const s3PodcastFile = "podcasts/" + eventFolder + ".m4a";
-        console.log("Using tmp " + tmpEventFolder);
 
         try {
             if (!fs.existsSync(tmpEventFolder)) {
-                console.log("Creating tmp Folder");
                 fs.mkdirSync(tmpEventFolder);
             }
 
             for (const call of event.calls) {
                 await downloadFile(tmpEventFolder, call.url)
             }
-
 
             exportEventJson(tmpEventFolder, event);
             createEventZip(tmpEventFolder, zipFile, eventFolder);
@@ -282,7 +270,7 @@ const packageEvent = (eventId) => {
             await createPodcast(tmpEventFolder, podcastFile, event);
             await uploadFile(podcastFile, s3PodcastFile);
             await savePodcast(event, podcastUrl);
-            console.log("uploaded to: " + podcastUrl);
+            //console.log("uploaded to: " + podcastUrl);
 
 
         } catch (e) {
@@ -291,7 +279,6 @@ const packageEvent = (eventId) => {
         }
         cleanupEvent(tmpEventFolder, zipFile);
         resolve('resolved');
-
     });
 };
 
@@ -357,7 +344,7 @@ exports.addNewEvent = async function (req, res, next) {
             next();
         }
         //console.log(req);
-        console.log(req.body);
+        //console.log(req.body);
         const title = req.body.title;
         const description = req.body.description;
         const callIds = req.body.callIds;
@@ -388,7 +375,7 @@ exports.addNewEvent = async function (req, res, next) {
             event.calls = await freezeCalls(calls);
 
             const savedEvent = await event.save();
-            console.log("Event ID " + savedEvent._id);
+            //console.log("Event ID " + savedEvent._id);
             const url = "/events/" + event._id;
             res.contentType('json');
             res.send(JSON.stringify({ url: url }));
@@ -397,7 +384,7 @@ exports.addNewEvent = async function (req, res, next) {
 
         }
         catch (err) {
-            console.error(err);
+            console.error("Error creating event" + err);
             res.status(500);
             res.send("Error creating event" + err);
         }
