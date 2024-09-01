@@ -152,6 +152,14 @@ exports.get_systems = async function (req, res) {
     await load_systems(req.systemClients);
   }*/
 
+  const systemClients = req.systemClients || {};
+  for (var i = 0; i < systemList.length; i++) {
+    var system = systemList[i];
+    var shortName = system.shortName;
+    if (systemClients.hasOwnProperty(shortName)) {
+      system.clientCount = systemClients[shortName];
+    }
+  }
   res.contentType('json');
   res.send(JSON.stringify({
     success: true,
