@@ -50,8 +50,10 @@ exports.initStats = async function () {
         try {
             talkgroupStats = JSON.parse(fileContents);
         } catch (error) {
-            console.error("Error parsing JSON data:", error);
+            console.error("Talkgroup Stats - Error parsing JSON data:", error);
         }
+    } else {
+        console.error("Talkgroup Stats File not found: " + filePath);
     }
 
     // Check if the decodeErrorsFreq.json file exists
@@ -64,9 +66,12 @@ exports.initStats = async function () {
         try {
             decodeErrorsFreq = JSON.parse(fileContents);
         } catch (error) {
-            console.error("Error parsing JSON data:", error);
+            console.error("Decode Errors - Error parsing JSON data:", error);
         }
+    } else {
+        console.error("Decode Errors File not found: " + decodeErrorsFreqPath);
     }
+
 /*
     for await (const item of SystemStat.find()) {
         const obj = item.toObject();
