@@ -21,7 +21,7 @@ import {
 } from 'semantic-ui-react'
 
 import { useDispatch } from 'react-redux'
-import { useGetSystemsQuery } from "../features/api/apiSlice";
+import { useGetStatsQuery, useGetSystemsQuery } from "../features/api/apiSlice";
 
 /* Responsive component was removed from Semantic UI. This is discussed here: https://github.com/Semantic-Org/Semantic-UI-React/pull/4008 */
 
@@ -213,6 +213,86 @@ const ResponsiveContainer = ({ children }) => (
   </div>
 )
 
+
+import React from "react";
+import { Group } from '@visx/group';
+import { curveStep } from '@visx/curve';
+import { LinePath } from '@visx/shape';
+import { scaleLinear, scaleTime } from '@visx/scale';
+import { timeParse, timeFormat } from 'd3-time-format';
+import { AxisBottom, AxisLeft } from '@visx/axis';
+import { Loader } from "semantic-ui-react";
+
+const SiteStatsChart = ({ siteStats }) => {
+  if (!siteStats) {
+    return <Loader size='large'>Loading</Loader>;
+  }
+
+  const width = 500;
+  const height = 250;
+  const margin = { top: 20, bottom: 40, left: 40, right: 20 };
+
+  const xMax = width - margin.left - margin.right;
+  const yMax = height - margin.top - margin.bottom;
+
+  const now = new Date();
+  const MS_PER_MINUTE = 60000;
+
+  const data = siteStats.map((stat, index) => ({
+    y: stat,
+    x: new Date(now - index * 15 * MS_PER_MINUTE)
+  })).reverse();
+
+  const xScale = scaleTime({
+    range: [0, xMax],
+    domain: [data[0].x, data[data.length - 1].x],
+  });
+
+  const yScale = scaleLinear({
+    range: [yMax, 0],
+    domain: [0, Math.max(...data.map(d => d.y))],
+    nice: true,
+  });
+
+  return (
+    <svg width={width} height={height}>
+      <Group left={margin.left} top={margin.top}>
+        <LinePath
+          data={data}
+          x={d => xScale(d.x)}
+          y={d => yScale(d.y)}
+          stroke="#1a85ff"
+          strokeWidth={2}
+          curve={curveStep}
+        />
+        <AxisBottom
+          scale={xScale}
+          top={yMax}
+          numTicks={5}
+          tickFormat={timeFormat("%H:%M")}
+        />
+        <AxisLeft scale={yScale} />
+      </Group>
+    </svg>
+  );
+};
+
+const SiteStatsContainer = () => {
+  const { data: siteStats, isSuccess: siteStatsSuccess } = useGetStatsQuery();
+
+  if (!siteStatsSuccess) {
+    return <Loader size='large'>Loading Site Stats</Loader>;
+  }
+
+  return (
+    <div>
+      <h2>Site Activity</h2>
+      <SiteStatsChart siteStats={siteStats.callTotals} />
+    </div>
+  );
+};
+
+
 // ----------------------------------------------------
 const Main = (props) => {
 
@@ -220,6 +300,8 @@ const Main = (props) => {
   const [currentSystem, setCurrentSystem] = useState(0);
   const navigate = useNavigate();
   const { data: systems, isSuccess } = useGetSystemsQuery();   //= selectAllSystems();
+  const { data: siteStats, isSuccess: siteStatsSuccess } = useGetStatsQuery();
+  
 
   function useInterval(callback, delay) {
     const savedCallback = useRef();
@@ -255,7 +337,7 @@ const Main = (props) => {
 
   useInterval(() => { advanceSystem() }, 3000)
 
-
+  
 
   //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
   //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
@@ -316,6 +398,23 @@ const Main = (props) => {
             </Grid>
           </Segment>
 
+          <Segment style={{ padding: '0em' }} vertical>
+            <Grid columns='equal' stackable>
+              <Grid.Row textAlign='center'>
+                <Grid.Column style={{ paddingBottom: '5em', paddingTop: '5em' }}>
+                  <SiteStatsContainer />
+                </Grid.Column>
+                <Grid.Column style={{ paddingBottom: '5em', paddingTop: '5em' }}>
+                  <Statistic>
+                    <Statistic.Value>
+                      {siteStats?.activeSystems || 0}
+                    </Statistic.Value>
+                    <Statistic.Label>Active Systems</Statistic.Label>
+                  </Statistic>
+                </Grid.Column>
+              </Grid.Row>
+            </Grid>
+          </Segment>
 
 
           <Segment style={{ padding: '0em' }} vertical>

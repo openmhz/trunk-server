@@ -9,12 +9,20 @@ var uploadErrors = {};
 let decodeErrorsFreq = {};
 const timePeriod = 15; // in minutes
 var spots = (24 * 60) / timePeriod; // the number of spots needed to keep track of 24 hours of stats
+let uploadsPerMin = new Array(spots).fill(0);
+let activeSystems = 0;
+function updateUploadsPerMin(totalUploads) {
+    uploadsPerMin.push(totalUploads / timePeriod);
+    uploadsPerMin.shift();
+}
+
+
 
 
 async function updateActiveSystems() {
     // Go through all of the Systems
     let siteTotal = 0;
-    let activeSystems = 0;
+    activeSystems = 0;
     
     for await (let item of System.find()) {
         // go through all the systems
@@ -33,6 +41,7 @@ async function updateActiveSystems() {
 
         await item.save();
     };
+    updateUploadsPerMin(siteTotal);
     console.log("Site average uploads per minute: " + siteTotal / timePeriod);
     console.log("Active Systems: " + activeSystems);
 }
@@ -324,6 +333,16 @@ exports.shiftStats = async function () {
     updateActiveSystems();
     console.log("Finished Updating Active Systems at: " + new Date());
 }
+
+exports.siteStats = function() {
+    const siteStats ={
+        uploadsPerMin,
+        activeSystems
+    }
+    res.contentType('json');
+    res.send(JSON.stringify(siteStats));
+};
+
 exports.callTotals = function (shortName) {
     return callTotals[shortName];
 }

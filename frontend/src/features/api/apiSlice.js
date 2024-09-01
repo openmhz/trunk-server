@@ -40,6 +40,13 @@ export const apiSlice = createApi({
                 return responseData;
               }
         }),
+        getSiteStats: builder.query({
+            query: () => ({ url: '/stats' }),
+            transformResponse: responseData => {
+                // You can add any data transformation here if needed
+                return responseData;
+            }
+        }),
         getTalkgroups: builder.query({
             // The URL for the request is '/fakeApi/posts'
             query: (shortName) => ({ url: `/${shortName}/talkgroups` })

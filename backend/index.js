@@ -8,6 +8,7 @@ var systems = require("./controllers/systems");
 var talkgroups = require("./controllers/talkgroups");
 var groups = require("./controllers/groups");
 var stats = require("./controllers/stats");
+var sys_stats = require("./sys_stats");
 var events = require("./controllers/events");
 var config = require('./config/config.json');
 let db = require('./db')
@@ -134,6 +135,7 @@ app.get('/events/:id', events.getEvent);
 
 /*------    STATS   ----------*/
 app.get('/:shortName/stats', stats.get_stats);
+app.get('/stats', sys_stats.siteStats)
 
 
 function get_clients(req, res) {
