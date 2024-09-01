@@ -48,9 +48,13 @@ const ListSystems = (props) => {
   }
 
   let popularSystems = [];
-  if (isSuccess && systems.systems)
-    popularSystems = systems.systems.sort((a, b) => b.clientCount - a.clientCount).slice(0, 4);
-
+  if (isSuccess && systems.systems) {
+    const sortedSystems = systems.systems.sort((a, b) => {
+      
+      return b.clientCount - a.clientCount;
+    });
+    popularSystems = sortedSystems.slice(0, 4);
+  }
   const handleContactClick = (system) => {
     setContactSystem(system);
     setContactVisible(true);
