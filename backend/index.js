@@ -96,7 +96,8 @@ function addSystemClients(req, res, next) {
 }
 
 function addTotalClients(req, res, next) {
-  req.totalClients = clients.length;
+
+  req.totalClients = Object.keys(clients).length;
   next();
 }
 
