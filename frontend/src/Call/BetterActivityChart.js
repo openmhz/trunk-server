@@ -27,7 +27,7 @@ const tooltipStyles = {
 };
 
 // util
-const formatDate = timeFormat("%b %d, %H:%m");
+const formatDate = timeFormat("%b %d, %H:%MM");
 
 // accessors
 const getDate = (d) => {

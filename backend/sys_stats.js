@@ -11,6 +11,7 @@ const timePeriod = 15; // in minutes
 var spots = (24 * 60) / timePeriod; // the number of spots needed to keep track of 24 hours of stats
 let uploadsPerMin = new Array(spots).fill(0);
 let activeSystems = 0;
+let totalClients = 0;
 function updateUploadsPerMin(totalUploads) {
     uploadsPerMin.push(totalUploads / timePeriod);
     uploadsPerMin.shift();
@@ -42,6 +43,10 @@ async function updateActiveSystems() {
         await item.save();
     };
     updateUploadsPerMin(siteTotal);
+        // Save talkgroupStats to a JSON file
+        const filePath = "/data/stats/uploadsPerMin.json";
+        fs.writeFileSync(filePath, JSON.stringify(uploadsPerMin));
+        console.log("Saved uploadsPerMin to JSON file");
     console.log("Site average uploads per minute: " + siteTotal / timePeriod);
     console.log("Active Systems: " + activeSystems);
 }
@@ -80,6 +85,22 @@ exports.initStats = async function () {
     } else {
         console.error("Decode Errors File not found: " + decodeErrorsFreqPath);
     }
+
+    const uploadsPerMinPath = "/data/stats/uploadsPerMin.json";
+    if (fs.existsSync(uploadsPerMinPath)) {
+        // Read the contents of the file
+        const fileContents = fs.readFileSync(uploadsPerMinPath, "utf8");
+
+        // Parse the JSON data
+        try {
+            uploadsPerMin = JSON.parse(fileContents);
+        } catch (error) {
+            console.error("Decode Errors - Error parsing JSON data:", error);
+        }
+    } else {
+        console.error("Decode Errors File not found: " + uploadsPerMinPath);
+    }
+
 
 /*
     for await (const item of SystemStat.find()) {
@@ -334,10 +355,12 @@ exports.shiftStats = async function () {
     console.log("Finished Updating Active Systems at: " + new Date());
 }
 
-exports.siteStats = function() {
+
+exports.siteStats = function(req, res) {
     const siteStats ={
         uploadsPerMin,
-        activeSystems
+        activeSystems,
+        totalClients: req.totalClients
     }
     res.contentType('json');
     res.send(JSON.stringify(siteStats));

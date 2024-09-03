@@ -95,6 +95,10 @@ function addSystemClients(req, res, next) {
   next();
 }
 
+function addTotalClients(req, res, next) {
+  req.totalClients = clients.length;
+  next();
+}
 
 
 /*------    CALLS   ----------*/
@@ -135,7 +139,7 @@ app.get('/events/:id', events.getEvent);
 
 /*------    STATS   ----------*/
 app.get('/:shortName/stats', stats.get_stats);
-app.get('/stats', sys_stats.siteStats)
+app.get('/stats', addTotalClients, sys_stats.siteStats)
 
 
 function get_clients(req, res) {

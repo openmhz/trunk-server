@@ -76,4 +76,4 @@ export const apiSlice = createApi({
 })
 
 // Export the auto-generated hook for the `getPosts` query endpoint
-export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetStatsQuery, useGetEventsQuery, useGetEventQuery, useAddNewEventMutation, useContactSystemMutation } = apiSlice
+export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetStatsQuery, useGetSiteStatsQuery, useGetEventsQuery, useGetEventQuery, useAddNewEventMutation, useContactSystemMutation } = apiSlice
