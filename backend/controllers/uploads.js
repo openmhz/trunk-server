@@ -216,7 +216,7 @@ exports.upload = async function (req, res, next) {
           }
         });
         const cleanupTime = Date.now() - start_time;
-        console.log(`[${call.shortName}] \t Verify System: ${validateSystemTime } \t Read file: ${} \t Upload: ${uploadFileTime} \t Save: ${saveCallTime} \tCleanup: ${cleanupTime} \t\t Total: ${cleanupTime - start_time}`);
+        console.log(`[${call.shortName}] \t Verify System: ${validateSystemTime }  \t Upload: ${uploadFileTime} \t Save: ${saveCallTime} \tCleanup: ${cleanupTime} \t\t Total: ${cleanupTime - start_time}`);
       } catch (error) {
         console.error("Error processing call upload: " + error);
         span.recordException(error);
