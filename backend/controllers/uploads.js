@@ -34,6 +34,7 @@ const client = new S3Client({
 
 exports.upload = async function (req, res, next) {
   const tracer = trace.getTracer("upload-service");
+  const start_time = Date.now();
   return context.with(context.active(), async () => {
     const parentSpan = trace.getActiveSpan(context.active());
     await tracer.startActiveSpan('upload_handler', { parent: parentSpan }, async (span) => {
@@ -108,7 +109,7 @@ exports.upload = async function (req, res, next) {
           res.status(200).end();
           return;
         }
-
+        const validateSystemTime = Date.now() - start_time;
         if (item.ignoreUnknownTalkgroup) {
           const talkgroupExists = await Talkgroup.exists({
             shortName,
@@ -154,7 +155,7 @@ exports.upload = async function (req, res, next) {
         await tracer.startActiveSpan('upload_to_s3', { parent: trace.getActiveSpan(context.active()) }, async (uploadSpan) => {
           try {
             fileContent = fs.readFileSync(req.file.path);
-
+            const readFileTime = Date.now() - start_time;
             const command = new PutObjectCommand({
               Bucket: s3_bucket,
               Key: object_key,
@@ -177,7 +178,7 @@ exports.upload = async function (req, res, next) {
             uploadSpan.end();
           }
         });
-
+        const uploadFileTime = Date.now() - start_time;
         await tracer.startActiveSpan('save_call', { parent: trace.getActiveSpan(context.active()) }, async (saveSpan) => {
           try {
             await call.save();
@@ -193,7 +194,9 @@ exports.upload = async function (req, res, next) {
           }
         });
 
+
         sysStats.addCall(call.toObject());
+        const saveCallTime = Date.now() - start_time;
 
         if (call.len >= 1) {
           req.call = call.toObject();
@@ -211,7 +214,8 @@ exports.upload = async function (req, res, next) {
             cleanupSpan.end();
           }
         });
-
+        const cleanupTime = Date.now() - start_time;
+        console.log(`[${call.shortName}] \t Verify System: ${validateSystemTime } \t Read file: ${readFileTime} \t Upload: ${uploadFileTime} \t Save: ${saveCallTime} \tCleanup: ${cleanupTime} \t\t Total: ${cleanupTime - start_time}`);
       } catch (error) {
         console.error("Error processing call upload: " + error);
         span.recordException(error);
@@ -222,6 +226,7 @@ exports.upload = async function (req, res, next) {
       } finally {
         span.end();
       }
+
     });
   });
 };
