@@ -13,7 +13,7 @@ const { NodeHttpHandler } = require('@smithy/node-http-handler');
 const https = require('https');
 
 const agent = new https.Agent({
-  maxSockets: 250,
+  maxSockets: 2500,
 });
 
 const s3_endpoint = process.env['S3_ENDPOINT'] ?? 'https://s3.us-west-1.wasabisys.com';
