@@ -40,6 +40,7 @@ exports.upload = async function (req, res, next) {
   let uploadFileTime = 0;
   let saveCallTime = 0;
   let cleanupTime = 0;
+  let statsTime = 0;
   return context.with(context.active(), async () => {
     const parentSpan = trace.getActiveSpan(context.active());
     await tracer.startActiveSpan('upload_handler', { parent: parentSpan }, async (span) => {
@@ -200,9 +201,9 @@ exports.upload = async function (req, res, next) {
           }
         });
 
-
-        sysStats.addCall(call.toObject());
         saveCallTime = Date.now();
+        sysStats.addCall(call.toObject());
+        statsTime = Date.now();
 
         if (call.len >= 1) {
           req.call = call.toObject();
@@ -221,7 +222,7 @@ exports.upload = async function (req, res, next) {
           }
         });
         cleanupTime = Date.now();
-        console.log(`[${call.shortName}] \t Verify System: ${validateSystemTime - start_time}  \t Read file: ${readFileTime - validateSystemTime} \t Upload: ${ uploadFileTime - validateSystemTime} \t Save: ${saveCallTime - uploadFileTime} \tCleanup: ${cleanupTime - saveCallTime} \t\t Total: ${cleanupTime - start_time}`);
+        console.log(`[${call.shortName}] \t Verify System: ${validateSystemTime - start_time}  \t Read file: ${readFileTime - validateSystemTime} \t Upload: ${ uploadFileTime - validateSystemTime} \t Save: ${saveCallTime - uploadFileTime} \tStats: ${statsTime - saveCallTime}\tCleanup: ${cleanupTime - statsTime} \t\t Total: ${cleanupTime - start_time}`);
       } catch (error) {
         console.error("Error processing call upload: " + error);
         span.recordException(error);
