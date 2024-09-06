@@ -152,10 +152,11 @@ exports.upload = async function (req, res, next) {
         });
 
         let fileContent;
+        let readFileTime=0
         await tracer.startActiveSpan('upload_to_s3', { parent: trace.getActiveSpan(context.active()) }, async (uploadSpan) => {
           try {
             fileContent = fs.readFileSync(req.file.path);
-            const readFileTime = Date.now() - start_time;
+            readFileTime = Date.now() - start_time;
             const command = new PutObjectCommand({
               Bucket: s3_bucket,
               Key: object_key,
@@ -215,7 +216,7 @@ exports.upload = async function (req, res, next) {
           }
         });
         const cleanupTime = Date.now() - start_time;
-        console.log(`[${call.shortName}] \t Verify System: ${validateSystemTime } \t Read file: ${readFileTime} \t Upload: ${uploadFileTime} \t Save: ${saveCallTime} \tCleanup: ${cleanupTime} \t\t Total: ${cleanupTime - start_time}`);
+        console.log(`[${call.shortName}] \t Verify System: ${validateSystemTime } \t Read file: ${} \t Upload: ${uploadFileTime} \t Save: ${saveCallTime} \tCleanup: ${cleanupTime} \t\t Total: ${cleanupTime - start_time}`);
       } catch (error) {
         console.error("Error processing call upload: " + error);
         span.recordException(error);
