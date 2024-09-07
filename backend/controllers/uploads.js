@@ -13,7 +13,7 @@ const { NodeHttpHandler } = require('@smithy/node-http-handler');
 const https = require('https');
 
 const agent = new https.Agent({
-  maxSockets: 2500,
+  maxSockets: 250,
 });
 
 const s3_endpoint = process.env['S3_ENDPOINT'] ?? 'https://s3.us-west-1.wasabisys.com';
@@ -222,7 +222,7 @@ exports.upload = async function (req, res, next) {
           }
         });
         cleanupTime = Date.now();
-        console.log(`[${call.shortName}] \t Verify System: ${validateSystemTime - start_time}  \t Read file: ${readFileTime - validateSystemTime} \t Upload: ${ uploadFileTime - validateSystemTime} \t Save: ${saveCallTime - uploadFileTime} \tStats: ${statsTime - saveCallTime}\tCleanup: ${cleanupTime - statsTime} \t\t Total: ${cleanupTime - start_time}`);
+        //console.log(`[${call.shortName}] \t Verify System: ${validateSystemTime - start_time}  \t Read file: ${readFileTime - validateSystemTime} \t Upload: ${ uploadFileTime - validateSystemTime} \t Save: ${saveCallTime - uploadFileTime} \tStats: ${statsTime - saveCallTime}\tCleanup: ${cleanupTime - statsTime} \t\t Total: ${cleanupTime - start_time}`);
       } catch (error) {
         console.error("Error processing call upload: " + error);
         span.recordException(error);
