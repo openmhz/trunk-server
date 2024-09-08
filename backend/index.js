@@ -6,7 +6,7 @@ var calls = require("./controllers/calls");
 var uploads = require("./controllers/uploads");
 var systems = require("./controllers/systems");
 var talkgroups = require("./controllers/talkgroups");
-var groups = require("./controllers/groups");
+
 var stats = require("./controllers/stats");
 var sys_stats = require("./sys_stats");
 var events = require("./controllers/events");
@@ -130,7 +130,7 @@ app.post('/:shortName/authorize', systems.authorize_system);
 app.get('/:shortName/talkgroups', talkgroups.get_talkgroups);
 
 /*------    GROUPS   ----------*/
-app.get('/:shortName/groups', groups.get_groups);
+app.get('/:shortName/groups', talkgroups.get_groups);
 
 
 /*------    EVENTS   ----------*/

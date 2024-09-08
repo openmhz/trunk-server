@@ -83,3 +83,24 @@ server {
 		access_log    off; 
   }
 }
+
+server {
+	listen 80;
+
+	server_name upload.${DOMAIN_NAME};
+
+	location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+	location /~*/upload {
+		proxy_pass http://backend:3005;
+		include /etc/nginx/proxy.conf;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection "upgrade";
+		proxy_set_header Host $host;
+		proxy_cache_bypass $http_upgrade;
+		access_log    off; 
+  }
+}

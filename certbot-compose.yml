@@ -27,7 +27,7 @@ services:
       - ${PWD}/data/certbot/conf/:/etc/letsencrypt/:rw
     entrypoint: "certbot certonly --webroot -w /var/www/certbot \
     --email ${REACT_APP_ADMIN_EMAIL} \
-    -d ${DOMAIN_NAME} -d www.${DOMAIN_NAME} -d api.${DOMAIN_NAME} -d admin.${DOMAIN_NAME} -d account.${DOMAIN_NAME} \
+    -d ${DOMAIN_NAME} -d www.${DOMAIN_NAME} -d api.${DOMAIN_NAME} -d admin.${DOMAIN_NAME} -d account.${DOMAIN_NAME} -d upload.${DOMAIN_NAME}\
     --rsa-key-size 4096 \
     --agree-tos \
     --force-renewal"
