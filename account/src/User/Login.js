@@ -131,7 +131,7 @@ const Login = (props) => {
                 href="mailto:{process.env.REACT_APP_ADMIN_EMAIL}?Subject={process.env.REACT_APP_SITE_NAME}"
                 target="_top"
               >
-                admin@email.com
+                {process.env.REACT_APP_ADMIN_EMAIL}
               </a>{" "}
             </p>
           </Grid.Column>
