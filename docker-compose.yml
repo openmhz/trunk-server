@@ -104,7 +104,6 @@ services:
       context: ./admin
       args:
         - REACT_APP_BACKEND_SERVER
-        - REACT_APP_UPLOAD_SERVER   
         - REACT_APP_ADMIN_SERVER
         - REACT_APP_ACCOUNT_SERVER
         - REACT_APP_FRONTEND_SERVER
@@ -114,7 +113,6 @@ services:
     image: "admin:${TAG}-${STAGE}"
     environment:
       - REACT_APP_BACKEND_SERVER
-      - REACT_APP_UPLOAD_SERVER
       - REACT_APP_ADMIN_SERVER
       - REACT_APP_ACCOUNT_SERVER
       - REACT_APP_FRONTEND_SERVER

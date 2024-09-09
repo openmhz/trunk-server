@@ -288,7 +288,7 @@ const System = () => {
       '",\n\t\t\t"apiKey": "' +
       system.key +
       '"\n\t\t}\n\t],\n\t"uploadServer": "' +
-      process.env.REACT_APP_UPLOAD_SERVER +
+      process.env.REACT_APP_BACKEND_SERVER +
       '"\n}';
 
     switch (system.systemType) {
