@@ -136,7 +136,7 @@ exports.upload = async function (req, res, next) {
         res.status(200).end();
 
         const local_path = `/${shortName}/${time.getFullYear()}/${time.getMonth() + 1}/${time.getDate()}/`;
-        const object_key = `media/${shortName}-${talkgroupNum}-${startTime}${path.extname(req.file.originalname)}`;
+        const object_key = `media/${shortName}/${talkgroupNum}/${shortName}-${talkgroupNum}-${startTime}${path.extname(req.file.originalname)}`;
         const url = `${s3_public_url}/${object_key}`;
 
         const call = new Call({
