@@ -61,7 +61,7 @@ const connect = async () => {
       console.log('Mongoose is disconnecting');
     });
   
-    await mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true, server: { poolSize: 25 } });
+    await mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true,  maxPoolSize: 25 });
     console.log("All Done");
 }
 connect();
