@@ -2,7 +2,8 @@
 
 const opentelemetry = require('@opentelemetry/sdk-node');
 const { MongoDBInstrumentation } = require('@opentelemetry/instrumentation-mongodb');
-
+const {SocketIoInstrumentation} = require("@opentelemetry/instrumentation-socket.io");
+const { MongooseInstrumentation } = require('@opentelemetry/instrumentation-mongoose');
 const { TraceIdRatioBasedSampler } = require('@opentelemetry/sdk-trace-node');
 const { OTLPTraceExporter } =  require('@opentelemetry/exporter-trace-otlp-http');
 const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
@@ -26,6 +27,8 @@ const sdk = new opentelemetry.NodeSDK({
     traceExporter: new OTLPTraceExporter(),
     sampler: new TraceIdRatioBasedSampler(samplePercentage),
     instrumentations: [
+        new SocketIoInstrumentation(),
+        new MongooseInstrumentation(),
         new MongoDBInstrumentation({
             // see under for available configuration
           }),
