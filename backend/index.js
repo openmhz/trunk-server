@@ -43,8 +43,8 @@ configureExpress(app)
 
 // -------------------------------------------
 
-const mongo_host = process.env['MONGO_HOST'] != null ? process.env['MONGO_HOST'] : 'mongo';
-const mongo_port = process.env['MONGO_PORT'] != null ? process.env['MONGO_PORT'] : 27017;
+const mongo_host = typeof process.env['MONGO_HOST'] !== 'undefined' ? process.env['MONGO_HOST'] : 'mongo';
+const mongo_port = typeof process.env['MONGO_PORT'] !== 'undefined' ? process.env['MONGO_PORT'] : 27017;
 const mongo_user = process.env['MONGO_USER'];
 const mongo_password = process.env['MONGO_PASSWORD'];
 
