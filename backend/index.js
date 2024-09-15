@@ -6,8 +6,9 @@ var calls = require("./controllers/calls");
 var uploads = require("./controllers/uploads");
 var systems = require("./controllers/systems");
 var talkgroups = require("./controllers/talkgroups");
-var groups = require("./controllers/groups");
+
 var stats = require("./controllers/stats");
+var sys_stats = require("./sys_stats");
 var events = require("./controllers/events");
 var config = require('./config/config.json');
 let db = require('./db')
@@ -42,9 +43,19 @@ configureExpress(app)
 
 // -------------------------------------------
 
-var host = process.env['MONGO_NODE_DRIVER_HOST'] != null ? process.env['MONGO_NODE_DRIVER_HOST'] : 'mongo';
-var port = process.env['MONGO_NODE_DRIVER_PORT'] != null ? process.env['MONGO_NODE_DRIVER_PORT'] : 27017;
-var mongoUrl = 'mongodb://' + host + ':' + port + '/scanner';
+const mongo_host = typeof process.env['MONGO_HOST'] !== 'undefined' ? process.env['MONGO_HOST'] : 'mongo';
+const mongo_port = typeof process.env['MONGO_PORT'] !== 'undefined' ? process.env['MONGO_PORT'] : 27017;
+const mongo_user = process.env['MONGO_USER'];
+const mongo_password = process.env['MONGO_PASSWORD'];
+
+let mongoUrl;
+
+if ((typeof mongo_user !== 'undefined') && (typeof mongo_password !== 'undefined')) {
+  console.log("Using authentication for MongoDB - user: " + mongo_user);
+  mongoUrl = 'mongodb://' + mongo_user + ':' + mongo_password + '@' + mongo_host + ':' + mongo_port + '/scanner';
+} else {
+  mongoUrl = 'mongodb://' + mongo_host + ':' + mongo_port + '/scanner';
+}
 
 
 const connect = async () => {
@@ -60,7 +71,7 @@ const connect = async () => {
       console.log('Mongoose is disconnecting');
     });
   
-    await mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true });
+    await mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true, maxPoolSize: 50 });
     console.log("All Done");
 }
 connect();
@@ -94,6 +105,11 @@ function addSystemClients(req, res, next) {
   next();
 }
 
+function addTotalClients(req, res, next) {
+
+  req.totalClients = Object.keys(clients).length;
+  next();
+}
 
 
 /*------    CALLS   ----------*/
@@ -124,7 +140,7 @@ app.post('/:shortName/authorize', systems.authorize_system);
 app.get('/:shortName/talkgroups', talkgroups.get_talkgroups);
 
 /*------    GROUPS   ----------*/
-app.get('/:shortName/groups', groups.get_groups);
+app.get('/:shortName/groups', talkgroups.get_groups);
 
 
 /*------    EVENTS   ----------*/
@@ -134,6 +150,7 @@ app.get('/events/:id', events.getEvent);
 
 /*------    STATS   ----------*/
 app.get('/:shortName/stats', stats.get_stats);
+app.get('/stats', addTotalClients, sys_stats.siteStats)
 
 
 function get_clients(req, res) {

@@ -79,7 +79,7 @@ exports.exportTalkgroups = function (req, res, next) {
 
 async function csv_import(shortName, filename, callback) {
   var talkgroups = [];
-  const count = await Talkgroup.deleteMany({ shortName: shortName });
+
 
   var parser = parse(
     {
@@ -90,6 +90,7 @@ async function csv_import(shortName, filename, callback) {
         console.error("Error: csv import 2: " + err);
         callback(err, null);
       } else {
+        const count = await Talkgroup.deleteMany({ shortName: shortName });
         var response = [];
         
         for (var i = 0; i < data.length; i++) {
@@ -97,7 +98,7 @@ async function csv_import(shortName, filename, callback) {
           if (!( "Decimal" in row) || !("Description" in row) || !("Alpha Tag" in row)) {
             console.error("Error: csv import column header error");
             console.error(row)
-            callback("Column Headers are required - Required Columns: 'Decimal' 'Decscription' 'Alpha Tag' Optional Column: 'Priority' ", null);
+            callback("Column Headers are required - Required Columns: 'Decimal' 'Description' 'Alpha Tag' Optional Column: 'Priority' ", null);
             return
           }
 

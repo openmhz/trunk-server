@@ -42,8 +42,9 @@ const Login = (props) => {
   const loginSubmit = async (event) => {
     event.preventDefault();
     const result = await dispatch(loginUser({ email, password })).unwrap();
+    const user = result.user;
     if (result.success) {
-      if ((pathname != "/terms") && (terms != 1.1)) {
+      if ((pathname != "/terms") && (user.terms != 1.1)) {
         navigate("/terms")
       } else if (nextLocation) {
           switch (nextLocation) {
@@ -130,7 +131,7 @@ const Login = (props) => {
                 href="mailto:{process.env.REACT_APP_ADMIN_EMAIL}?Subject={process.env.REACT_APP_SITE_NAME}"
                 target="_top"
               >
-                admin@email.com
+                {process.env.REACT_APP_ADMIN_EMAIL}
               </a>{" "}
             </p>
           </Grid.Column>

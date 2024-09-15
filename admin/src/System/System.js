@@ -399,6 +399,7 @@ const System = () => {
               <em>
                 The Talkgroup file is a .CSV file that has infromation about the different talkgroups on the system. Headers are required for the columns, and should be the first
                 line of the file. The columns can be in any order, but the headers must match exactly.<br/>
+                <p>If you export the file from Excel, make sure to use "Comma Separated Values" and NOT "CSV UTF-8" for the File Format.</p>
                 An example header line is: <br />
                 <code>Decimal,Alpha Tag,Description</code><br/>
                 <p>There can be additional columns so you can use the same Talkgroup CSV file from Trunk Recorder.</p>

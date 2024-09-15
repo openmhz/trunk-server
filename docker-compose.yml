@@ -67,7 +67,10 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT
       - OTEL_EXPORTER_OTLP_HEADERS
       - OTEL_SERVICE_NAME
-      - MONGO_NODE_DRIVER_HOST=mongo
+      - MONGO_HOST
+      - MONGO_PORT
+      - MONGO_USER
+      - MONGO_PASSWORD
       - MAILJET_KEY
       - MAILJET_SECRET
       - REACT_APP_ADMIN_EMAIL
@@ -117,7 +120,10 @@ services:
       - REACT_APP_ACCOUNT_SERVER
       - REACT_APP_FRONTEND_SERVER
       - REACT_APP_SITE_NAME
-      - MONGO_NODE_DRIVER_HOST=mongo
+      - MONGO_HOST
+      - MONGO_PORT
+      - MONGO_USER
+      - MONGO_PASSWORD
       - NODE_ENV
     depends_on:
       - mongo
@@ -143,7 +149,10 @@ services:
         - NODE_ENV
     image: "acount:${TAG}-${STAGE}"
     environment:
-      - MONGO_NODE_DRIVER_HOST=mongo
+      - MONGO_HOST
+      - MONGO_PORT
+      - MONGO_USER
+      - MONGO_PASSWORD
       - MAILJET_KEY
       - MAILJET_SECRET
       - REACT_APP_BACKEND_SERVER

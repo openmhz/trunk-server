@@ -14,6 +14,7 @@ var fs = require('fs');
 
 const { PutObjectCommand, S3Client } = require("@aws-sdk/client-s3");
 const { fromIni } = require("@aws-sdk/credential-providers");
+const e = require('express');
 
 var s3_endpoint = process.env['S3_ENDPOINT'] != null ? process.env['S3_ENDPOINT'] : 'https://s3.us-west-1.wasabisys.com';
 var s3_region = process.env['S3_REGION'] != null ? process.env['S3_REGION'] : 'us-west-1';
@@ -177,43 +178,47 @@ const createPodcast = async (tmpEventFolder, podcastFile, event) => {
     inputs.forEach((value, i) => {
         concat = concat + "file '" + value + "'\n";
     });
-    const concatFile = tmpEventFolder + "/FILES.txt"
-    fs.writeFileSync(concatFile, concat, "utf8");
-    // https://video.stackexchange.com/questions/21315/concatenating-split-media-files-using-concat-protocol
-    //ffmpeg -f concat -safe 0 -i mylist.txt -c copy output
-    command.push("-hide_banner");
-    command.push("-loglevel");
-    command.push("error");
-    command.push("-f");
-    command.push("concat");
-    command.push("-safe");
-    command.push("0");
-    command.push("-i");
-    command.push(concatFile);
-    command.push("-acodec");
-    command.push("aac");
-    command.push(tmpFile);
-    await ffmpeg(command);
+    try {
+        const concatFile = tmpEventFolder + "/FILES.txt"
+        fs.writeFileSync(concatFile, concat, "utf8");
+        // https://video.stackexchange.com/questions/21315/concatenating-split-media-files-using-concat-protocol
+        //ffmpeg -f concat -safe 0 -i mylist.txt -c copy output
+        command.push("-hide_banner");
+        command.push("-loglevel");
+        command.push("error");
+        command.push("-f");
+        command.push("concat");
+        command.push("-safe");
+        command.push("0");
+        command.push("-i");
+        command.push(concatFile);
+        command.push("-acodec");
+        command.push("aac");
+        command.push(tmpFile);
+        await ffmpeg(command);
 
 
-    const chapters = createChapters(event);
-    const chaptersFile = tmpEventFolder + "/CHAPTERS.txt"
-    fs.writeFileSync(chaptersFile, chapters, "utf8");
-    command = [];
-    command.push("-hide_banner");
-    command.push("-loglevel");
-    command.push("error");
-    command.push("-i");
-    command.push(tmpFile)
-    command.push("-i");
-    command.push(chaptersFile)
-    command.push("-map_metadata")
-    command.push("1")
-    command.push("-codec");
-    command.push("copy");
-    command.push(podcastFile)
-    //console.log("Running command: " + command);
-    await ffmpeg(command);
+        const chapters = createChapters(event);
+        const chaptersFile = tmpEventFolder + "/CHAPTERS.txt"
+        fs.writeFileSync(chaptersFile, chapters, "utf8");
+        command = [];
+        command.push("-hide_banner");
+        command.push("-loglevel");
+        command.push("error");
+        command.push("-i");
+        command.push(tmpFile)
+        command.push("-i");
+        command.push(chaptersFile)
+        command.push("-map_metadata")
+        command.push("1")
+        command.push("-codec");
+        command.push("copy");
+        command.push(podcastFile)
+        //console.log("Running command: " + command);
+        await ffmpeg(command);
+    } catch (e) {
+        console.error("Error creating podcast " + e);
+    }
 }
 
 const cleanupEvent = (folder, filename) => {
@@ -382,10 +387,11 @@ exports.addNewEvent = async function (req, res, next) {
             const savedEvent = await event.save();
             //console.log("Event ID " + savedEvent._id);
             const url = "/events/" + event._id;
-            res.contentType('json');
-            res.send(JSON.stringify({ url: url }));
 
             await packageEvent(savedEvent._id);
+
+            res.contentType('json');
+            res.send(JSON.stringify({ url: url }));
 
         }
         catch (err) {

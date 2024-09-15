@@ -34,6 +34,13 @@ const client = new S3Client({
 
 exports.upload = async function (req, res, next) {
   const tracer = trace.getTracer("upload-service");
+  let start_time = Date.now();
+  let validateSystemTime = 0;
+  let readFileTime = 0;
+  let uploadFileTime = 0;
+  let saveCallTime = 0;
+  let cleanupTime = 0;
+  let statsTime = 0;
   return context.with(context.active(), async () => {
     const parentSpan = trace.getActiveSpan(context.active());
     await tracer.startActiveSpan('upload_handler', { parent: parentSpan }, async (span) => {
@@ -108,7 +115,7 @@ exports.upload = async function (req, res, next) {
           res.status(200).end();
           return;
         }
-
+        validateSystemTime = Date.now();
         if (item.ignoreUnknownTalkgroup) {
           const talkgroupExists = await Talkgroup.exists({
             shortName,
@@ -129,7 +136,7 @@ exports.upload = async function (req, res, next) {
         res.status(200).end();
 
         const local_path = `/${shortName}/${time.getFullYear()}/${time.getMonth() + 1}/${time.getDate()}/`;
-        const object_key = `media/${shortName}-${talkgroupNum}-${startTime}${path.extname(req.file.originalname)}`;
+        const object_key = `media/${shortName}/${talkgroupNum}/${shortName}-${talkgroupNum}-${startTime}${path.extname(req.file.originalname)}`;
         const url = `${s3_public_url}/${object_key}`;
 
         const call = new Call({
@@ -151,10 +158,11 @@ exports.upload = async function (req, res, next) {
         });
 
         let fileContent;
+
         await tracer.startActiveSpan('upload_to_s3', { parent: trace.getActiveSpan(context.active()) }, async (uploadSpan) => {
           try {
             fileContent = fs.readFileSync(req.file.path);
-
+            readFileTime = Date.now();
             const command = new PutObjectCommand({
               Bucket: s3_bucket,
               Key: object_key,
@@ -177,7 +185,7 @@ exports.upload = async function (req, res, next) {
             uploadSpan.end();
           }
         });
-
+        uploadFileTime = Date.now();
         await tracer.startActiveSpan('save_call', { parent: trace.getActiveSpan(context.active()) }, async (saveSpan) => {
           try {
             await call.save();
@@ -193,7 +201,9 @@ exports.upload = async function (req, res, next) {
           }
         });
 
+        saveCallTime = Date.now();
         sysStats.addCall(call.toObject());
+        statsTime = Date.now();
 
         if (call.len >= 1) {
           req.call = call.toObject();
@@ -211,7 +221,8 @@ exports.upload = async function (req, res, next) {
             cleanupSpan.end();
           }
         });
-
+        cleanupTime = Date.now();
+        //console.log(`[${call.shortName}] \t Verify System: ${validateSystemTime - start_time}  \t Read file: ${readFileTime - validateSystemTime} \t Upload: ${ uploadFileTime - validateSystemTime} \t Save: ${saveCallTime - uploadFileTime} \tStats: ${statsTime - saveCallTime}\tCleanup: ${cleanupTime - statsTime} \t\t Total: ${cleanupTime - start_time}`);
       } catch (error) {
         console.error("Error processing call upload: " + error);
         span.recordException(error);
@@ -222,6 +233,7 @@ exports.upload = async function (req, res, next) {
       } finally {
         span.end();
       }
+
     });
   });
 };
