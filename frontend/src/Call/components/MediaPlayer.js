@@ -121,7 +121,7 @@ const MediaPlayer = (props) => {
 
   if (call) {
     if (call.srcList.length > sourceIndex) {
-      sourceId = call.srcList[sourceIndex].src;
+      sourceId = call.srcList[sourceIndex].src + " " + call.srcList[sourceIndex].tag;
     }
     playEnabled = {};
   }
