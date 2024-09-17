@@ -6,7 +6,7 @@ import CallInfo from "./components/CallInfo";
 import ListCalls from "./components/ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
 import { useGetTalkgroupsQuery } from '../features/api/apiSlice'
-import { playedCall  } from "../features/calls/callsSlice";
+import { playedCall } from "../features/calls/callsSlice";
 import { useInView } from 'react-intersection-observer';
 import {
   Container,
@@ -96,13 +96,13 @@ function CallPlayer(props) {
         if (currentIndex > 0) {
           const nextCallId = callsData.ids[currentIndex - 1];
           const nextCall = callsData.entities[nextCallId];
-          console.log("Autoplaying next call, current Index is: " + currentIndex + " isPlaying is: " + isPlaying )
+          console.log("Autoplaying next call, current Index is: " + currentIndex + " isPlaying is: " + isPlaying)
           setCurrentCall(nextCall);
           dispatch(playedCall(nextCall._id));
           setIsPlaying(true);
         } else if (backgroundAutoplay) {
           // there are no more calls to play, but we want to keep playing something so the webpage is not put to sleep, so we play silence!
-          setSilenceCount(silenceCount+1);
+          setSilenceCount(silenceCount + 1);
         } else {
           // there are no more calls to play and backgroundAutoplay is disabled
           setIsPlaying(false);
@@ -132,20 +132,20 @@ function CallPlayer(props) {
   }, [loadOlderInView]);
 
   // This handles when a Call is specified in the URI
-useEffect(() => {
-  if (props.initialCallId && callsData) {
-    const call = callsData.entities[props.initialCallId];
-    if (call && !selectedInitialCall) {
-      const time = new Date(call.time);
+  useEffect(() => {
+    if (props.initialCallId && callsData) {
+      const call = callsData.entities[props.initialCallId];
+      if (call && !selectedInitialCall) {
+        const time = new Date(call.time);
 
-      console.log("Playing Initial Call: " + call._id + " Start Time: " + time.toLocaleTimeString() );
-      setIsPlaying(true);  
-      setCurrentCall(call); 
-      setSelectedInitialCall(true); // signals that it has selected the initial call - you only want to do this once
-      dispatch(playedCall(call._id));
+        console.log("Playing Initial Call: " + call._id + " Start Time: " + time.toLocaleTimeString());
+        setIsPlaying(true);
+        setCurrentCall(call);
+        setSelectedInitialCall(true); // signals that it has selected the initial call - you only want to do this once
+        dispatch(playedCall(call._id));
+      }
     }
-  }
-}, [props.initialCallId, callsData])
+  }, [props.initialCallId, callsData])
 
   // Triggered when a new call is selected in the parent component.
   // This happens when a new call comes over the socket
@@ -153,13 +153,13 @@ useEffect(() => {
   // we should only set the selectCallId to be the current call when AutoPlay is selected
   // and when there isn't another call already playing
   useEffect(() => {
-    console.log("New selected call: " + selectCallId + " IsPlaying: " + isPlaying + " autoPlay: " + autoPlay );
+    console.log("New selected call: " + selectCallId + " IsPlaying: " + isPlaying + " autoPlay: " + autoPlay);
     if (selectCallId && callsData && !isPlaying && autoPlay) {
       const call = callsData.entities[selectCallId];
       if (call) {
         const time = new Date(call.time);
 
-        console.log("Playing Selected Call: " + call._id + " Start Time: " + time.toLocaleTimeString() );
+        console.log("Playing Selected Call: " + call._id + " Start Time: " + time.toLocaleTimeString());
         setIsPlaying(true);
         setCurrentCall(call);
         dispatch(playedCall(call._id));
@@ -169,7 +169,7 @@ useEffect(() => {
 
   useEffect(() => {
     if (system && system.status && system.status.length > 0) {
-        setStatusVisible(true);
+      setStatusVisible(true);
     }
   }, [system])
 
@@ -181,9 +181,9 @@ useEffect(() => {
     <div ref={positionRef}>
       <Container className="main" >
         {statusVisible &&
-      <Sticky offset={60} context={positionRef}>
+          <Sticky offset={60} context={positionRef}>
             <Message floating onDismiss={handleStatusDismiss} warning> <MessageHeader>System Status</MessageHeader>{system.status}</Message>
-            </Sticky>
+          </Sticky>
         }
         <Sidebar.Pushable>
           <Sidebar.Pusher
@@ -191,7 +191,7 @@ useEffect(() => {
           >
 
             <div ref={loadNewerRef} />
-            
+
             <ListCalls callsData={callsData} activeCallId={currentCallId} talkgroups={talkgroupsData ? talkgroupsData.talkgroups : false} playCall={playCall} />
             <div ref={loadOlderRef} style={{ height: 50 }} />
           </Sidebar.Pusher>
@@ -208,11 +208,11 @@ useEffect(() => {
         <MediaPlayer call={currentCall} playSilence={silenceCount} onEnded={callEnded} onPlayPause={handlePlayPause} />
         <Menu.Menu position="right" className="desktop-only">
           <Menu.Item><SupportModal trigger={<Button color='grey' animated='fade'>
-    <ButtonContent visible color="red">
-      <Icon name='heart' /> Donate
-    </ButtonContent>
-    <ButtonContent hidden>Thank You</ButtonContent>
-  </Button>} /></Menu.Item>
+            <ButtonContent visible color="red">
+              <Icon name='heart' /> Donate
+            </ButtonContent>
+            <ButtonContent hidden>Thank You</ButtonContent>
+          </Button>} /></Menu.Item>
           <Menu.Item><a href={callDownload}><Icon name="download" />Download</a></Menu.Item>
           <Menu.Item><a href={callLink}><Icon name="at" />Link</a></Menu.Item>
         </Menu.Menu>

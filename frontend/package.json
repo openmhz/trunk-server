@@ -19,6 +19,7 @@
     "@visx/scale": "^3.0.0",
     "@visx/shape": "^3.0.0",
     "@visx/tooltip": "^3.1.2",
+    "@wavesurfer/react": "^1.0.7",
     "axios": "1.2.1",
     "d3-array": "^3.2.3",
     "d3-time-format": "^4.1.0",
