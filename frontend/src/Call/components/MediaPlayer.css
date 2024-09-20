@@ -1,0 +1,42 @@
+.mediaplayer-container {
+    /* We first create a flex layout context */
+    display: flex;
+    
+
+    
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  .item-container {
+    /* We first create a flex layout context */
+    display: flex;
+    
+
+    
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  
+  .label-item {
+    padding: 5px;
+    width: 150px;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+  }
+  .mediaplayer-item {
+    padding: 5px;
+    flex-grow: 1;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+  }
+  .button-item {
+    padding: 5px;
+    width: 100px;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+  }

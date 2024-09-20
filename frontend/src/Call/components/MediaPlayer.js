@@ -3,115 +3,48 @@ import {
   Menu,
   Icon,
   Progress,
-  Label
+  Label,
+  Grid,
+  GridRow,
+  GridColumn,
+  LabelGroup,
+  Button
 } from "semantic-ui-react";
 import ReactAudioPlayer from 'react-audio-player'
 import WavesurferPlayer from '@wavesurfer/react'
 import { is } from "date-fns/locale";
+import "./MediaPlayer.css";
 
 
 
 
 const MediaPlayer = (props) => {
-
+  const audioRef = React.createRef();
   const call = props.call;
   const [sourceIndex, setSourceIndex] = useState(0);
   const [wavesurfer, setWavesurfer] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [playTime, setPlayTime] = useState(0);
   const playSilence = props.playSilence;
-
+  const parentHandlePlayPause = props.onPlayPause
 
   const onReady = (ws) => {
     setWavesurfer(ws)
     setIsPlaying(false)
   }
 
+  const onPlay = () => {
+    setIsPlaying(true);
+    parentHandlePlayPause(true);
+  }
+
+  const onPause = () => {
+    setIsPlaying(false);
+    parentHandlePlayPause(false);
+  }
   const onPlayPause = () => {
-    wavesurfer && wavesurfer.playPause()
+  wavesurfer && wavesurfer.playPause()
   }
-
-  useEffect(() => {
-    //const audio = audioRef.current.audioEl.current;
-
-    setSourceIndex(0);
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: "Waiting for Call...",
-        album: 'OpenMHz',
-        artwork: [
-          { src: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-          { src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/android-chrome-192x192.png', sizes: '512x512', type: 'image/png' },
-        ]
-      });
-    }
-    if (wavesurfer) {
-      var reader = new FileReader();
-            
-      reader.onload = function (evt) {
-          // Create a Blob providing as first argument a typed array with the file buffer
-          var blob = new window.Blob([new Uint8Array(evt.target.result)]);
-
-          // Load the blob into Wavesurfer
-          wavesurfer.loadBlob(blob);
-      };
-
-      reader.onerror = function (evt) {
-          console.error("An error ocurred reading the file: ", evt);
-      };
-
-      // Read File as an ArrayBuffer
-      reader.readAsArrayBuffer("data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA/+M4wAAAAAAAAAAAAEluZm8AAAAPAAAAAwAAAbAAqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV1dXV////////////////////////////////////////////AAAAAExhdmM1OC4xMwAAAAAAAAAAAAAAACQDkAAAAAAAAAGw9wrNaQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/+MYxAAAAANIAAAAAExBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxDsAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV/+MYxHYAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV");
-    
-  }
-    /*const playPromise = audio.play();
-
-    // In browsers that don’t yet support this functionality,
-    // playPromise won’t be defined.
-    if (playPromise !== undefined) {
-      playPromise.then(function () {
-
-      }).catch(function (error) {
-        console.log("Automatic playback failed: " + error);
-        // Show a UI element to let the user manually start playback.
-      });
-    } else {
-      audio.src = false;
-    }*/
-
-  }, [playSilence]);
-
-
-
-  /*
-    useEffect(() => {
-  
-      const audio = audioRef.current.audioEl.current;
-      const onEnded = props.onEnded;
-      setSourceIndex(0);
-      if (call ) {
-        audio.src = call.url;
-        const playPromise = audio.play();
-  
-        // In browsers that don’t yet support this functionality,
-        // playPromise won’t be defined.
-        if (playPromise !== undefined) {
-          playPromise.then(function () {
-  
-          }).catch(function (error) {
-            console.log("Automatic playback failed: " + error);
-            handlePause();
-            //onEnded();
-            // Show a UI element to let the user manually start playback.
-          });
-        } else {
-          audio.src = false;
-        }
-      }
-    }, [call]);*/
-
-
 
   const updatePlayProgress = () => {
 
@@ -148,32 +81,39 @@ const MediaPlayer = (props) => {
 
   return (
 
+      
+         <div className="mediaplayer-container">
+   
 
-    <Menu.Menu>
-      <Menu.Item onClick={onPlayPause}  >
-
-        {
+  
+         <div className="button-item">
+          <Button onClick={onPlayPause} floated='left'>
+          {
           isPlaying
             ? (<Icon name="pause" />)
             : (<Icon name="play" />)
         }
-      </Menu.Item>
-      <Menu.Item>
+            </Button>
+            </div> 
+            <div className="mediaplayer-item">
+      
         <WavesurferPlayer
           autoplay={true}
           height={25}
-          width={300}
+          
           waveColor="#E81B39"
           url={call.url}
           onReady={onReady}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
+          onPlay={onPlay}
+          onPause={onPause}
           onAudioprocess={updatePlayProgress}
           onFinish={props.onEnded}
           
         />
-      </Menu.Item>
-      <Menu.Item>
+        </div>
+
+      <div className="label-item">
+      <LabelGroup size="small" >
         <Label color="black">
           {playTime}
           Sec
@@ -181,9 +121,10 @@ const MediaPlayer = (props) => {
         <Label color="black" className="desktop-only">
           {sourceId}
         </Label>
+        </LabelGroup>
 
-      </Menu.Item>
-    </Menu.Menu>
+        </div>
+        </div>
   )
   /*
     const audioRef = React.createRef();

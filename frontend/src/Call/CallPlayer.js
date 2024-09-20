@@ -18,7 +18,9 @@ import {
   Message,
   MessageHeader,
   Button,
-  ButtonContent
+  ButtonContent,
+  GridColumn, Grid,
+  GridRow,
 } from "semantic-ui-react";
 import "./CallPlayer.css";
 import queryString from '../query-string';
@@ -203,8 +205,31 @@ function CallPlayer(props) {
         </Rail>
       </Container>
 
-      <Menu fixed="bottom" compact inverted >
-        <Menu.Item active={autoPlay} onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
+      <Menu fixed="bottom" inverted vertical fluid>
+        <div className="item-container">
+          <div className="button-item" active={autoPlay} onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></div>
+          <div className="mediaplayer-item">
+            <MediaPlayer call={currentCall} playSilence={silenceCount} onEnded={callEnded} onPlayPause={handlePlayPause} />
+          </div>
+
+          <div className="button-item"><SupportModal trigger={<Button color='grey' animated='fade' size={"small"}>
+            <ButtonContent visible color="red">
+              <Icon name='heart' /> Donate
+            </ButtonContent>
+            <ButtonContent hidden>Thank You</ButtonContent>
+          </Button>} /></div>
+          <div className="button-item">
+            <a href={callDownload}><Icon name="download" />Download</a>
+          </div>
+          <div className="button-item">
+
+            <a href={callLink}><Icon name="at" />Link</a>
+            </div>
+
+        </div>
+
+
+        {/* <Menu.Item active={autoPlay} onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
         <MediaPlayer call={currentCall} playSilence={silenceCount} onEnded={callEnded} onPlayPause={handlePlayPause} />
         <Menu.Menu position="right" className="desktop-only">
           <Menu.Item><SupportModal trigger={<Button color='grey' animated='fade'>
@@ -215,7 +240,7 @@ function CallPlayer(props) {
           </Button>} /></Menu.Item>
           <Menu.Item><a href={callDownload}><Icon name="download" />Download</a></Menu.Item>
           <Menu.Item><a href={callLink}><Icon name="at" />Link</a></Menu.Item>
-        </Menu.Menu>
+        </Menu.Menu> */}
       </Menu>
 
     </div>
