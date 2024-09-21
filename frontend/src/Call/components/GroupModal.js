@@ -72,7 +72,7 @@ function GroupModal(props) {
 
   return (
 
-    <Modal open={props.open} onClose={onClose} size='tiny'>
+    <Modal open={props.open} onClose={() => handleDone(onClose)} size='tiny'>
 
       <Modal.Header>{system && system.name}</Modal.Header>
       <Modal.Content >

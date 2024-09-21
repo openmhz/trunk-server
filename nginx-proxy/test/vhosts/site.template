@@ -16,13 +16,29 @@ server {
 
 	location /favicon.ico {
 		proxy_pass http://frontend:3000;
-		access_log off;
+		expires 1M;
+		add_header Surrogate-Control "public, max-age=604800";  
+		add_header Cache-Control "max-age=604800, public";
+		access_log /dev/stdout main;
 	}
 
-	location /*.png {
-		proxy_pass http://frontend:3000;
-		access_log off;
-	}
+	location ~* \.(gif|jpg|png)$ {
+                proxy_pass http://frontend:3000;
+
+				add_header Pragma public;
+				add_header Surrogate-Control "public, max-age=604800";  
+                add_header Cache-Control "max-age=604800, public";
+				expires 1M;
+    }
+
+	location  /silence.m4a {
+                proxy_pass http://frontend:3000;
+				access_log /dev/stdout main;
+
+				add_header Surrogate-Control "public, max-age=604800";  
+                add_header Cache-Control "max-age=604800, public";
+				expires 1M;
+    }
 	
    location / {
 				proxy_pass http://frontend:3000;
@@ -80,6 +96,6 @@ server {
 		proxy_set_header Connection "upgrade";
 		proxy_set_header Host $host;
 		proxy_cache_bypass $http_upgrade;
-		access_log    off; 
+		access_log /dev/stdout main;
   }
 }

@@ -33,6 +33,40 @@ const MediaPlayer = (props) => {
   const regionsPlugin = useMemo(() => RegionsPlugin.create(), []);
   const plugins = useMemo(() => [regionsPlugin], [regionsPlugin]);
 
+
+  useEffect(() => {
+    setSourceIndex(0);
+    
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: "Waiting for Call...",
+        album: 'OpenMHz',
+        artwork: [
+          { src: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+          { src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/android-chrome-192x192.png', sizes: '512x512', type: 'image/png' },
+        ]
+      });
+    }
+
+    wavesurfer && wavesurfer.load("/silence.m4a");
+    regionsPlugin.clearRegions();
+
+    // // In browsers that don’t yet support this functionality,
+    // // playPromise won’t be defined.
+    // if (playPromise !== undefined) {
+    //   playPromise.then(function () {
+
+    //   }).catch(function (error) {
+    //     console.log("Automatic playback failed: " + error);
+    //     // Show a UI element to let the user manually start playback.
+    //   });
+    // } else {
+    //   audio.src = false;
+    // }
+
+  }, [playSilence]);
+
   const onReady = (ws) => {
     setWavesurfer(ws)
     setIsPlaying(false)
