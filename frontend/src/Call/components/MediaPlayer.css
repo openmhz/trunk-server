@@ -26,10 +26,25 @@
     font-weight: bold;
     text-align: center;
   }
+  .mediaplayer {
+    flex-grow: 1;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+  }
   .mediaplayer-item {
-    
     padding: 9px 5px 5px 5px;
     flex-grow: 1;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+  }
+  .link-item {
+    display: flex;
+  justify-content: center;
+  align-items: center;
+    padding: 5px;
+    width: 100px;
     color: white;
     font-weight: bold;
     text-align: center;
@@ -43,11 +58,16 @@
     width: 100px;
     color: white;
     font-weight: bold;
-    text-align: center;
   }
   .active{
 background-color: #5c5c5c;
   }
+
+  .link-item a {
+
+    color: white;
+    text-align: center;
+}
 
 .button-item a {
 
@@ -59,7 +79,7 @@ background-color: #5c5c5c;
 
     .button-item {
 
-        width: 50px;
+        width: 40px;
         color: white;
 
       }

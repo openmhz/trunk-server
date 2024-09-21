@@ -214,20 +214,20 @@ function CallPlayer(props) {
       <Menu fixed="bottom" inverted vertical fluid>
         <div className="item-container">
           <div className={autoplayClassName}  onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></div>
-          <div className="mediaplayer-item">
+          <div className="mediaplayer">
             <MediaPlayer call={currentCall} playSilence={silenceCount} onEnded={callEnded} onPlayPause={handlePlayPause} />
           </div>
 
-          <div className="button-item desktop-only"><SupportModal trigger={<Button color='grey' animated='fade' size={"small"}>
+          {/* <div className="button-item desktop-only"><SupportModal trigger={<Button color='grey' animated='fade' size={"small"}>
             <ButtonContent visible color="red">
               <Icon name='heart' /> Donate
             </ButtonContent>
             <ButtonContent hidden>Thank You</ButtonContent>
-          </Button>} /></div>
-          <div className="button-item desktop-only" >
+          </Button>} /></div> */}
+          <div className="link-item desktop-only" >
             <a href={callDownload}><Icon name="download" />Download</a>
           </div>
-          <div className="button-item desktop-only">
+          <div className="link-item desktop-only">
             <a href={callLink}><Icon name="at" />Link</a>
           </div>
 

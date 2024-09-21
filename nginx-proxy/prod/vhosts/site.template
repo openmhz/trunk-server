@@ -48,6 +48,7 @@ server {
                 proxy_pass http://frontend:3000;
                 access_log off;
                 expires 1M;
+				add_header Surrogate-Control "public, max-age=2629746";  
                 add_header Cache-Control "max-age=2629746, public";
     }
 

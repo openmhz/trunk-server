@@ -137,14 +137,12 @@ const MediaPlayer = (props) => {
 
 
 
-      <div className="button-item">
-        <Button onClick={onPlayPause} floated='left'>
+      <div className="button-item" onClick={onPlayPause} >
           {
             isPlaying
               ? (<Icon name="pause" />)
               : (<Icon name="play" />)
           }
-        </Button>
       </div>
       <div className="mediaplayer-item">
 
