@@ -19,8 +19,10 @@ import {
   MessageHeader,
   Button,
   ButtonContent,
+  Checkbox,
   GridColumn, Grid,
   GridRow,
+  Form
 } from "semantic-ui-react";
 import "./CallPlayer.css";
 import queryString from '../query-string';
@@ -179,6 +181,10 @@ function CallPlayer(props) {
     setStatusVisible(false);
   }
 
+  let autoplayClassName = "button-item";
+  if (autoPlay) {
+    autoplayClassName += " active";
+  }
   return (
     <div ref={positionRef}>
       <Container className="main" >
@@ -207,24 +213,23 @@ function CallPlayer(props) {
 
       <Menu fixed="bottom" inverted vertical fluid>
         <div className="item-container">
-          <div className="button-item" active={autoPlay} onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></div>
+          <div className={autoplayClassName}  onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></div>
           <div className="mediaplayer-item">
             <MediaPlayer call={currentCall} playSilence={silenceCount} onEnded={callEnded} onPlayPause={handlePlayPause} />
           </div>
 
-          <div className="button-item"><SupportModal trigger={<Button color='grey' animated='fade' size={"small"}>
+          <div className="button-item desktop-only"><SupportModal trigger={<Button color='grey' animated='fade' size={"small"}>
             <ButtonContent visible color="red">
               <Icon name='heart' /> Donate
             </ButtonContent>
             <ButtonContent hidden>Thank You</ButtonContent>
           </Button>} /></div>
-          <div className="button-item">
+          <div className="button-item desktop-only" >
             <a href={callDownload}><Icon name="download" />Download</a>
           </div>
-          <div className="button-item">
-
+          <div className="button-item desktop-only">
             <a href={callLink}><Icon name="at" />Link</a>
-            </div>
+          </div>
 
         </div>
 

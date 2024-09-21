@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Menu,
   Icon,
@@ -12,6 +12,9 @@ import {
 } from "semantic-ui-react";
 import ReactAudioPlayer from 'react-audio-player'
 import WavesurferPlayer from '@wavesurfer/react'
+import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js';
+
+
 import { is } from "date-fns/locale";
 import "./MediaPlayer.css";
 
@@ -27,15 +30,29 @@ const MediaPlayer = (props) => {
   const [playTime, setPlayTime] = useState(0);
   const playSilence = props.playSilence;
   const parentHandlePlayPause = props.onPlayPause
+  const regionsPlugin = useMemo(() => RegionsPlugin.create(), []);
+  const plugins = useMemo(() => [regionsPlugin], [regionsPlugin]);
 
   const onReady = (ws) => {
     setWavesurfer(ws)
     setIsPlaying(false)
+    regionsPlugin.clearRegions();
+    if (call) {
+      call.srcList.forEach(src => {
+        regionsPlugin.addRegion({
+          start: src.pos,
+          color: "white",
+          drag: false,
+          resize: false
+        });
+      });
+    }
   }
 
   const onPlay = () => {
     setIsPlaying(true);
     parentHandlePlayPause(true);
+
   }
 
   const onPause = () => {
@@ -43,7 +60,7 @@ const MediaPlayer = (props) => {
     parentHandlePlayPause(false);
   }
   const onPlayPause = () => {
-  wavesurfer && wavesurfer.playPause()
+    wavesurfer && wavesurfer.playPause()
   }
 
   const updatePlayProgress = () => {
@@ -53,9 +70,9 @@ const MediaPlayer = (props) => {
         currentTime = wavesurfer.getCurrentTime(),
         remainingTime = totalTime - currentTime;
 
-        if (!isPlaying) {
-          setIsPlaying(true);
-        }
+      if (!isPlaying) {
+        setIsPlaying(true);
+      }
       //console.log("totalTime: " + totalTime + " currentTime: " + currentTime + " remainingTime: " + remainingTime);
 
 
@@ -81,26 +98,26 @@ const MediaPlayer = (props) => {
 
   return (
 
-      
-         <div className="mediaplayer-container">
-   
 
-  
-         <div className="button-item">
-          <Button onClick={onPlayPause} floated='left'>
+    <div className="mediaplayer-container">
+
+
+
+      <div className="button-item">
+        <Button onClick={onPlayPause} floated='left'>
           {
-          isPlaying
-            ? (<Icon name="pause" />)
-            : (<Icon name="play" />)
-        }
-            </Button>
-            </div> 
-            <div className="mediaplayer-item">
-      
+            isPlaying
+              ? (<Icon name="pause" />)
+              : (<Icon name="play" />)
+          }
+        </Button>
+      </div>
+      <div className="mediaplayer-item">
+
         <WavesurferPlayer
           autoplay={true}
           height={25}
-          
+
           waveColor="#E81B39"
           url={call.url}
           onReady={onReady}
@@ -108,23 +125,23 @@ const MediaPlayer = (props) => {
           onPause={onPause}
           onAudioprocess={updatePlayProgress}
           onFinish={props.onEnded}
-          
+          plugins={plugins}
         />
-        </div>
+      </div>
 
       <div className="label-item">
-      <LabelGroup size="small" >
-        <Label color="black">
-          {playTime}
-          Sec
-        </Label>
-        <Label color="black" className="desktop-only">
-          {sourceId}
-        </Label>
+        <LabelGroup size="small" >
+          <Label color="black">
+            {playTime}
+            Sec
+          </Label>
+          <Label color="black" className="desktop-only">
+            {sourceId}
+          </Label>
         </LabelGroup>
 
-        </div>
-        </div>
+      </div>
+    </div>
   )
   /*
     const audioRef = React.createRef();

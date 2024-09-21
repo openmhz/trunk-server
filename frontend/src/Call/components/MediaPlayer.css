@@ -20,23 +20,51 @@
   }
   
   .label-item {
-    padding: 5px;
-    width: 150px;
+    padding: 9px 2px 5px 2px;
+    width: 125px;
     color: white;
     font-weight: bold;
     text-align: center;
   }
   .mediaplayer-item {
-    padding: 5px;
+    
+    padding: 9px 5px 5px 5px;
     flex-grow: 1;
     color: white;
     font-weight: bold;
     text-align: center;
   }
   .button-item {
+    cursor:pointer;
+    display: flex;
+  justify-content: center;
+  align-items: center;
     padding: 5px;
     width: 100px;
     color: white;
     font-weight: bold;
     text-align: center;
   }
+  .active{
+background-color: #5c5c5c;
+  }
+
+.button-item a {
+
+    color: white;
+    text-align: center;
+}
+
+  @media only screen and (max-width: 767px) {
+
+    .button-item {
+
+        width: 50px;
+        color: white;
+
+      }
+      .label-item {
+        width: 50px;
+        color: white;
+      }
+}
