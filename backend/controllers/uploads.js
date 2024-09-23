@@ -2,11 +2,11 @@ const path = require('path');
 const fs = require('fs');
 const opentelemetry = require('@opentelemetry/api');
 const sysStats = require("../sys_stats");
-const System = require("../models/system");
-const Talkgroup = require("../models/talkgroup");
-const { callModel: Call } = require("../models/call");
+const  systemSchema  = require("../models/systemSchema");
+const  talkgroupSchema  = require("../models/talkgroupSchema");
+const  callSchema  = require("../models/callSchema");
 const { trace, context } = opentelemetry;
-
+const mongoose = require("mongoose");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { fromIni } = require("@aws-sdk/credential-providers");
 const { NodeHttpHandler } = require('@smithy/node-http-handler');
@@ -21,6 +21,31 @@ const s3_region = process.env['S3_REGION'] ?? 'us-west-1';
 const s3_bucket = process.env['S3_BUCKET'] ?? 'openmhz-west';
 const s3_profile = process.env['S3_PROFILE'] ?? 'wasabi-account';
 const s3_public_url = process.env['S3_PUBLIC_URL'] ?? `${s3_endpoint}/${s3_bucket}`;
+const host = process.env['MONGO_NODE_DRIVER_HOST'] != null ? process.env['MONGO_NODE_DRIVER_HOST'] : 'mongo';
+const port = process.env['MONGO_NODE_DRIVER_PORT'] != null ? process.env['MONGO_NODE_DRIVER_PORT'] : 27017;
+const mongoUrl = 'mongodb://' + host + ':' + port + '/scanner';
+
+
+// `asPromise()` returns a promise that resolves to the connection
+// once the connection succeeds, or rejects if connection failed.
+const mongo_conn_slow = mongoose.createConnection(mongoUrl,  { maxPoolSize: 150 });
+const mongo_conn_fast = mongoose.createConnection(mongoUrl,  { maxPoolSize: 150 });
+mongo_conn_slow.on('error', console.error);
+mongo_conn_fast.on('error', console.error);
+mongo_conn_slow.on('disconnected', () => {
+  console.log('Mongo Slow Disconnected');
+  mongo_conn_slow.openUri(mongoUrl, { maxPoolSize: 150 }).catch(console.error);
+});
+mongo_conn_fast.on('disconnected', () => {
+  console.log('Mongo Fast Disconnected');
+  mongo_conn_fast.openUri(mongoUrl, { maxPoolSize: 150 }).catch(console.error);
+});
+
+mongo_conn_slow.model('Call', callSchema);
+mongo_conn_fast.model('System', systemSchema);
+mongo_conn_fast.model('Talkgroup', talkgroupSchema);
+
+
 
 const client = new S3Client({
   requestHandler: new NodeHttpHandler({
@@ -80,7 +105,7 @@ exports.upload = async function (req, res, next) {
 
         await tracer.startActiveSpan('validate_system', { parent: trace.getActiveSpan(context.active()) }, async (validateSpan) => {
           try {
-            item = await System.findOne({ shortName }, ["key", "ignoreUnknownTalkgroup"]);
+            item = await mongo_conn_fast.model("System").findOne({ shortName }, ["key", "ignoreUnknownTalkgroup"]);
             validateSpan.setAttribute('system.exists', !!item);
           } catch (err) {
             validateSpan.recordException(err);
@@ -110,7 +135,7 @@ exports.upload = async function (req, res, next) {
         }
 
         if (item.ignoreUnknownTalkgroup) {
-          const talkgroupExists = await Talkgroup.exists({
+          const talkgroupExists = await mongo_conn_fast.model("Talkgroup").exists({
             shortName,
             num: talkgroupNum,
           });
@@ -132,7 +157,7 @@ exports.upload = async function (req, res, next) {
         const object_key = `media/${shortName}-${talkgroupNum}-${startTime}${path.extname(req.file.originalname)}`;
         const url = `${s3_public_url}/${object_key}`;
 
-        const call = new Call({
+        const call = new (mongo_conn_slow.model("Call"))({
           shortName,
           talkgroupNum,
           objectKey: object_key,

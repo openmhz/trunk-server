@@ -67,6 +67,11 @@ const MediaPlayer = (props) => {
 
   }, [playSilence]);
 
+  useEffect(() => {
+    setSourceIndex(0);
+  }, [call]);
+
+
   const onReady = (ws) => {
     setWavesurfer(ws)
     setIsPlaying(false)
@@ -75,7 +80,7 @@ const MediaPlayer = (props) => {
       call.srcList.forEach(src => {
         regionsPlugin.addRegion({
           start: src.pos,
-          color: "white",
+          color: "rgba(128, 128, 128, 1.0)",
           drag: false,
           resize: false
         });
@@ -137,7 +142,7 @@ const MediaPlayer = (props) => {
 
 
 
-      <div className="button-item" onClick={onPlayPause} >
+      <div className="button-item" onClick={onPlayPause}>
           {
             isPlaying
               ? (<Icon name="pause" />)
@@ -149,7 +154,9 @@ const MediaPlayer = (props) => {
         <WavesurferPlayer
           autoplay={true}
           height={25}
-
+          barWidth ={3}
+          barGap={3}
+          barRadius={6}
           waveColor="#E81B39"
           url={call.url}
           onReady={onReady}

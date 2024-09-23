@@ -6,7 +6,8 @@ var Podcast = require("../models/podcast");
 var System = require("../models/system");
 var Talkgroup = require("../models/talkgroup");
 const AdmZip = require("adm-zip");
-var { callModel: Call, frozenCallModel: FrozenCall } = require("../models/call");
+const  Call = require("../models/call");
+const FrozenCall = require("../models/frozenCall");
 
 var frontend_server = process.env['REACT_APP_FRONTEND_SERVER'] != null ? process.env['REACT_APP_FRONTEND_SERVER'] : 'https://openmhz.com';
 const os = require('os');

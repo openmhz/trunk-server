@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-var {frozenCallSchema} = require('./call');
+const frozenCallSchema = require('./frozenCallSchema');
 
 
 var eventSchema = mongoose.Schema({
