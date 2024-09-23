@@ -3226,6 +3226,11 @@
     prop-types "^15.5.10"
     react-use-measure "^2.0.4"
 
+"@wavesurfer/react@^1.0.7":
+  version "1.0.7"
+  resolved "https://registry.npmjs.org/@wavesurfer/react/-/react-1.0.7.tgz"
+  integrity sha512-Bw2rd2zqVL1ERy8N9mciacbQW3N5Gn9oRjhq3kjqgtLeE8a1WSTU+4kU0E37541jf432eNZ8lNzuodFFSiNccw==
+
 "@webassemblyjs/ast@1.11.1":
   version "1.11.1"
   resolved "https://registry.npmjs.org/@webassemblyjs/ast/-/ast-1.11.1.tgz"
@@ -10357,6 +10362,11 @@ watchpack@^2.4.0:
   dependencies:
     glob-to-regexp "^0.4.1"
     graceful-fs "^4.1.2"
+
+wavesurfer.js@>=7.7.14:
+  version "7.8.6"
+  resolved "https://registry.npmjs.org/wavesurfer.js/-/wavesurfer.js-7.8.6.tgz"
+  integrity sha512-EDexkMwkkQBTWruhfWQRkTtvRggtKFTPuJX/oZ5wbIZEfyww9EBeLr2mtkxzA1S8TlWPx6adY5WyjOlNYNyHSg==
 
 wbuf@^1.1.0, wbuf@^1.7.3:
   version "1.7.3"
