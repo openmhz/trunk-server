@@ -85,14 +85,6 @@ server {
 			root /var/www/certbot;
 		}
 
-        location /marcsip/upload {
-                deny all;
-        }
-
-		location /bergennj/upload {
-                deny all;
-        }
-
 
 	location / {
 		proxy_pass http://backend:3005;
