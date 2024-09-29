@@ -1,4 +1,4 @@
-var { callModel: Call } = require("./models/call");
+var Call = require("./models/call");
 var Event = require("./models/event");
 var Podcast = require("./models/podcast");
 

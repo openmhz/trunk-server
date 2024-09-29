@@ -11,6 +11,7 @@ import {
   Button
 } from "semantic-ui-react";
 import ReactAudioPlayer from 'react-audio-player'
+import { useWavesurfer } from  './WaveSurfer' //'@wavesurfer/react'
 import WavesurferPlayer from '@wavesurfer/react'
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js';
 
@@ -22,21 +23,55 @@ import "./MediaPlayer.css";
 
 
 const MediaPlayer = (props) => {
+  const containerRef = useRef(null)
   const audioRef = React.createRef();
   const call = props.call;
   const [sourceIndex, setSourceIndex] = useState(0);
-  const [wavesurfer, setWavesurfer] = useState(null)
-  const [isPlaying, setIsPlaying] = useState(false)
+  //const [wavesurfer, setWavesurfer] = useState(null)
+  //const [isPlaying, setIsPlaying] = useState(false)
   const [playTime, setPlayTime] = useState(0);
   const playSilence = props.playSilence;
   const parentHandlePlayPause = props.onPlayPause
   const regionsPlugin = useMemo(() => RegionsPlugin.create(), []);
   const plugins = useMemo(() => [regionsPlugin], [regionsPlugin]);
 
+  //   <WavesurferPlayer
+  //   autoplay={true}
+  //   height={25}
+  //   barWidth ={3}
+  //   barGap={3}
+  //   barRadius={6}
+  //   waveColor="#E81B39"
+  //   url={call.url}
+  //   onReady={onReady}
+  //   onPlay={onPlay}
+  //   onPause={onPause}
+  //   onAudioprocess={updatePlayProgress}
+  //   onFinish={props.onEnded}
+  //   plugins={plugins}
+  // />
 
+  const { wavesurfer, isReady, isPlaying, currentTime, hasFinished } = useWavesurfer({
+    container: containerRef,
+    waveColor: "#E81B39",
+    height: 25,
+    barWidth: 3,
+    barGap: 3,
+    barRadius: 6,
+    plugins: plugins,
+    backend: 'MediaElementWebAudio',
+    responsive: true,
+    //autoplay: true,
+  })
+  
+  // useEffect(() => {
+  //   if (wavesurfer) {
+  //     wavesurfer.on('finish', props.onEnded);
+  //   }
+  // }, [wavesurfer])
   useEffect(() => {
     setSourceIndex(0);
-    
+
     if ('mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: "Waiting for Call...",
@@ -68,52 +103,49 @@ const MediaPlayer = (props) => {
   }, [playSilence]);
 
   useEffect(() => {
+    if (hasFinished) {
+      props.onEnded();
+    }
+  }, [hasFinished]);
+
+  useEffect(() => {
+    if (call && wavesurfer) {
+      wavesurfer.load(call.url);
+    }
     setSourceIndex(0);
   }, [call]);
 
+  useEffect(() => {
 
-  const onReady = (ws) => {
-    setWavesurfer(ws)
-    setIsPlaying(false)
-    regionsPlugin.clearRegions();
-    if (call) {
-      call.srcList.forEach(src => {
-        regionsPlugin.addRegion({
-          start: src.pos,
-          color: "rgba(128, 128, 128, 1.0)",
-          drag: false,
-          resize: false
-        });
-      });
-    }
-  }
-
-  const onPlay = () => {
-    setIsPlaying(true);
-    parentHandlePlayPause(true);
-
-  }
-
-  const onPause = () => {
-    setIsPlaying(false);
-    parentHandlePlayPause(false);
-  }
-  const onPlayPause = () => {
-    wavesurfer && wavesurfer.playPause()
-  }
-
-  const updatePlayProgress = () => {
-
-    if (wavesurfer && wavesurfer.isPlaying()) {
-      var totalTime = wavesurfer.getDuration(),
-        currentTime = wavesurfer.getCurrentTime(),
-        remainingTime = totalTime - currentTime;
-
-      if (!isPlaying) {
-        setIsPlaying(true);
+    if (isReady && wavesurfer) {
+      wavesurfer.play()
+      //regionsPlugin.clearRegions();
+      if (call) {
+        // call.srcList.forEach(src => {
+        //   regionsPlugin.addRegion({
+        //     start: src.pos,
+        //     color: "rgba(128, 128, 128, 1.0)",
+        //     drag: false,
+        //     resize: false
+        //   });
+        // });
       }
-      //console.log("totalTime: " + totalTime + " currentTime: " + currentTime + " remainingTime: " + remainingTime);
+    }
+  }, [isReady]);
 
+
+
+  useEffect(() => {
+    if (isPlaying) {
+      parentHandlePlayPause(true);
+    } else {
+      parentHandlePlayPause(false);
+    }
+  }, [isPlaying]);
+
+  useEffect(() => {
+    if (wavesurfer && wavesurfer.isPlaying()) {
+      //console.log("totalTime: " + totalTime + " currentTime: " + currentTime + " remainingTime: " + remainingTime);
 
       // this checks to see if it should display the next Source ID
       if (call && ((call.srcList.length - 1) >= (sourceIndex + 1)) && (currentTime > call.srcList[sourceIndex + 1].pos)) {
@@ -123,6 +155,10 @@ const MediaPlayer = (props) => {
 
       setPlayTime(Math.floor(currentTime));
     }
+  }, [currentTime]);
+
+  const onPlayPause = () => {
+    wavesurfer && wavesurfer.playPause()
   }
 
   let playEnabled = { "disabled": true }
@@ -143,29 +179,15 @@ const MediaPlayer = (props) => {
 
 
       <div className="button-item" onClick={onPlayPause}>
-          {
-            isPlaying
-              ? (<Icon name="pause" />)
-              : (<Icon name="play" />)
-          }
+        {
+          isPlaying
+            ? (<Icon name="pause" />)
+            : (<Icon name="play" />)
+        }
       </div>
       <div className="mediaplayer-item">
+        <div ref={containerRef} />
 
-        <WavesurferPlayer
-          autoplay={true}
-          height={25}
-          barWidth ={3}
-          barGap={3}
-          barRadius={6}
-          waveColor="#E81B39"
-          url={call.url}
-          onReady={onReady}
-          onPlay={onPlay}
-          onPause={onPause}
-          onAudioprocess={updatePlayProgress}
-          onFinish={props.onEnded}
-          plugins={plugins}
-        />
       </div>
 
       <div className="label-item">
