@@ -23,8 +23,9 @@ import "./MediaPlayer.css";
 
 
 const MediaPlayer = (props) => {
+
   const containerRef = useRef(null)
-  const audioRef = React.createRef();
+  const audioRef = useRef(new Audio());
   const call = props.call;
   const [sourceIndex, setSourceIndex] = useState(0);
   //const [wavesurfer, setWavesurfer] = useState(null)
@@ -59,8 +60,9 @@ const MediaPlayer = (props) => {
     barGap: 3,
     barRadius: 6,
     plugins: plugins,
-    backend: 'MediaElementWebAudio',
     responsive: true,
+    media: audioRef.current,
+    backend: 'MediaElement',
     //autoplay: true,
   })
   
@@ -71,22 +73,23 @@ const MediaPlayer = (props) => {
   // }, [wavesurfer])
   useEffect(() => {
     setSourceIndex(0);
+    if (audioRef.current) {
+        const audio = audioRef.current;
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: "Waiting for Call...",
+            album: 'OpenMHz',
+            artwork: [
+              { src: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+              { src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
+              { src: '/android-chrome-192x192.png', sizes: '512x512', type: 'image/png' },
+            ]
+          });
+        }
 
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: "Waiting for Call...",
-        album: 'OpenMHz',
-        artwork: [
-          { src: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-          { src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/android-chrome-192x192.png', sizes: '512x512', type: 'image/png' },
-        ]
-      });
-    }
-
-    wavesurfer && wavesurfer.load("/silence.m4a");
-    regionsPlugin.clearRegions();
-
+        audio.src = "/silence.m4a"; //wavesurfer.load("/silence.m4a");
+        regionsPlugin.clearRegions();
+  }
     // // In browsers that don’t yet support this functionality,
     // // playPromise won’t be defined.
     // if (playPromise !== undefined) {
@@ -108,30 +111,53 @@ const MediaPlayer = (props) => {
     }
   }, [hasFinished]);
 
+
+  useEffect(() => {
+    const readyState = audioRef.current.readyState;
+    const audio = audioRef.current;
+    if (readyState === 4) {
+     // wavesurfer.load(audioRef.current.src);
+    }
+    console.log("readyState: " + readyState); 
+  }, [audioRef.current.readyState]);
+
   useEffect(() => {
     if (call && wavesurfer) {
-      wavesurfer.load(call.url);
-    }
-    setSourceIndex(0);
-  }, [call]);
+      const audio = audioRef.current;
+      if (audio) {
+      audio.src = call.url; 
+      audio.load();
+      const playPromise = audio.play();
 
-  useEffect(() => {
+      // In browsers that don’t yet support this functionality,
+      // playPromise won’t be defined.
+      if (playPromise !== undefined) {
+        
+        playPromise.then(function () {
+          console.log("clearRegions");
+          regionsPlugin.clearRegions();
+          call.srcList.forEach(src => {
+            regionsPlugin.addRegion({
+              start: src.pos,
+              color: "rgba(128, 128, 128, 1.0)",
+              drag: false,
+              resize: false
+            });
+          });
 
-    if (isReady && wavesurfer) {
-      wavesurfer.play()
-      //regionsPlugin.clearRegions();
-      if (call) {
-        // call.srcList.forEach(src => {
-        //   regionsPlugin.addRegion({
-        //     start: src.pos,
-        //     color: "rgba(128, 128, 128, 1.0)",
-        //     drag: false,
-        //     resize: false
-        //   });
-        // });
+        }).catch(function (error) {
+          console.log("Automatic playback failed: " + error);
+          //handlePause();
+          //onEnded();
+          // Show a UI element to let the user manually start playback.
+        });
+      } else {
+        audio.src = false;
       }
     }
-  }, [isReady]);
+  }
+    setSourceIndex(0);
+  }, [call]);
 
 
 
