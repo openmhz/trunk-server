@@ -96,7 +96,10 @@ function EventPlayer(props) {
     }
   }, [selectCallId, eventData])
 
-
+  let autoplayClassName = "button-item";
+  if (autoPlay) {
+    autoplayClassName += " active";
+  }
   return (
     <div ref={positionRef}>
       <Container className="main" >
@@ -114,19 +117,20 @@ function EventPlayer(props) {
         </Rail>
       </Container>
 
-      <Menu fixed="bottom" compact inverted >
-        <Menu.Item active={autoPlay} onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></Menu.Item>
-        <MediaPlayer call={currentCall} onEnded={callEnded} onPlayPause={handlePlayPause} />
-        <Menu.Menu position="right" className="desktop-only">
-          <Menu.Item><SupportModal trigger={<Button color='grey' animated='fade'>
-    <ButtonContent visible color="red">
-      <Icon name='heart' /> Donate
-    </ButtonContent>
-    <ButtonContent hidden>Thank You</ButtonContent>
-  </Button>} /></Menu.Item>
-          <Menu.Item><a href={callDownload}><Icon name="download" />Download</a></Menu.Item>
-          <Menu.Item><a href={callLink}><Icon name="at" />Link</a></Menu.Item>
-        </Menu.Menu>
+
+      <Menu fixed="bottom" inverted vertical fluid>
+        <div className="item-container">
+          <div className={autoplayClassName}  onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></div>
+          <div className="mediaplayer">
+            <MediaPlayer call={currentCall} onEnded={callEnded} onPlayPause={handlePlayPause} />
+          </div>
+          <div className="link-item desktop-only" >
+            <a href={callDownload}><Icon name="download" />Download</a>
+          </div>
+          <div className="link-item desktop-only">
+            <a href={callLink}><Icon name="at" />Link</a>
+          </div>
+        </div>
       </Menu>
 
     </div>
