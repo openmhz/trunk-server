@@ -33,8 +33,8 @@ const MediaPlayer = (props) => {
   const [playTime, setPlayTime] = useState(0);
   const playSilence = props.playSilence;
   const parentHandlePlayPause = props.onPlayPause
-  const regionsPlugin = useMemo(() => RegionsPlugin.create(), []);
-  const plugins = useMemo(() => [regionsPlugin], [regionsPlugin]);
+  //const regionsPlugin = useMemo(() => RegionsPlugin.create(), []);
+  //const plugins = useMemo(() => [regionsPlugin], [regionsPlugin]);
 
   //   <WavesurferPlayer
   //   autoplay={true}
@@ -59,7 +59,7 @@ const MediaPlayer = (props) => {
     barWidth: 3,
     barGap: 3,
     barRadius: 6,
-    plugins: plugins,
+    //plugins: plugins,
     responsive: true,
     media: audioRef.current,
     backend: 'MediaElement',
@@ -88,7 +88,7 @@ const MediaPlayer = (props) => {
         }
 
         audio.src = "/silence.m4a"; //wavesurfer.load("/silence.m4a");
-        regionsPlugin.clearRegions();
+        //regionsPlugin.clearRegions();
   }
     // // In browsers that don’t yet support this functionality,
     // // playPromise won’t be defined.
@@ -135,7 +135,7 @@ const MediaPlayer = (props) => {
         
         playPromise.then(function () {
           console.log("clearRegions");
-          regionsPlugin.clearRegions();
+          /*regionsPlugin.clearRegions();
           call.srcList.forEach(src => {
             regionsPlugin.addRegion({
               start: src.pos,
@@ -143,7 +143,7 @@ const MediaPlayer = (props) => {
               drag: false,
               resize: false
             });
-          });
+          });*/
 
         }).catch(function (error) {
           console.log("Automatic playback failed: " + error);
@@ -212,8 +212,7 @@ const MediaPlayer = (props) => {
         }
       </div>
       <div className="mediaplayer-item">
-        <div ref={containerRef} />
-
+        <span ref={containerRef} />
       </div>
 
       <div className="label-item">

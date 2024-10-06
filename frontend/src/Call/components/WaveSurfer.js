@@ -37,6 +37,7 @@ function useWavesurferInstance(containerRef, options) {
     setWavesurfer(ws)
 
     return () => {
+      console.log('destroying wavesurfer')
       ws.destroy()
     }
   }, [containerRef, ...flatOptions])
