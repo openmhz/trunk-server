@@ -22,7 +22,8 @@ import "./MediaPlayer.css";
 
 
 const MediaPlayer = (props) => {
-  const audioRef = React.createRef();
+  const audioRef = useRef(new Audio());
+
   const call = props.call;
   const [sourceIndex, setSourceIndex] = useState(0);
   const [wavesurfer, setWavesurfer] = useState(null)
@@ -36,7 +37,8 @@ const MediaPlayer = (props) => {
 
   useEffect(() => {
     setSourceIndex(0);
-    
+    if (audioRef.current) {
+      const audio = audioRef.current;
     if ('mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: "Waiting for Call...",
@@ -49,9 +51,11 @@ const MediaPlayer = (props) => {
       });
     }
 
-    wavesurfer && wavesurfer.load("/silence.m4a");
-    regionsPlugin.clearRegions();
-
+    //wavesurfer && wavesurfer.load("/silence.m4a");
+    //regionsPlugin.clearRegions();
+    audio.src = "/silence.m4a"; //wavesurfer.load("/silence.m4a");
+    //regionsPlugin.clearRegions();
+  }
     // // In browsers that don’t yet support this functionality,
     // // playPromise won’t be defined.
     // if (playPromise !== undefined) {
@@ -67,39 +71,89 @@ const MediaPlayer = (props) => {
 
   }, [playSilence]);
 
+
   useEffect(() => {
+    /*
+    if (call) {
+      const audio = audioRef.current;
+      if (audio) {
+      audio.src = call.url; 
+      audio.load();
+      const playPromise = audio.play();
+
+      // In browsers that don’t yet support this functionality,
+      // playPromise won’t be defined.
+      if (playPromise !== undefined) {
+        
+        playPromise.then(function () {
+          console.log("clearRegions");
+          regionsPlugin.clearRegions();
+          call.srcList.forEach(src => {
+            regionsPlugin.addRegion({
+              start: src.pos,
+              color: "rgba(128, 128, 128, 1.0)",
+              drag: false,
+              resize: false
+            });
+          });
+
+        }).catch(function (error) {
+          console.log("Automatic playback failed: " + error);
+          //handlePause();
+          //onEnded();
+          // Show a UI element to let the user manually start playback.
+        });
+      } else {
+        audio.src = false;
+      }
+    }
+  }*/
+
     setSourceIndex(0);
   }, [call]);
 
-
-  const onReady = (ws) => {
+  const onInit = (ws) => {
     setWavesurfer(ws)
-    setIsPlaying(false)
+  }
+
+  const onDestroy = (ws) => {
+    console.log('destroying wavesurfer')
+
     regionsPlugin.clearRegions();
+    ws.decodedData = null;
+    //ws.media.remove()
+    ws.revokeSrc()
+    ws.media.src = "";
+    ws.media.load();
+  }
+  const onReady = (ws) => {
+
+    setIsPlaying(false)
+    
     if (call) {
       call.srcList.forEach(src => {
-        regionsPlugin.addRegion({
+        /*regionsPlugin.addRegion({
           start: src.pos,
           color: "rgba(128, 128, 128, 1.0)",
           drag: false,
           resize: false
-        });
+        });*/
       });
     }
   }
 
   const onPlay = () => {
     setIsPlaying(true);
-    parentHandlePlayPause(true);
+    //parentHandlePlayPause(true);
 
   }
 
   const onPause = () => {
     setIsPlaying(false);
-    parentHandlePlayPause(false);
+    //parentHandlePlayPause(false);
   }
   const onPlayPause = () => {
-    wavesurfer && wavesurfer.playPause()
+    //wavesurfer && wavesurfer.playPause()
   }
 
   const updatePlayProgress = () => {
@@ -142,13 +196,13 @@ const MediaPlayer = (props) => {
 
 
 
-      <div className="button-item" onClick={onPlayPause}>
+      {/* <div className="button-item" onClick={onPlayPause}>
           {
             isPlaying
               ? (<Icon name="pause" />)
               : (<Icon name="play" />)
           }
-      </div>
+      </div> */}
       <div className="mediaplayer-item">
 
         <WavesurferPlayer
@@ -161,10 +215,14 @@ const MediaPlayer = (props) => {
           url={call.url}
           onReady={onReady}
           onPlay={onPlay}
+          onInit={onInit}
           onPause={onPause}
+          onDestroy={onDestroy}
           onAudioprocess={updatePlayProgress}
           onFinish={props.onEnded}
           plugins={plugins}
+          //media={audioRef.current}
+          //backend='WebAudio'
         />
       </div>
 
