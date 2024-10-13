@@ -144,7 +144,7 @@ async function load_systems(systemClients) {
   }
   // don't update the systemList until we have all the data or else load_systems will be called multiple times
   systemList = tempList;
-  console.log("Loaded Systems: " + systemList.length + " that have been active since: " + fromDate);
+  // console.log("Loaded Systems: " + systemList.length + " that have been active since: " + fromDate);
 }
 
 

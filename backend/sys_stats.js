@@ -24,7 +24,7 @@ async function updateActiveSystems() {
     // Go through all of the Systems
     let siteTotal = 0;
     activeSystems = 0;
-    
+
     for await (let item of System.find()) {
         // go through all the systems
         // if you have received some calls during that last period, make the system active
@@ -43,12 +43,12 @@ async function updateActiveSystems() {
         await item.save();
     };
     updateUploadsPerMin(siteTotal);
-        // Save talkgroupStats to a JSON file
-        const filePath = "/data/stats/uploadsPerMin.json";
-        fs.writeFileSync(filePath, JSON.stringify(uploadsPerMin));
-        console.log("Saved uploadsPerMin to JSON file");
-    console.log("Site average uploads per minute: " + siteTotal / timePeriod);
-    console.log("Active Systems: " + activeSystems);
+    // Save talkgroupStats to a JSON file
+    const filePath = "/data/stats/uploadsPerMin.json";
+    fs.writeFileSync(filePath, JSON.stringify(uploadsPerMin));
+    // console.log("Saved uploadsPerMin to JSON file");
+    // console.log("Site average uploads per minute: " + siteTotal / timePeriod);
+    // console.log("Active Systems: " + activeSystems);
 }
 
 exports.initStats = async function () {
@@ -102,44 +102,44 @@ exports.initStats = async function () {
     }
 
 
-/*
-    for await (const item of SystemStat.find()) {
-        const obj = item.toObject();
-        // Talkgroup Stats
-        if (obj.talkgroupStats !== undefined) {
-            talkgroupStats[obj.shortName] = Object.fromEntries(obj.talkgroupStats);
-        }
-
-        // Decode Errors
-        if (obj.decodeErrorsFreq !== undefined) {
-
-            decodeErrorsFreq[obj.shortName] = Object.fromEntries(obj.decodeErrorsFreq);
-        }
-
-        // Upload Error Totals
-        if (obj.uploadErrors !== undefined) {
-            uploadErrors[obj.shortName] = obj.uploadErrors;
-        }
-
-        if (obj.callTotals !== undefined) {
-            callTotals[obj.shortName] = obj.callTotals;
-        }
-    };*/
+    /*
+        for await (const item of SystemStat.find()) {
+            const obj = item.toObject();
+            // Talkgroup Stats
+            if (obj.talkgroupStats !== undefined) {
+                talkgroupStats[obj.shortName] = Object.fromEntries(obj.talkgroupStats);
+            }
+    
+            // Decode Errors
+            if (obj.decodeErrorsFreq !== undefined) {
+    
+                decodeErrorsFreq[obj.shortName] = Object.fromEntries(obj.decodeErrorsFreq);
+            }
+    
+            // Upload Error Totals
+            if (obj.uploadErrors !== undefined) {
+                uploadErrors[obj.shortName] = obj.uploadErrors;
+            }
+    
+            if (obj.callTotals !== undefined) {
+                callTotals[obj.shortName] = obj.callTotals;
+            }
+        };*/
 }
 
 // keeps track of the number of calls that get uploaded with an audio file
 exports.addError = function (call) {
-/*
-    // if there is no Array associated with the system.
-    if (uploadErrors[call.shortName] === undefined) {
-        uploadErrors[call.shortName] = new Array();
-        for (var j = 0; j < spots; j++) {
-            uploadErrors[call.shortName][j] = 0;
+    /*
+        // if there is no Array associated with the system.
+        if (uploadErrors[call.shortName] === undefined) {
+            uploadErrors[call.shortName] = new Array();
+            for (var j = 0; j < spots; j++) {
+                uploadErrors[call.shortName][j] = 0;
+            }
         }
-    }
-
-    // Add an error to the count for the current period.
-    uploadErrors[call.shortName][0]++;*/
+    
+        // Add an error to the count for the current period.
+        uploadErrors[call.shortName][0]++;*/
 }
 
 // Keeps track of the number of calls for each talkgroup for a system
@@ -150,8 +150,8 @@ exports.addCall = function (call) {
     }
     callTotals[call.shortName]++;
 
-     // if you haven't started keeping track of stats for the System yet
-     if (talkgroupStats[call.shortName] === undefined) {
+    // if you haven't started keeping track of stats for the System yet
+    if (talkgroupStats[call.shortName] === undefined) {
         talkgroupStats[call.shortName] = {};
     }
     var sysTalkgroupStats = talkgroupStats[call.shortName];
@@ -205,14 +205,14 @@ exports.shiftStats = async function () {
     // Save decodeErrorsFreq to a JSON file
     const decodeErrorsFreqPath = "/data/stats/decodeErrorsFreq.json";
     fs.writeFileSync(decodeErrorsFreqPath, JSON.stringify(decodeErrorsFreq));
-    console.log("Saved decodeErrorsFreq to JSON file");
+    //console.log("Saved decodeErrorsFreq to JSON file");
 
     // Save talkgroupStats to a JSON file
     const filePath = "/data/stats/talkgroups.json";
     fs.writeFileSync(filePath, JSON.stringify(talkgroupStats));
-    console.log("Saved talkgroupStats to JSON file");
+    //console.log("Saved talkgroupStats to JSON file");
 
-    console.log("Started Shifting Stats at: " + new Date());
+    //console.log("Started Shifting Stats at: " + new Date());
     // for all the systems in Error Stats
     for (var shortName in uploadErrors) {
         if (uploadErrors.hasOwnProperty(shortName)) {
@@ -231,7 +231,7 @@ exports.shiftStats = async function () {
             uploadErrors[shortName][0] = 0;
         }
     }
-    console.log("Finished Shifting Upload Errors at: " + new Date());
+    //console.log("Finished Shifting Upload Errors at: " + new Date());
 
     // for each system in decodeErrorsFreq
     for (let shortName in decodeErrorsFreq) {
@@ -280,7 +280,7 @@ exports.shiftStats = async function () {
         }
     }
 
-    console.log("Finished Shifting Decode Errors at: " + new Date());
+    //console.log("Finished Shifting Decode Errors at: " + new Date());
 
     // for each system in talkgroupStats
     for (let shortName in talkgroupStats) {
@@ -329,17 +329,17 @@ exports.shiftStats = async function () {
             }
 
             // figure out call totals for this shortName/Sys
-         /*   if (callTotals[shortName] == undefined) {
-                callTotals[shortName] = new Array();
-                for (var j = 0; j < spots; j++) {
-                    callTotals[shortName][j] = 0;
-                }
-            }
-
-            for (var j = spots - 1; j > 0; j--) {
-                callTotals[shortName][j] = callTotals[shortName][j - 1];
-            }
-            callTotals[shortName][0] = callTotal;*/
+            /*   if (callTotals[shortName] == undefined) {
+                   callTotals[shortName] = new Array();
+                   for (var j = 0; j < spots; j++) {
+                       callTotals[shortName][j] = 0;
+                   }
+               }
+   
+               for (var j = spots - 1; j > 0; j--) {
+                   callTotals[shortName][j] = callTotals[shortName][j - 1];
+               }
+               callTotals[shortName][0] = callTotal;*/
 
 
             /*
@@ -350,14 +350,14 @@ exports.shiftStats = async function () {
             await SystemStat.updateOne(query, update, options);*/
         }
     }
-    console.log("Finished Shifting Talkgroup Stats at: " + new Date());
+    //console.log("Finished Shifting Talkgroup Stats at: " + new Date());
     updateActiveSystems();
-    console.log("Finished Updating Active Systems at: " + new Date());
+    //console.log("Finished Updating Active Systems at: " + new Date());
 }
 
 
-exports.siteStats = function(req, res) {
-    const siteStats ={
+exports.siteStats = function (req, res) {
+    const siteStats = {
         uploadsPerMin,
         activeSystems,
         totalClients: req.totalClients
