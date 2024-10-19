@@ -2,7 +2,7 @@
 #
 # docker build -t mongo .
 
-FROM mongo:7-jammy
+FROM mongo:8-noble
 
 MAINTAINER Luke Berndt <lukekb@gmail.com>
 

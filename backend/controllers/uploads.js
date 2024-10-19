@@ -257,7 +257,7 @@ exports.upload = async function (req, res, next) {
         });
       } finally {
         const totalTime = Date.now() - start_time;
-        if (totalTime > 5000) {
+        if (totalTime > 10000) {
           console.warn(`[${req.params.shortName}] Slow Upload - Size: ${call.len} Verify System: ${validateSystemTime - start_time}  Read file: ${readFileTime - validateSystemTime} Upload: ${ uploadFileTime - validateSystemTime} Save: ${saveCallTime - uploadFileTime} Stats: ${statsTime - saveCallTime} Cleanup: ${cleanupTime - statsTime} Total: ${totalTime}`);
         }
         span.end();
