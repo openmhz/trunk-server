@@ -20,12 +20,6 @@ ADD permissions.js /app
 ADD errors.js /app
 ADD clean.js /app
 
-# Add crontab file in the cron directory
-#ADD crontab /etc/cron.d/trim-cron
+ENV GLIBC_TUNABLES=glibc.pthread.rseq=0
 
-# Give execution rights on the cron job
-#RUN chmod 0644 /etc/cron.d/trim-cron
-
-# Run the command on container startup
-#CMD cron
 WORKDIR /app
