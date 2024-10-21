@@ -194,12 +194,8 @@ function CallPlayer(props) {
           </Sticky>
         }
         <Sidebar.Pushable>
-          <Sidebar.Pusher
-            style={{ minHeight: '100vh' }}
-          >
-
+          <Sidebar.Pusher style={{ minHeight: '100vh' }} >
             <div ref={loadNewerRef} />
-
             <ListCalls callsData={callsData} activeCallId={currentCallId} talkgroups={talkgroupsData ? talkgroupsData.talkgroups : false} playCall={playCall} />
             <div ref={loadOlderRef} style={{ height: 50 }} />
           </Sidebar.Pusher>
@@ -213,7 +209,7 @@ function CallPlayer(props) {
 
       <Menu fixed="bottom" inverted vertical fluid>
         <div className="item-container">
-          <div className={autoplayClassName}  onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></div>
+          <div className={autoplayClassName} onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></div>
           <div className="mediaplayer">
             <MediaPlayer call={currentCall} playSilence={silenceCount} onEnded={callEnded} onPlayPause={handlePlayPause} />
           </div>
@@ -225,7 +221,6 @@ function CallPlayer(props) {
           </div>
         </div>
       </Menu>
-
     </div>
   );
 }

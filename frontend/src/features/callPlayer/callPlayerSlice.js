@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
+import { set } from 'date-fns';
 const now = new Date().getTime();
 const initialState = {
   isWaiting: false,
@@ -14,6 +15,7 @@ const initialState = {
   filterStarred: false,
   filterCallId: false,
   currentCallId: false,
+  buildingPlaylist: false,
   playlist: [],
   live: false,
   centerCall: true,
@@ -43,6 +45,9 @@ export const callPlayerSlice = createSlice({
     setCallTime: (state, action) => {
       state.newestCallTime = action.payload;
       state.oldestCallTime = action.payload;
+    },
+    setBuildingPlaylist: (state, action) => {
+      state.buildingPlaylist = action.payload;
     },
     setPlaylist: (state, action) => {
       if (Array.isArray(action.payload )) {
@@ -115,7 +120,7 @@ export const callPlayerSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setCurrentCallId, setCallTime, setFilter, setLive, setCenterCall, setBackgroundAutoplay, setPlaylist, removeFromPlaylist, addToPlaylist, setShortName, setDateFilter, setStarredFilter, setAllFilter, setGroupFilter, setTalkgroupFilter } = callPlayerSlice.actions
+export const { setCurrentCallId, setCallTime, setFilter, setLive, setCenterCall, setBackgroundAutoplay, setBuildingPlaylist, setPlaylist, removeFromPlaylist, addToPlaylist, setShortName, setDateFilter, setStarredFilter, setAllFilter, setGroupFilter, setTalkgroupFilter } = callPlayerSlice.actions
 
 export default callPlayerSlice.reducer
 

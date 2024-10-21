@@ -10,6 +10,7 @@ import "../CallPlayer.css";
 import { useGetTalkgroupsQuery } from '../../features/api/apiSlice'
 import { useSelector } from 'react-redux'
 
+
 // ----------------------------------------------------
 const ListCalls = (props) => {
     const activeCallRef  = useRef();
@@ -17,6 +18,7 @@ const ListCalls = (props) => {
     const { shortName } = useParams();
     const centerCall = useSelector((state) => state.callPlayer.centerCall);
     const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
+    const buildingPlaylist = useSelector((state) => state.callPlayer.buildingPlaylist);
   //https://stackoverflow.com/questions/36559661/how-can-i-dispatch-from-child-components-in-react-redux
   //https://stackoverflow.com/questions/42597602/react-onclick-pass-event-with-parameter
 
@@ -41,6 +43,7 @@ const ListCalls = (props) => {
               <Table.HeaderCell>Talkgroup</Table.HeaderCell>
               <Table.HeaderCell>Time</Table.HeaderCell>
               <Table.HeaderCell><Icon name='star' /></Table.HeaderCell>
+              {buildingPlaylist && <Table.HeaderCell><Icon name='list ul' /></Table.HeaderCell>}
             </Table.Row>
           </Table.Header>
           {callsData && 

@@ -190,6 +190,9 @@ services:
         - REACT_APP_FRONTEND_SERVER
         - REACT_APP_SITE_NAME
         - REACT_APP_GOOGLE_ANALYTICS
+        - GLIBC_TUNABLES=glibc.pthread.rseq=0
+    ulimits:
+      memlock: -1
     depends_on:
       - mongo
     networks:

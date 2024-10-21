@@ -79,8 +79,8 @@ function PlaylistBuilder(props) {
     let tgAlpha = call.talkgroupNum;
     if (talkgroupsData) {
       const talkgroup = talkgroupsData.talkgroups[call.talkgroupNum]
-      if (talkgroup && talkgroup.alpha!=" ") {
-      tgAlpha = talkgroup.alpha;
+      if (talkgroup && talkgroup.alpha != " ") {
+        tgAlpha = talkgroup.alpha;
       }
     }
 
@@ -96,28 +96,28 @@ function PlaylistBuilder(props) {
     if ((title.length < 3) || (description.length < 3)) {
       setSubmitMessage("Please fill out the title and description with something useful");
     } else {
-    setOpen(false);
-    const callIds = playlist.map((call) => call._id)
-    const event = {
-      title,
-      description,
-      callIds
+      setOpen(false);
+      const callIds = playlist.map((call) => call._id)
+      const event = {
+        title,
+        description,
+        callIds
+      }
+      try {
+        const returned = await addNewEvent(event).unwrap();
+        console.log(returned);
+        setEventUrl(new URL(returned.url, document.baseURI).href)
+        setEventPath(returned.url);
+        setSuccessModalOpen(true);
+      } catch (error) {
+        console.error(error)
+        // you can handle errors here if you want to
+      }
+
+      setTitle("");
+      setDescription("");
+      dispatch(setPlaylist([]));
     }
-    try {
-      const returned = await addNewEvent(event).unwrap();
-      console.log(returned);
-      setEventUrl(new URL(returned.url, document.baseURI).href)
-      setEventPath(returned.url);
-      setSuccessModalOpen(true);
-   } catch (error) {
-      console.error(error)
-     // you can handle errors here if you want to
-   }
-    
-    setTitle("");
-    setDescription("");
-    dispatch(setPlaylist([]));
-  }
   }
 
   let content = (<Header as="h3" icon textAlign='center' style={{ paddingTop: "3em" }}><Icon name='target' />Drag Calls Here</Header>)
@@ -134,25 +134,24 @@ function PlaylistBuilder(props) {
       <Modal open={successModalOpen}
         onClose={() => setSuccessModalOpen(false)}
         size='tiny'
-        >
-      <Modal.Header>Event Successfully Created</Modal.Header>
-      <Modal.Content>Your Event is here: <p><Link to={eventPath}>{eventUrl}</Link></p></Modal.Content>
-      <Modal.Actions>
+      >
+        <Modal.Header>Event Successfully Created</Modal.Header>
+        <Modal.Content>Your Event is here: <p><Link to={eventPath}>{eventUrl}</Link></p></Modal.Content>
+        <Modal.Actions>
 
-        <Button
-          content="Done"
-          labelPosition='right'
-          icon='checkmark'
-          onClick={() => setSuccessModalOpen(false)}
-          positive
-        />
-      </Modal.Actions>
-        </Modal>
+          <Button
+            content="Done"
+            labelPosition='right'
+            icon='checkmark'
+            onClick={() => setSuccessModalOpen(false)}
+            positive
+          />
+        </Modal.Actions>
+      </Modal>
       <Modal
         onClose={() => setOpen(false)}
         onOpen={() => setOpen(true)}
         open={open}
-        
       >
         <Modal.Header>Submit an Event</Modal.Header>
         <Modal.Content>
@@ -179,7 +178,7 @@ function PlaylistBuilder(props) {
                 onChange={handleDescriptionChange}
               />
             </Form>
-            {submitMessage&& <Message error>{submitMessage}</Message>}
+            {submitMessage && <Message error>{submitMessage}</Message>}
           </Modal.Description>
         </Modal.Content>
         <Modal.Actions>

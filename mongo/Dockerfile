@@ -19,6 +19,7 @@ ADD upgrade_db_admin.js /app
 ADD permissions.js /app
 ADD errors.js /app
 ADD clean.js /app
+ADD remove_old_systems.js /app
 
 ENV GLIBC_TUNABLES=glibc.pthread.rseq=0
 

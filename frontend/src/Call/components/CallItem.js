@@ -1,27 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   Icon,
-  Label
+  Label,
+  FormField,
+  Checkbox
 } from "semantic-ui-react";
 
 
 import { addStar, removeStar } from "../../features/calls/callsSlice";
-
-import { useDispatch } from 'react-redux'
+import { addToPlaylist, removeFromPlaylist } from '../../features/callPlayer/callPlayerSlice';
+import { useDispatch, useSelector } from 'react-redux'
 
 const CallItem = (props) => {
   const call = props.call;
+  const buildingPlaylist = useSelector((state) => state.callPlayer.buildingPlaylist);
+
+  const playlist = useSelector((state) => state.callPlayer.playlist);
   const shortName = props.shortName;
   const talkgroups = props.talkgroups;
   const activeCall = props.activeCall;
   const [starVisible, setStarVisible] = useState(false);
   const [starClicked, setStarClicked] = useState(false);
+  const [inPlaylist, setInPlaylist] = useState(false);
 
   const dispatch = useDispatch();
 
   const time = new Date(call.time);
 
+  useEffect(() => {
+    if (playlist.find((item) => item._id == call._id)) {
+      setInPlaylist(true);
+    } else {
+      setInPlaylist(false);
+    }
+  }, [playlist]);
 
   const handleStarClicked = (e) => {
     e.preventDefault();
@@ -54,6 +67,16 @@ const CallItem = (props) => {
     event.dataTransfer.setData("call-id", callId);
     console.log("Dragging: " + callId);
 
+  }
+
+  const handlePlaylist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (inPlaylist) {
+      dispatch(removeFromPlaylist(call));
+    } else {
+      dispatch(addToPlaylist(call));
+    }
   }
 
   if (!starClicked) {
@@ -111,6 +134,9 @@ const CallItem = (props) => {
       <Table.Cell>{talkgroup}</Table.Cell>
       <Table.Cell>{`${time.toLocaleTimeString()} ${time.toLocaleDateString() !== new Date().toLocaleDateString() ? time.getMonth() + 1 + '/' + time.getDate() : ''}`}</Table.Cell> 
       <Table.Cell onMouseEnter={() => setStarVisible(true)} onMouseLeave={() => setStarVisible(false)} onClick={handleStarClicked}>{starButton}</Table.Cell>
+      {buildingPlaylist && <Table.Cell>    <FormField>
+      <Checkbox checked={inPlaylist} onChange={handlePlaylist} />
+    </FormField></Table.Cell>}
     </Table.Row>
   );
 }

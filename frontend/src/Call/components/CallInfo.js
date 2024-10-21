@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useDispatch } from 'react-redux'
 import { useCallLink } from "./CallLinks";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../../features/api/apiSlice'
 import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
@@ -14,10 +15,12 @@ import {
 } from "semantic-ui-react";
 import PlaylistBuilder from "./PlaylistBuilder"
 import CallInfoPane from "./CallInfoPane"
+import { setBuildingPlaylist } from '../../features/callPlayer/callPlayerSlice';
 // ----------------------------------------------------
 function CallInfo(props) {
   const { shortName } = useParams();
   const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
+  const dispatch = useDispatch();
 
   let srcList = "";
   let callLength = "-";
@@ -48,7 +51,14 @@ function CallInfo(props) {
   }
   const { callLink, callDownload, callTweet } = useCallLink(props.call)
   const [activeTab, setActiveTab] = useState(0);
-  const handleTabChange = (e, data) => setActiveTab(data.activeIndex);
+  const handleTabChange = (e, data) => { 
+    if (data.activeIndex == 1) {
+      dispatch(setBuildingPlaylist(true));
+    } else {
+      dispatch(setBuildingPlaylist(false));
+    }
+    setActiveTab(data.activeIndex);
+  }
 
   const panes = [
     {
