@@ -49,6 +49,23 @@
     font-weight: bold;
     text-align: center;
   }
+  .volume-icon {
+    padding: 0px 15px 0px 15px;
+  }
+  .volume-slider {
+    padding: 0px 0px 0px 0px;
+  }
+  .icon-button-item {
+    cursor:pointer;
+    display: flex;
+  justify-content: center;
+  align-items: center;
+    padding: 5px;
+    width: 50px;
+    color: white;
+    font-weight: bold;
+  }
+
   .button-item {
     cursor:pointer;
     display: flex;

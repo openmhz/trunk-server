@@ -6,6 +6,8 @@ import {
   Label,
   Grid,
   GridRow,
+  Header,
+  Popup,
   GridColumn,
   LabelGroup,
   Button
@@ -24,6 +26,7 @@ import "./MediaPlayer.css";
 const MediaPlayer = (props) => {
   const audioRef = React.createRef();
   const call = props.call;
+  const [volume, setVolume] = useState(1);
   const [sourceIndex, setSourceIndex] = useState(0);
   const [wavesurfer, setWavesurfer] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -36,7 +39,7 @@ const MediaPlayer = (props) => {
 
   useEffect(() => {
     setSourceIndex(0);
-    
+
     if ('mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: "Waiting for Call...",
@@ -70,6 +73,12 @@ const MediaPlayer = (props) => {
   useEffect(() => {
     setSourceIndex(0);
   }, [call]);
+
+  useEffect(() => {
+    if (wavesurfer) {
+      wavesurfer.setVolume(volume);
+    }
+  }, [volume, wavesurfer]);
 
 
   const onReady = (ws) => {
@@ -140,21 +149,38 @@ const MediaPlayer = (props) => {
 
     <div className="mediaplayer-container">
 
-
-
-      <div className="button-item" onClick={onPlayPause}>
-          {
-            isPlaying
-              ? (<Icon name="pause" />)
-              : (<Icon name="play" />)
-          }
+      <div className="icon-button-item desktop-only" >
+        <Popup trigger={<Icon name='volume off' />} hoverable position='top center'>
+          <Icon name='volume down' className="volume-icon" />
+          <input
+            className="volume-slider"
+            type="range"
+            min={0}
+            max={1}
+            step={0.02}
+            value={volume}
+            onChange={event => {
+              setVolume(event.target.valueAsNumber)
+            }}
+          />
+          <Icon name='volume up' className="volume-icon" />
+        </Popup>
       </div>
+
+      <div className="icon-button-item" onClick={onPlayPause}>
+        {
+          isPlaying
+            ? (<Icon name="pause" />)
+            : (<Icon name="play" />)
+        }
+      </div>
+
       <div className="mediaplayer-item">
 
         <WavesurferPlayer
           autoplay={true}
           height={25}
-          barWidth ={3}
+          barWidth={3}
           barGap={3}
           barRadius={6}
           waveColor="#E81B39"
