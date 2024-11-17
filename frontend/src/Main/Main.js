@@ -667,7 +667,9 @@ const Main = (props) => {
                 <Grid.Column width={6}>
 
                 </Grid.Column>
-                <Grid.Column width={4}>
+                
+                <Grid.Column width={4} textAlign='center' >
+                <Link to="/terms" ><Header as='h3' inverted>Terms of Service</Header></Link>
                   <Header as='h4' inverted>
                     The End <Icon name='rocket' />
                   </Header>
