@@ -339,8 +339,6 @@ exports.uniqueShortName = async function (req, res, next) {
     } else {
       next();
     }
-
-
   } catch (err) {
     console.error("ERROR: Unique ShortName - caught: " + err);
     res.status(500);

@@ -15,6 +15,7 @@ import ListSystems from "./System/ListSystems"
 import Calls from "./Call/Calls"
 
 import AboutComponent from "./About/AboutComponent"
+import Terms from "./About/Terms"
 
 // Event
 import ListEvents from "./Event/ListEvents"
@@ -34,6 +35,7 @@ return (
           <Route exact path="/events/:id" element={<ViewEvent/>} />
           <Route exact path="/about" element={<AboutComponent/>} />
           <Route exact path="/test" element={<ActivityChart/>} />
+          <Route exact path="/terms" element={<Terms/>} />
         </Routes>
 )
 }
