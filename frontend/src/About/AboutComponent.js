@@ -1,25 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from 'react-router-dom'
-import { Container, Header, Divider, Icon, Menu, Button, List, ListContent, ListIcon, ListItem, ListDescription, ListHeader, LabelDetail } from "semantic-ui-react";
+import { Container, Header, Divider, Icon, Menu, Button, List, ListContent, ListItem, ListDescription, ListHeader } from "semantic-ui-react";
 
 
 const AboutComponent = () => {
-  const [activeIndex, setActiveIndex] = useState(-1);
-  const handleClick = (e, titleProps) => {
-    const { index } = titleProps
-    const newIndex = activeIndex === index ? -1 : index
-    setActiveIndex(newIndex);
-  }
-
-  const panels = [
-    {
-      key: 'feeds',
-      title: { content: (<span style={{ fontWeight: "bold" }}>Where do the different feeds come from?</span>) },
-      content: [
-        'It is a team effort! There are contributers from around country and even internationally, that are running Trunk Recorder to capture local radio systems and sending the transmissions to OpenMHz.',
-      ].join(' '),
-    }
-  ]
 
 
   return (

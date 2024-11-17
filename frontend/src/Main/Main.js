@@ -25,15 +25,14 @@ import { AreaClosed, Line, Bar } from '@visx/shape';
 import { curveMonotoneX } from '@visx/curve';
 import { GridRows, GridColumns } from '@visx/grid';
 import { scaleTime, scaleLinear } from '@visx/scale';
-import { withTooltip, Tooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
+import {  Tooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip';
 import { useTooltip, useTooltipInPortal } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import { LinearGradient } from '@visx/gradient';
 import { max, extent, bisector } from 'd3-array';
 import { timeFormat } from 'd3-time-format';
 import {  AxisLeft } from '@visx/axis';
-import { useDispatch } from 'react-redux'
-import { useGetStatsQuery, useGetSystemsQuery, useGetSiteStatsQuery } from "../features/api/apiSlice";
+import { useGetSystemsQuery, useGetSiteStatsQuery } from "../features/api/apiSlice";
 
 /* Responsive component was removed from Semantic UI. This is discussed here: https://github.com/Semantic-Org/Semantic-UI-React/pull/4008 */
 
@@ -100,8 +99,7 @@ General flow:
 
 const DesktopContainer = (props) => {
   const [fixed, setFixed] = useState(false);
-  const hideFixedMenu = () => setFixed(false)
-  const showFixedMenu = () => setFixed(true)
+
 
   const { children } = props
 
