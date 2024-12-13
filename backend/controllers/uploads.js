@@ -108,6 +108,19 @@ exports.upload = async function (req, res, next) {
           return;
         }
 
+        patches = [];
+
+        let req_patches;
+        req_patches = req.body.patch_list;
+      
+        if(typeof req_patches != "undefined"){
+          var split_patches = req_patches.replace("[","").replace("]","").split(",");
+      
+          for (var patch in split_patches){
+            patches.push(split_patches[patch]);
+          } 
+        }
+
         let item = null;
 
         await tracer.startActiveSpan('validate_system', { parent: trace.getActiveSpan(context.active()) }, async (validateSpan) => {
@@ -178,6 +191,7 @@ exports.upload = async function (req, res, next) {
           url,
           emergency,
           path: local_path,
+          patches: patches,
           srcList,
           len: req.body.call_length ? parseFloat(req.body.call_length) : (stopTime - time) / 1000,
         });

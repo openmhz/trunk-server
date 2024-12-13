@@ -20,6 +20,7 @@ const build_call_list = (items) => {
             srcList: item.srcList,
             star: item.star,
             freq: item.freq,
+            patches: item.patches,
             len: Math.round(item.len)
         };
         calls.push(call);
@@ -38,6 +39,7 @@ async function get_calls(query, numResults, middleDate, res) {
         time: true,
         srcList: true,
         freq: true,
+        patches: true,
         star: true,
         len: true,
         url: true
