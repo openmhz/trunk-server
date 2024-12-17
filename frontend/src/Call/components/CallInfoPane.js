@@ -22,6 +22,8 @@ function CallInfoPane(props) {
   let callDate = "-";
   let callTime = "-";
   let talkgroupNum = "-";
+  let patches = [];
+  let patchString = "";
   let header = "Call Info"
   let title = ""
   const currentCall = props.call ? props.call : false;
@@ -51,6 +53,14 @@ function CallInfoPane(props) {
     srcList = currentCall.srcList.map((source, index) => <List.Item key={index}>{source.src}[{source.pos}]</List.Item>);
     callLength = currentCall.len;
     talkgroupNum = currentCall.talkgroupNum;
+    patches = currentCall.patches;
+    
+    if(patches.length > 1) {
+      patchString = patches.join(", ");
+    }
+    else{
+      patchString = "No Patches";
+    }
 
   }
   let system = false;
@@ -102,7 +112,6 @@ function CallInfoPane(props) {
         <Statistic.Label>Talkgroup</Statistic.Label>
         <Statistic.Value>{talkgroupNum}</Statistic.Value>
       </Statistic>
-
       <List divided verticalAlign='middle'>
         <List.Item>
           <Icon name="wait" />
@@ -120,6 +129,12 @@ function CallInfoPane(props) {
           <Icon name="cubes" />
           <List.Content>
             {callFreq} MHz
+          </List.Content>
+        </List.Item>
+        <List.Item>
+          <Icon name="exchange" />
+          <List.Content>
+            {patchString}
           </List.Content>
         </List.Item>
       </List>
