@@ -1,0 +1,14 @@
+{
+  "name": "websocket_example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Luke Berndt",
+  "license": "ISC",
+  "dependencies": {
+    "socket.io-client": "^4.8.1"
+  }
+}
