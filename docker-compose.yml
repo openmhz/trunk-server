@@ -73,6 +73,7 @@ services:
       - MONGO_PASSWORD
       - MAILJET_KEY
       - MAILJET_SECRET
+      - FIREHOSE_KEY
       - REACT_APP_ADMIN_EMAIL
       - REACT_APP_SITE_NAME
       - NODE_ENV

@@ -47,6 +47,7 @@ const mongo_host = typeof process.env['MONGO_HOST'] !== 'undefined' ? process.en
 const mongo_port = typeof process.env['MONGO_PORT'] !== 'undefined' ? process.env['MONGO_PORT'] : 27017;
 const mongo_user = process.env['MONGO_USER'];
 const mongo_password = process.env['MONGO_PASSWORD'];
+const firehose_key = process.env['FIREHOSE_KEY'] !== 'undefined' ? process.env['FIREHOSE_KEY'] : null;
 
 let mongoUrl;
 
@@ -211,7 +212,7 @@ function notify_clients(call) {
     if (clients.hasOwnProperty(key)) {
       var client = clients[key];
       if (client.active) {
-        if (client.shortName == call.shortName.toLowerCase()) {
+        if ((client.firehose == true) || (client.shortName == call.shortName.toLowerCase())) {
           // if client is not filtering for stars, or if the client is filtering and the call has stars
           if (!client.filterStarred || call.star) {
             if (client.filterCode == "") {
@@ -269,6 +270,7 @@ io.sockets.on('connection', function (client) {
       clients[client.id].filterType = String(data.filterType);
       clients[client.id].talkgroupNums = [];
       clients[client.id].timestamp = new Date();
+      clients[client.id].firehose = false;
 
       if (typeof clients[client.id].filterCode != "string") {
         console.error("Error - Socket - Invalid filterCode: " + data.filterCode + " ShortName: " + data.shortName.toLowerCase());
@@ -276,7 +278,10 @@ io.sockets.on('connection', function (client) {
         return;
       }
 
-      if ((data.filterType == "group") && (typeof data.filterCode == "string") && (data.filterCode.indexOf(',') == -1)) {
+      if ((data.filterType == "firehose") && firehose_key && (typeof data.filterCode == "string") && (data.filterCode == firehose_key)) {
+        clients[client.id].firehose = true;
+        
+      } else if ((data.filterType == "group") && (typeof data.filterCode == "string") && (data.filterCode.indexOf(',') == -1)) {
         if (!ObjectId.isValid(data.filterCode)) {
           console.error("Error - Socket - Invalid Group ID: " + data.filterCode);
           delete clients[client.id];
