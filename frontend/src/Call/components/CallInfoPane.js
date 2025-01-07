@@ -55,7 +55,7 @@ function CallInfoPane(props) {
     talkgroupNum = currentCall.talkgroupNum;
     patches = currentCall.patches;
     
-    if(patches.length > 1) {
+    if(patches && (patches.length > 1)) {
       patchString = patches.join(", ");
     }
     else{

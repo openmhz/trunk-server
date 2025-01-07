@@ -210,6 +210,7 @@ function package_call(item) {
         time: item.time,
         timeString: timeString,
         dateString: dateString,
+        patches: item.patches,
         path: item.path,
         name: item.name,
         freq: item.freq,
