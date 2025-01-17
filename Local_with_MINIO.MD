@@ -1,4 +1,3 @@
-```markdown
 # Installing Trunk-Server Locally (no HTTPS)
 
 ## Prerequisites:
