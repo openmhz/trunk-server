@@ -1,4 +1,5 @@
 # Installing Trunk-Server Locally (no HTTPS)
+*** Warning: Instructions to get Trunk-Server dev running entirely Local using MIN.IO for storage. Please take note that this does NOT cover SSL and should not be used as an edge facing service as it is not secure. ***
 
 ## Prerequisites:
 
