@@ -147,6 +147,21 @@ async function load_systems(systemClients) {
   // console.log("Loaded Systems: " + systemList.length + " that have been active since: " + fromDate);
 }
 
+exports.get_system_status = async function (req, res) {
+  var shortName = req.params.shortName.toLowerCase();
+  var system = systemList.find(function (element) {
+    return element.shortName == shortName;
+  });
+
+  var response = {
+    active: system.active,
+    lastActive: system.lastActive,
+    clientCount: system.clientCount,
+    callAvg: system.callAvg,
+  }
+  res.contentType('json');
+  res.send(JSON.stringify(response));
+}
 
 exports.get_systems = async function (req, res) {
   /* going to use a cron job to update the system list every 2 minutes
