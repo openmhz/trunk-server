@@ -52,6 +52,8 @@ const client = new S3Client({
     httpsAgent: agent,
   }),
   credentials: fromIni({ profile: s3_profile }),
+  requestChecksumCalculation: 'WHEN_REQUIRED',
+ 	responseChecksumValidation: 'WHEN_REQUIRED',
   endpoint: s3_endpoint,
   region: s3_region,
   maxAttempts: 2,
