@@ -153,14 +153,16 @@ exports.get_system_status = async function (req, res) {
     return element.shortName == shortName;
   });
 
+  var now_string = new Date().toLocaleString();
+  var last_active_string = new Date(system.lastActive).toLocaleString();
   var response = {
     name: system.name,
     description: system.description,
     active: system.active,
-    lastActive: system.lastActive,
+    lastActive: last_active_string,
     clientCount: system.clientCount,
     callAvg: system.callAvg,
-    requestTime: Date.now()
+    requestTime: now_string
   }
   res.contentType('json');
   res.send(JSON.stringify(response));
