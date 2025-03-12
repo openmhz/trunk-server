@@ -108,17 +108,18 @@ exports.upload = async function (req, res, next) {
           return;
         }
 
-        patches = [];
+        let patches = [];
+        try {
+          let req_patches = req.body.patch_list || "[]"; 
 
-        let req_patches;
-        req_patches = req.body.patch_list;
-      
-        if(typeof req_patches != "undefined"){
-          var split_patches = req_patches.replace("[","").replace("]","").split(",");
-      
-          for (var patch in split_patches){
-            patches.push(split_patches[patch]);
-          } 
+          if (typeof req_patches === 'string') {
+            req_patches = req_patches.replace(/\[|\]/g, "").split(",").map(num => num.trim());
+            patches = req_patches.map(num => Number(num)).filter(num => !isNaN(num));
+          }
+        } catch (err) {
+          console.warn(`[${req.params.shortName}] Error /:shortName/upload Parsing Patches List - Error: ${err}`);
+          res.status(500).send("Error parsing patch_list " + err);
+          return;
         }
 
         let item = null;
