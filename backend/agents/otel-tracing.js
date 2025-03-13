@@ -23,6 +23,7 @@ const {
 diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.WARN);
 
 console.log("Starting OpenTelemetry Node SDK");
+console.log("OTEL_SDK_DISABLED: " + process.env.OTEL_SDK_DISABLED);
 console.log("OTEL_EXPORTER_OTLP_ENDPOINT: " + process.env.OTEL_EXPORTER_OTLP_ENDPOINT);
 console.log("OTEL_EXPORTER_OTLP_HEADERS: " + process.env.OTEL_EXPORTER_OTLP_HEADERS);
 console.log("OTEL_SERVICE_NAME: " + process.env.OTEL_SERVICE_NAME);
