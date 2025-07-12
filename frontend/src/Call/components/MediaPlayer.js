@@ -33,15 +33,8 @@ const MediaPlayer = (props) => {
   const [playTime, setPlayTime] = useState(0);
   const playSilence = props.playSilence;
   const parentHandlePlayPause = props.onPlayPause
-  const regionsPlugin = useMemo(() => {
-    try {
-      return RegionsPlugin.create();
-    } catch (error) {
-      console.warn('Failed to create regions plugin:', error);
-      return null;
-    }
-  }, []);
-  const plugins = useMemo(() => regionsPlugin ? [regionsPlugin] : [], [regionsPlugin]);
+  const regionsPlugin = useMemo(() => RegionsPlugin.create(), []);
+  const plugins = useMemo(() => [regionsPlugin], [regionsPlugin]);
 
 
   useEffect(() => {
@@ -59,93 +52,47 @@ const MediaPlayer = (props) => {
       });
     }
 
-    if (wavesurfer) {
-      wavesurfer.load("/silence.m4a");
-    }
-    if (regionsPlugin) {
-      try {
-        regionsPlugin.clearRegions();
-      } catch (error) {
-        console.warn('Error clearing regions:', error);
-      }
-    }
+    wavesurfer && wavesurfer.load("/silence.m4a");
+    regionsPlugin.clearRegions();
 
-    // Cleanup function
-    return () => {
-      if (regionsPlugin) {
-        try {
-          regionsPlugin.clearRegions();
-        } catch (error) {
-          console.warn('Error clearing regions in cleanup:', error);
-        }
-      }
-    };
+    // // In browsers that don’t yet support this functionality,
+    // // playPromise won’t be defined.
+    // if (playPromise !== undefined) {
+    //   playPromise.then(function () {
 
-  }, [playSilence, wavesurfer, regionsPlugin]);
+    //   }).catch(function (error) {
+    //     console.log("Automatic playback failed: " + error);
+    //     // Show a UI element to let the user manually start playback.
+    //   });
+    // } else {
+    //   audio.src = false;
+    // }
+
+  }, [playSilence]);
 
   useEffect(() => {
     setSourceIndex(0);
-    
-    // Cleanup function
-    return () => {
-      // No cleanup needed for this effect
-    };
   }, [call]);
 
   useEffect(() => {
     if (wavesurfer) {
       wavesurfer.setVolume(volume);
     }
-    
-    // Cleanup function
-    return () => {
-      // No cleanup needed for this effect
-    };
   }, [volume, wavesurfer]);
-
-  // Cleanup effect for component unmount
-  useEffect(() => {
-    return () => {
-      if (wavesurfer) {
-        try {
-          wavesurfer.destroy();
-        } catch (error) {
-          console.warn('Error destroying wavesurfer:', error);
-        }
-      }
-      if (regionsPlugin) {
-        try {
-          regionsPlugin.clearRegions();
-        } catch (error) {
-          console.warn('Error clearing regions in cleanup:', error);
-        }
-      }
-    };
-  }, [wavesurfer, regionsPlugin]);
 
 
   const onReady = (ws) => {
     setWavesurfer(ws)
     setIsPlaying(false)
-    if (regionsPlugin) {
-      try {
-        regionsPlugin.clearRegions();
-      } catch (error) {
-        console.warn('Error clearing regions:', error);
-      }
-    }
-    if (call && regionsPlugin) {
+    regionsPlugin.clearRegions();
+    if (call) {
       call.srcList.forEach(src => {
-        try {
-          regionsPlugin.addRegion({
-            start: src.pos,
-            color: "rgba(128, 128, 128, 1.0)",
-            drag: false,
-            resize: false
-          });
-        } catch (error) {
-          console.warn('Error adding region:', error);
-        }
+        regionsPlugin.addRegion({
+          start: src.pos,
+          color: "rgba(128, 128, 128, 1.0)",
+          drag: false,
+          resize: false
+        });
       });
     }
   }
