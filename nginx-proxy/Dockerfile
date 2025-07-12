@@ -24,3 +24,7 @@ COPY *.conf /etc/nginx/
 
 # Add virtual hosts
 COPY ${STAGE}/vhosts/ /etc/nginx/conf.d/
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]

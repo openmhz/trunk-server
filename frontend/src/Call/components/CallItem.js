@@ -108,6 +108,7 @@ const CallItem = (props) => {
   } else if (call.emergency) {
     rowSelected = {
       positive: true,
+      error: true,
       color: "red",
       key: "red",
       inverted: "true"

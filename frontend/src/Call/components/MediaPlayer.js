@@ -115,9 +115,9 @@ const MediaPlayer = (props) => {
       }
       if (regionsPlugin) {
         try {
-          regionsPlugin.destroy();
+          regionsPlugin.clearRegions();
         } catch (error) {
-          console.warn('Error destroying regions plugin:', error);
+          console.warn('Error clearing regions in cleanup:', error);
         }
       }
     };

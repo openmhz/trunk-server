@@ -26,6 +26,7 @@ function CallInfoPane(props) {
   let patchString = "";
   let header = "Call Info"
   let title = ""
+  let callEmergnecy = (<> </>);
   const currentCall = props.call ? props.call : false;
   const { callLink, callDownload, callTweet } = useCallLink(props.call)
   const { data: allSystems, isSuccess } = useGetSystemsQuery();
@@ -54,6 +55,10 @@ function CallInfoPane(props) {
     callLength = currentCall.len;
     talkgroupNum = currentCall.talkgroupNum;
     patches = currentCall.patches;
+
+    if (currentCall.emergency) {
+      callEmergnecy = (<div><Icon name="warning sign" color="red" /> Emergency </div>)
+    }
     
     if(patches && (patches.length > 1)) {
       patchString = patches.join(", ");
@@ -100,6 +105,7 @@ function CallInfoPane(props) {
   return (
     <>
       <Header as='h1'>{header}</Header>
+      {callEmergnecy}
       <List bulleted horizontal link>
         {srcList}
       </List>
