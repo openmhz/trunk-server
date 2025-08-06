@@ -319,9 +319,13 @@ exports.uniqueShortName = async function (req, res, next) {
     res.status(500)
     res.json({
       success: false,
-      message: "Short Name not provided in form"
+      message: "Shortname not provided in form"
     });
   }
+
+    shortName = shortName.replace(/[^\w]/gi, '');
+    shortName = shortName.toLowerCase();
+
 
   try {
     var system = await System.findOne({
@@ -333,7 +337,7 @@ exports.uniqueShortName = async function (req, res, next) {
       res.status(500)
       res.json({
         success: false,
-        message: "Short Name already in use"
+        message: "Shortname already in use"
       });
       return;
     } else {
