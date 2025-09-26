@@ -30,13 +30,7 @@ const AboutComponent = () => {
         <Divider horizontal style={{ paddingTop: "4em", paddingBottom: "2em" }}><Header as="h2">100% Open Source</Header></Divider>
         <p>Have changes you would like to suggest? Want to run your own server for your community? All of the code for OpenMHz is available as open source:</p>
         <p><a href="https://github.com/openmhz/trunk-server"><Icon name='github' />Trunk Server</a></p>
-        <Divider horizontal style={{ paddingTop: "4em", paddingBottom: "2em" }}><Header as="h2">Support</Header></Divider>
-        <p>If OpenMHz brings you joy, think about becoming a supporter! It will cover hosting costs and help keep me focused on development.</p>
-
-        <p><a href="https://github.com/sponsors/robotastic"><Button color='green'>
-          <Icon name='heart' />
-          Support
-        </Button></a></p>
+        
 
         <Divider horizontal style={{ paddingTop: "4em", paddingBottom: "2em" }}><Header as="h2">FAQ</Header></Divider>
         <List>
