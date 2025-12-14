@@ -153,6 +153,11 @@ exports.get_system_status = async function (req, res) {
     return element.shortName == shortName;
   });
 
+  if (!system) {
+    res.status(404);
+    res.send("System not found");
+    return;
+  }
   var now_string = new Date().toLocaleString();
   var last_active_string = new Date(system.lastActive).toLocaleString();
   var response = {
