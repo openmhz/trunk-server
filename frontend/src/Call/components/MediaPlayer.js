@@ -205,7 +205,7 @@ const MediaPlayer = (props) => {
             Sec
           </Label>
           <Label color="black" className="desktop-only">
-            {sourceId}
+            {sourceTag!== "" ? sourceTag : sourceId}
           </Label>
         </LabelGroup>
 
