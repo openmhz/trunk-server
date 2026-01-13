@@ -142,7 +142,7 @@ const MediaPlayer = (props) => {
     if (call.srcList.length > sourceIndex) {
       sourceId = call.srcList[sourceIndex].src;
       if (call.srcList[sourceIndex].tag !== undefined && call.srcList[sourceIndex].tag !== null && call.srcList[sourceIndex].tag !== "") {
-        sourceTag = "(" + call.srcList[sourceIndex].tag + ")";
+        sourceTag = call.srcList[sourceIndex].tag;
       }
     }
     playEnabled = {};
@@ -204,7 +204,7 @@ const MediaPlayer = (props) => {
             {playTime}
             Sec
           </Label>
-          <Label color="black" className="desktop-only">
+          <Label color="black" className="desktop-only tag-label">
             {sourceTag!== "" ? sourceTag : sourceId}
           </Label>
         </LabelGroup>
