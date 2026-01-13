@@ -44,7 +44,7 @@ function CallInfo(props) {
     }
 
 
-    srcList = currentCall.srcList.map((source, index) => <List.Item key={index}>{source.src}[{source.pos}]</List.Item>);
+    srcList = currentCall.srcList.map((source, index) => <List.Item key={index}>{source.src}[{source.pos}] {source.tag ? "(" + source.tag + ")" : ""}</List.Item>);
     callLength = currentCall.len;
     talkgroupNum = currentCall.talkgroupNum;
 

@@ -136,10 +136,14 @@ const MediaPlayer = (props) => {
 
   let playEnabled = { "disabled": true }
   let sourceId = "-";
+  let sourceTag = "";
 
   if (call) {
     if (call.srcList.length > sourceIndex) {
       sourceId = call.srcList[sourceIndex].src;
+      if (call.srcList[sourceIndex].tag !== undefined && call.srcList[sourceIndex].tag !== null && call.srcList[sourceIndex].tag !== "") {
+        sourceTag = "(" + call.srcList[sourceIndex].tag + ")";
+      }
     }
     playEnabled = {};
   }
