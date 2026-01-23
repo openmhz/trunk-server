@@ -64,7 +64,7 @@ function ContactModal(props) {
             </List>
             </p>
             <p>If you have general questions about OpenMHz send me an email, </p>
-            <p> - Luke  <a href="mailto:luke@robotastic.com?Subject=OpenMHz" target="_top">luke@robotastic.com</a>  </p>
+            <p> - Luke  <a href="mailto:support@openmhz.com?Subject=OpenMHz" target="_top">support@openmhz.com</a>  </p>
 
             </Grid.Column>
             <Grid.Column width={10}>

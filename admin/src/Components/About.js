@@ -7,7 +7,7 @@ const About = () => {
     return (
       <Container text>
         <Header size='large'>Share the Air</Header>
-        <p>{process.env.REACT_APP_SITE_NAME} makes it easy to share and archive recordings from <a href="https://github.com/robotastic/trunk-recorder">Trunk Recorder</a>.
+        <p>{process.env.REACT_APP_SITE_NAME} makes it easy to share and archive recordings from <a href="https://github.com/TrunkRecorder/trunk-recorder">Trunk Recorder</a>.
                     Sharing access to these radio systems allows for other members of your community to follow local events.
                    Raising awareness of what our local fire, police and EMS have to go through everyday should
                       lead to greater appreciation for all the work they do that goes largely unseen.</p>

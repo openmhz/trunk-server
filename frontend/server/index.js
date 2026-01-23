@@ -70,136 +70,6 @@ function getCard(req, res, next) {
   });
 }
 
-/*
-exports.get_card = function(req, res) {
-  var objectId = req.params.id;
-  try {
-      var o_id = ObjectID.createFromHexString(objectId);
-  } catch (err) {
-      console.warn("Error - /card/:id generating ObjectID " + err);
-      res.status(500);
-      res.send(JSON.stringify({
-          error: err,
-          "_id": objectId
-      }));
-      return;
-  }
-  db.get().collection('calls', function(err, transCollection) {
-      transCollection.findOne({
-              '_id': o_id
-          },
-          function(err, item) {
-              //console.log(util.inspect(item));
-              if (item) {
-                  var time = new Date(item.time);
-                  var timeString = time.toLocaleTimeString("en-US");
-                  var dateString = time.toDateString();
-                  res.render('card', {
-                      item: item,
-                      channel: channels[item.talkgroupNum],
-                      time: timeString,
-                      date: dateString
-                  });
-              } else {
-                  console.warn("Error - /card/:id Could not find Item " + err);
-                  res.send(404, 'Sorry, we cannot find that!');
-              }
-          });
-  });
-}
-*/
-/*
-async function getPodcast(req, res, next) {
-  const now = new Date().toLocaleString();
-
-  const feedStart = `
-  <rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:psc="http://podlove.org/simple-chapters" xmlns:podcast="https://podcastindex.org/namespace/1.0" version="2.0">
-  <channel>
-  <title>
-  <![CDATA[ OpenMHz ]]>
-  </title>
-  <description>
-  <![CDATA[ Real public safety radio recordings, from across the country. <a href="hhtps://openmhz.com">OpenMHz</a> is a website that makes it easy to share recordings of public safety radio system. This podcast is a collection of interesting events that has been curated by the OpenMHz community. ]]>
-  </description>
-  <link>https://openmhz.com</link>
-  <generator>Podcast for Node</generator>
-  <lastBuildDate>${now}</lastBuildDate>
-  <atom:link href="https://openmhz.com/rss.xml" rel="self" type="application/rss+xml"/>
-  <author>
-  <![CDATA[ OpenMHz ]]>
-  </author>
-  <pubDate>${now}</pubDate>
-  <copyright>
-  <![CDATA[ &#169; 2023 Robotastic ]]>
-  </copyright>
-  <language>
-  <![CDATA[ en ]]>
-  </language>
-  <ttl>60</ttl>
-  <itunes:author>OpenMHz</itunes:author>
-  <itunes:subtitle>I am a sub title</itunes:subtitle>
-  <itunes:summary>Real public safety radio recordings, from across the country. OpenMHz is a website that makes it easy to share recordings of public safety radio system. This podcast is a collection of interesting events that has been curated by the OpenMHz community.</itunes:summary>
-  <itunes:owner>
-  <itunes:name>Luke Berndt</itunes:name>
-  <itunes:email>luke@robotastic.com</itunes:email>
-  </itunes:owner>
-  <itunes:explicit>false</itunes:explicit>
-  <itunes:category text="Government"/>
-  <itunes:category text="Daily News"/>
-  <itunes:category text="True Crime"/>
-  <itunes:image href="https://openmhz.com/podcast/cover.png"/>
-  `
-
-
-
-  const feedEnd = `
-</channel>
-</rss>
-`
-  let xml = feedStart;
-  try {
-    const podcastsCollection = db.get().collection('podcasts');
-    podcastsCollection.find().toArray(function (err, podcasts) {
-
-
-      for (const podcast of podcasts) {
-        let description = podcast.description + "\n\nRadio Systems: \n";
-        for (const system of podcast.systems) {
-          description = description + " - " + system + "\n";
-        }
-        xml = xml + `
-<item>
-<title>
-<![CDATA[ ${podcast.title} ]]>
-</title>
-<description>
-<![CDATA[ ${description} ]]>
-</description>
-<guid isPermaLink="false">${podcast.downloadUrl}</guid>
-<dc:creator>
-<![CDATA[ OpenMHz ]]>
-</dc:creator>
-<url>${podcast.eventUrl}</url>
-<pubDate>${podcast.startTime}</pubDate>
-<enclosure url="${podcast.downloadUrl}" length="0" type="audio/mp4"/>
-<itunes:author>OpenMHz</itunes:author>
-<itunes:summary>${description}</itunes:summary>
-<itunes:explicit>false</itunes:explicit>
-</item> 
-`
-      }
-
-
-      xml = xml + feedEnd;
-      res.set('Content-Type', 'text/xml');
-      res.send(xml);
-    });
-
-  } catch (err) {
-    console.error(err);
-    return;
-  }
-}*/
 const dateRange = (start, end) => {
   if (start.getYear() != end.getYear()) {
     return { "part1": start.toLocaleDateString('en-us', { weekday: "short", year: "numeric", month: "short", day: "numeric" }) + " " + start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), "part2": end.toLocaleDateString('en-us', { weekday: "short", year: "numeric", month: "short", day: "numeric" }) + " " + end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) };
@@ -227,14 +97,14 @@ async function getPodcast(req, res, next) {
         siteUrl: 'https://openmhz.com',
         imageUrl: 'https://openmhz.com/podcast/cover.png',
         author: 'OpenMHz',
-        copyright: '&#169; 2022 Robotastic',
+        copyright: '&#169; 2026 Robotastic',
         language: 'en',
         pubDate: 'May 20, 2012 04:00:00 GMT',
         ttl: 60,
         itunesAuthor: 'OpenMHz',
         itunesSubtitle: 'I am a sub title',
         itunesSummary: 'Real public safety radio recordings, from across the country. OpenMHz is a website that makes it easy to share recordings of public safety radio system. This podcast is a collection of interesting events that has been curated by the OpenMHz community.',
-        itunesOwner: { name: 'Luke Berndt', email: 'luke@robotastic.com' },
+        itunesOwner: { name: 'Luke Berndt', email: 'support@openmhz.com' },
         itunesExplicit: false,
         itunesCategory: [{
           text: 'Government'
