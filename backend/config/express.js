@@ -42,7 +42,7 @@ module.exports = function(app) {
 	        res.setHeader('Access-Control-Allow-Origin', origin);
 	    } else if (req.headers["user-agent"] == 'TrunkRecorder1.0') {
 	        res.setHeader('Access-Control-Allow-Origin', "*");
-	    } else if (origin.indexOf(".vercel.app") > -1) {
+	    } else if (origin &&origin.indexOf(".vercel.app") > -1) {
 			next("Scraper!! ☠️ " + origin);
 		} else {
 	        res.setHeader('Access-Control-Allow-Origin', "*");

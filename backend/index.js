@@ -193,15 +193,9 @@ function get_clients(req, res) {
 app.get('/clients', get_clients);
 app.get('/:shortName/clients', get_clients);
 app.use(function (err, req, res, next) {
-  console.error("Caught an error");
-  console.error(err.stack);
-  /*
+
   res.status(err.status || 500);
-  res.contentType('json');
-  res.send(JSON.stringify({
-      message: err.message,
-      error: err
-  }));*/
+  res.send(err.message);
 });
 
 
