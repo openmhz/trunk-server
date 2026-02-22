@@ -280,7 +280,6 @@ io.sockets.on('connection', function (client) {
         return;
       }
 
-
       clients[client.id].active = true;
       clients[client.id].shortName = data.shortName.toLowerCase();
       clients[client.id].filterCode = String(data.filterCode);
