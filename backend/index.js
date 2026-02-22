@@ -274,6 +274,13 @@ io.sockets.on('connection', function (client) {
   clients[client.id].timestamp = new Date();
   client.on('start', async function (data) {
     if (typeof clients[client.id] !== "undefined") {
+      if ((data.filterType != "firehose") && (!data.shortName || (typeof data.shortName != "string"))) {  // If it is not firehose, then it must have a shortName
+        console.error("Error - Socket - Invalid ShortName: " + data.shortName + " ClientID: " + client.id + " IP: " + ipAddress);
+        delete clients[client.id];
+        return;
+      }
+
+
       clients[client.id].active = true;
       clients[client.id].shortName = data.shortName.toLowerCase();
       clients[client.id].filterCode = String(data.filterCode);
@@ -297,13 +304,6 @@ io.sockets.on('connection', function (client) {
         delete clients[client.id];
         return;
       }
-
-      if ((data.filterType != "firehose") && (!data.shortName || (typeof data.shortName != "string"))) {  // If it is not firehose, then it must have a shortName
-        console.error("Error - Socket - Invalid ShortName: " + data.shortName + " ClientID: " + client.id + " IP: " + ipAddress);
-        delete clients[client.id];
-        return;
-      }
-
 
       // Check if the filterType is firehose and the filterCode is the firehose key
       if (data.filterType == "firehose") {
