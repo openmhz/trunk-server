@@ -194,8 +194,7 @@ app.get('/clients', get_clients);
 app.get('/:shortName/clients', get_clients);
 app.use(function (err, req, res, next) {
 
-  res.status(err.status || 500);
-  res.send(err.message);
+  console.log("Error: " + err);
 });
 
 
