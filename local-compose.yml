@@ -1,0 +1,116 @@
+# Local development overlay: adds MinIO object storage to the test stack.
+#
+# Kept as a separate file (rather than edits to docker-compose.yml / test-compose.yml)
+# so the local dev setup stays additive and does not conflict when rebasing on upstream.
+# Applied by ./docker-local.sh.
+services:
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - ${PWD}/data/minio:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - node
+    restart: always
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    logging:
+      driver: "json-file"
+      options:
+        tag: "minio"
+
+  # One-shot: create the bucket and open it for anonymous reads.
+  # The backend stores plain public URLs on each Call and never presigns,
+  # so without the anonymous download policy the UI lists calls that will not play.
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 minioadmin minioadmin &&
+      mc mb --ignore-existing local/${S3_BUCKET} &&
+      mc anonymous set download local/${S3_BUCKET} &&
+      echo 'MinIO bucket ${S3_BUCKET} ready'
+      "
+    networks:
+      - node
+    restart: "no"
+    logging:
+      driver: "json-file"
+      options:
+        tag: "minio-init"
+
+  # ---------------------------------------------------------------------------
+  # Source bind mounts.
+  #
+  # test-compose.yml runs every Node service under nodemon, but the images
+  # COPY the source in at build time and nothing is mounted, so nodemon only
+  # ever watches a frozen copy - editing on the host does nothing until a
+  # rebuild. These mounts make the host tree authoritative so nodemon actually
+  # reloads on save.
+  #
+  # The bare paths (no host side) are anonymous volumes. They shadow the bind
+  # mount for that one subpath, preserving artefacts that exist only inside the
+  # image: node_modules, and the compiled React bundle in public/.
+  # ---------------------------------------------------------------------------
+  backend:
+    # Not in the upstream environment list; needed so the S3 client talks
+    # path-style to MinIO instead of virtual-host style.
+    environment:
+      - S3_FORCE_PATH_STYLE
+      # Silences the endless OTLP connect-retry spam when no collector is running.
+      - OTEL_SDK_DISABLED
+    volumes:
+      - ./backend:/home/app
+      - /home/app/node_modules
+      - /home/app/upload
+    depends_on:
+      - mongo
+      - minio
+
+  account:
+    volumes:
+      - ./account/server:/app
+      - /app/node_modules
+      - /app/public
+
+  admin:
+    volumes:
+      - ./admin/server:/app
+      - /app/node_modules
+      - /app/public
+
+  # frontend needs per-file mounts rather than a directory mount: its Dockerfile
+  # generates /app/index.ejs at build time and that file does not exist in the
+  # repo, so mounting ./frontend/server over /app would hide it.
+  frontend:
+    volumes:
+      - ./frontend/server/index.js:/app/index.js
+      - ./frontend/server/db.js:/app/db.js
+      - ./frontend/server/config:/app/config
+      - ./frontend/server/card.ejs:/app/card.ejs
+      - ./frontend/server/env.ejs:/app/env.ejs
+
+  # Upstream leaves certbot on the syslog log driver in every compose file,
+  # including test-compose.yml. There is no syslog listener under Docker Desktop,
+  # so the container fails to start. It has nothing to do locally anyway.
+  certbot:
+    logging:
+      driver: "json-file"
+      options:
+        tag: "certbot"
+
+networks:
+  proxy:
+  node:
