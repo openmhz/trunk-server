@@ -7,3 +7,9 @@ admin/.eslintcache
 frontend/.eslintcache
 admin/.eslintcache
 data/*
+
+# Local env backups - these hold live Mailjet/S3 credentials
+*.env.bak
+
+# multer scratch dir for talkgroup CSV uploads
+admin/server/uploads/
