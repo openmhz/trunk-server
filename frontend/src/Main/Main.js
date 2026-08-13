@@ -131,7 +131,6 @@ const DesktopContainer = (props) => {
             <Container>
               <Menu.Item ><Header as='h3' inverted>{process.env.REACT_APP_SITE_NAME}</Header></Menu.Item>
               <Link to="/systems"><Menu.Item link >Listen</Menu.Item></Link>
-              <Link to="/events"><Menu.Item link >Events</Menu.Item></Link>
               <Link to="/about"><Menu.Item link >About</Menu.Item></Link>
             </Container>
           </Menu>
@@ -566,9 +565,6 @@ const Main = (props) => {
                       <ButtonContent hidden>Thank You</ButtonContent>
                     </Button>
                     } />
-                    <Button href="https://podcasts.apple.com/us/podcast/openmhz/id1675187518">
-                    <Icon name='podcast' /> Events Podcast
-                    </Button>
                     <Button href="https://apps.apple.com/us/app/openmhz/id6466666994">
                     <Icon name='app store ios' /> iOS App
                     </Button>

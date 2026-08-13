@@ -9,7 +9,6 @@ var talkgroups = require("./controllers/talkgroups");
 
 var stats = require("./controllers/stats");
 var sys_stats = require("./sys_stats");
-var events = require("./controllers/events");
 var config = require('./config/config.json');
 let db = require('./db')
 var schedule = require('node-schedule');
@@ -142,11 +141,6 @@ app.get('/:shortName/talkgroups', talkgroups.get_talkgroups);
 /*------    GROUPS   ----------*/
 app.get('/:shortName/groups', talkgroups.get_groups);
 
-
-/*------    EVENTS   ----------*/
-app.post('/events', events.addNewEvent);
-app.get('/events', events.getEvents);
-app.get('/events/:id', events.getEvent);
 
 /*------    STATS   ----------*/
 app.get('/:shortName/stats', stats.get_stats);
@@ -326,14 +320,6 @@ stats.init_stats();
 // IF you don't set the minute to 0, it will run every minute while it is still 3, so at 3:01, 3:02... etc
 schedule.scheduleJob('0 3 * * *', function() {
   db.cleanOldCalls();
-});
-
-schedule.scheduleJob('15 3 * * *', function() {
-  db.cleanOldEvents();
-});
-
-schedule.scheduleJob('30 3 * * *', function() {
-  db.cleanOldPodcasts();
 });
 
 

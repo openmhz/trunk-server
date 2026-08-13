@@ -10,7 +10,6 @@ const AboutComponent = () => {
     <div>
       <Menu fixed="top">
         <Link to="/"><Menu.Item link><Icon name='arrow left' /> Home</Menu.Item></Link>
-        <Link to="/events"><Menu.Item link>Events</Menu.Item></Link>
         <Link to="/systems"><Menu.Item link>Listen</Menu.Item></Link>
         <Link to="/terms"><Menu.Item link>Terms of Service</Menu.Item></Link>
       </Menu>

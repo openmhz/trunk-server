@@ -4,7 +4,6 @@ const express = require("express");
 const path = require("path");
 const secrets = require("./config/secrets");
 const configureExpress = require("./config/express");
-const { Podcast, Item, FeedOptions } = require('podcast');
 
 // -------------------------------------------
 
@@ -109,97 +108,7 @@ exports.get_card = function(req, res) {
 }
 */
 /*
-async function getPodcast(req, res, next) {
-  const now = new Date().toLocaleString();
-
-  const feedStart = `
-  <rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:psc="http://podlove.org/simple-chapters" xmlns:podcast="https://podcastindex.org/namespace/1.0" version="2.0">
-  <channel>
-  <title>
-  <![CDATA[ OpenMHz ]]>
-  </title>
-  <description>
-  <![CDATA[ Real public safety radio recordings, from across the country. <a href="hhtps://openmhz.com">OpenMHz</a> is a website that makes it easy to share recordings of public safety radio system. This podcast is a collection of interesting events that has been curated by the OpenMHz community. ]]>
-  </description>
-  <link>https://openmhz.com</link>
-  <generator>Podcast for Node</generator>
-  <lastBuildDate>${now}</lastBuildDate>
-  <atom:link href="https://openmhz.com/rss.xml" rel="self" type="application/rss+xml"/>
-  <author>
-  <![CDATA[ OpenMHz ]]>
-  </author>
-  <pubDate>${now}</pubDate>
-  <copyright>
-  <![CDATA[ &#169; 2023 Robotastic ]]>
-  </copyright>
-  <language>
-  <![CDATA[ en ]]>
-  </language>
-  <ttl>60</ttl>
-  <itunes:author>OpenMHz</itunes:author>
-  <itunes:subtitle>I am a sub title</itunes:subtitle>
-  <itunes:summary>Real public safety radio recordings, from across the country. OpenMHz is a website that makes it easy to share recordings of public safety radio system. This podcast is a collection of interesting events that has been curated by the OpenMHz community.</itunes:summary>
-  <itunes:owner>
-  <itunes:name>Luke Berndt</itunes:name>
-  <itunes:email>luke@robotastic.com</itunes:email>
-  </itunes:owner>
-  <itunes:explicit>false</itunes:explicit>
-  <itunes:category text="Government"/>
-  <itunes:category text="Daily News"/>
-  <itunes:category text="True Crime"/>
-  <itunes:image href="https://openmhz.com/podcast/cover.png"/>
-  `
-
-
-
-  const feedEnd = `
-</channel>
-</rss>
-`
-  let xml = feedStart;
-  try {
-    const podcastsCollection = db.get().collection('podcasts');
-    podcastsCollection.find().toArray(function (err, podcasts) {
-
-
-      for (const podcast of podcasts) {
-        let description = podcast.description + "\n\nRadio Systems: \n";
-        for (const system of podcast.systems) {
-          description = description + " - " + system + "\n";
-        }
-        xml = xml + `
-<item>
-<title>
-<![CDATA[ ${podcast.title} ]]>
-</title>
-<description>
-<![CDATA[ ${description} ]]>
-</description>
-<guid isPermaLink="false">${podcast.downloadUrl}</guid>
-<dc:creator>
-<![CDATA[ OpenMHz ]]>
-</dc:creator>
-<url>${podcast.eventUrl}</url>
-<pubDate>${podcast.startTime}</pubDate>
-<enclosure url="${podcast.downloadUrl}" length="0" type="audio/mp4"/>
-<itunes:author>OpenMHz</itunes:author>
-<itunes:summary>${description}</itunes:summary>
-<itunes:explicit>false</itunes:explicit>
-</item> 
-`
-      }
-
-
-      xml = xml + feedEnd;
-      res.set('Content-Type', 'text/xml');
-      res.send(xml);
-    });
-
-  } catch (err) {
-    console.error(err);
-    return;
-  }
-}*/
+*/
 const dateRange = (start, end) => {
   if (start.getYear() != end.getYear()) {
     return { "part1": start.toLocaleDateString('en-us', { weekday: "short", year: "numeric", month: "short", day: "numeric" }) + " " + start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), "part2": end.toLocaleDateString('en-us', { weekday: "short", year: "numeric", month: "short", day: "numeric" }) + " " + end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) };
@@ -212,67 +121,6 @@ const dateRange = (start, end) => {
   } else {
     return { "part1": start.toLocaleDateString('en-us', { weekday: "short", month: "short", day: "numeric" }) + " " + start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }), "part2": end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) };
 
-  }
-}
-
-async function getPodcast(req, res, next) {
-  const now = new Date();
-  try {
-    const podcastsCollection = db.get().collection('podcasts');
-    podcastsCollection.find().toArray(function (err, podcasts) {
-      const feed = new Podcast({
-        title: 'OpenMHz',
-        description: 'Real public safety radio recordings, from across the country. OpenMHz is a website that makes it easy to share recordings of public safety radio system. This podcast is a collection of interesting events that has been curated by the OpenMHz community.',
-        feedUrl: 'https://openmhz.com/rss.xml',
-        siteUrl: 'https://openmhz.com',
-        imageUrl: 'https://openmhz.com/podcast/cover.png',
-        author: 'OpenMHz',
-        copyright: '&#169; 2022 Robotastic',
-        language: 'en',
-        pubDate: 'May 20, 2012 04:00:00 GMT',
-        ttl: 60,
-        itunesAuthor: 'OpenMHz',
-        itunesSubtitle: 'I am a sub title',
-        itunesSummary: 'Real public safety radio recordings, from across the country. OpenMHz is a website that makes it easy to share recordings of public safety radio system. This podcast is a collection of interesting events that has been curated by the OpenMHz community.',
-        itunesOwner: { name: 'Luke Berndt', email: 'luke@robotastic.com' },
-        itunesExplicit: false,
-        itunesCategory: [{
-          text: 'Government'
-        }, { text: "Daily News" }, { text: "True Crime" }],
-        itunesImage: 'https://openmhz.com/podcast/cover.png'
-      });
-      for (const podcast of podcasts) {
-        let dates = dateRange(new Date(podcast.startTime), new Date(podcast.endTime))
-        let description = dates.part1 + "  →  " + dates.part2 + " \n" + podcast.description + `
-
-Radio Systems:
-`;
-        for (const system of podcast.systems) {
-          description = description + " - " + system + "\n"
-        }
-        feed.addItem({
-          title: podcast.title,
-          description: description,
-          enclosure: {
-            url: podcast.downloadUrl, // link to the item
-          },
-          author: 'OpenMHz', // optional - defaults to feed author property
-          url: podcast.eventUrl,
-          date: podcast.startTime, // any format that js Date can parse.
-          itunesAuthor: 'OpenMHz',
-          itunesExplicit: false,
-          itunesSummary: description,
-          itunesDuration: podcast.len
-        });
-      }
-      const xml = feed.buildXml();
-      res.set('Content-Type', 'text/xml');
-      res.send(xml);
-    });
-
-  } catch (err) {
-    console.error(err);
-    return;
   }
 }
 
@@ -348,7 +196,6 @@ app.use(express.static(path.join(__dirname, "public")));
 //app.get("/cards/:id", getCard)
 
 
-app.get("/rss.xml", getPodcast);
 
 app.get("*", (req, res, next) => {
   res.sendFile(__dirname + '/public/index.html');

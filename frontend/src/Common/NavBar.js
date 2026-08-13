@@ -17,7 +17,6 @@ import {
           <Menu fixed="top">
             <Link to="/"><Menu.Item link><Icon name='arrow left' /> Home</Menu.Item></Link>
             <Link to="/systems"><Menu.Item link>Systems</Menu.Item></Link>
-            <Link to="/events"><Menu.Item link>Events</Menu.Item></Link>
             <Link to="/about"><Menu.Item link>About</Menu.Item></Link>
           </Menu>
       );

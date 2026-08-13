@@ -21,25 +21,6 @@ export const apiSlice = createApi({
             // The URL for the request is '/fakeApi/posts'
             query: () => ({ url: '/systems' })
         }),
-        getEvents: builder.query({
-            // The URL for the request is '/fakeApi/posts'
-            query: () => ({ url: '/events' }),
-            transformResponse: responseData => {
-                return responseData.sort(function compareFn(a, b) { if (a.createdAt < b.createdAt) return 1; else return -1; });
-              }
-        }),
-        getEvent: builder.query({
-            // The URL for the request is '/fakeApi/posts'
-            query: (eventId) => ({ url: `/events/${eventId}` }),
-            transformResponse: responseData => {
-        
-                //let temp = responseData.sort(function compareFn(a, b) { if (a.createdAt < b.createdAt) return 1; else return -1; })
-                responseData.calls.forEach(function (call) {
-                    call.played = false;
-                  });
-                return responseData;
-              }
-        }),
         getSiteStats: builder.query({
             query: () => ({ url: '/stats' }),
             transformResponse: responseData => {
@@ -55,13 +36,6 @@ export const apiSlice = createApi({
             // The URL for the request is '/fakeApi/posts'
             query: (shortName) => ({ url: `/${shortName}/stats` })
         }),
-        addNewEvent: builder.mutation({
-            query: initialEvent => ({
-                url: '/events',
-                method: 'POST',
-                body: initialEvent
-            })
-        }),
         contactSystem: builder.mutation({
             query: (args) => {
                 const {shortName, body} = args;
@@ -76,4 +50,4 @@ export const apiSlice = createApi({
 })
 
 // Export the auto-generated hook for the `getPosts` query endpoint
-export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetStatsQuery, useGetSiteStatsQuery, useGetEventsQuery, useGetEventQuery, useAddNewEventMutation, useContactSystemMutation } = apiSlice
+export const { useGetGroupsQuery, useGetSystemsQuery, useGetTalkgroupsQuery, useGetStatsQuery, useGetSiteStatsQuery, useContactSystemMutation } = apiSlice

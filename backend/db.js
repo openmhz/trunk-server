@@ -1,36 +1,4 @@
 var Call = require("./models/call");
-var Event = require("./models/event");
-var Podcast = require("./models/podcast");
-
-exports.cleanOldEvents = async function() {
-  var date = new Date();
-  Event.bulkWrite([
-    {
-      deleteMany: {
-        filter: { expireTime: {$lt: date} }
-      }
-    }
-  ]).then(res => {
-   // Prints "1 1 1"
-   console.log("Removed " + res.deletedCount + " Podcasts");
-  });
-}
-
-exports.cleanOldPodcasts = async function() {
-  var date = new Date();
-  Podcast.bulkWrite([
-    {
-      deleteMany: {
-        filter: { expireTime: {$lt: date} }
-      }
-    }
-  ]).then(res => {
-   // Prints "1 1 1"
-   console.log("Removed " + res.deletedCount + " Events");
-  });
-}
-
-
 
 exports.cleanOldCalls = async function() {
   var date = new Date();
