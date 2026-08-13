@@ -21,6 +21,9 @@ const s3_region = process.env['S3_REGION'] ?? 'us-west-1';
 const s3_bucket = process.env['S3_BUCKET'] ?? 'openmhz-west';
 const s3_profile = process.env['S3_PROFILE'] ?? 'wasabi-account';
 const s3_public_url = process.env['S3_PUBLIC_URL'] ?? `${s3_endpoint}/${s3_bucket}`;
+// MinIO (and some other S3-compatible stores) only serve path-style requests.
+// Wasabi/AWS use virtual-host style, so this stays off unless asked for.
+const s3_force_path_style = (process.env['S3_FORCE_PATH_STYLE'] ?? 'false') === 'true';
 const host = process.env['MONGO_NODE_DRIVER_HOST'] != null ? process.env['MONGO_NODE_DRIVER_HOST'] : 'mongo';
 const port = process.env['MONGO_NODE_DRIVER_PORT'] != null ? process.env['MONGO_NODE_DRIVER_PORT'] : 27017;
 const mongoUrl = 'mongodb://' + host + ':' + port + '/scanner';
@@ -55,6 +58,7 @@ const client = new S3Client({
   endpoint: s3_endpoint,
   region: s3_region,
   maxAttempts: 2,
+  forcePathStyle: s3_force_path_style,
 });
 
 exports.upload = async function (req, res, next) {

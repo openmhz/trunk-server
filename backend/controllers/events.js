@@ -21,13 +21,16 @@ var s3_endpoint = process.env['S3_ENDPOINT'] != null ? process.env['S3_ENDPOINT'
 var s3_region = process.env['S3_REGION'] != null ? process.env['S3_REGION'] : 'us-west-1';
 var s3_bucket = process.env['S3_BUCKET'] != null ? process.env['S3_BUCKET'] : 'openmhz-west';
 var s3_profile = process.env['S3_PROFILE'] != null ? process.env['S3_PROFILE'] : 'wasabi-account';
+// MinIO only serves path-style requests; Wasabi/AWS use virtual-host style.
+var s3_force_path_style = process.env['S3_FORCE_PATH_STYLE'] === 'true';
 
 
 const client = new S3Client({
     credentials: fromIni({ profile: s3_profile }),
     endpoint: s3_endpoint,
     region: s3_region,
-    maxAttempts: 2
+    maxAttempts: 2,
+    forcePathStyle: s3_force_path_style
 });
 
 
