@@ -99,3 +99,31 @@ server {
 		access_log /dev/stdout main;
   }
 }
+
+server {
+	listen 80;
+
+	server_name media.${DOMAIN_NAME};
+
+	location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+	# Serves call audio out of MinIO on port 80, so the URL stored on every Call
+	# is a hostname instead of an IP:port. A changed LAN address then costs one
+	# hosts entry rather than rewriting the url field on every call in the DB.
+	location / {
+		proxy_pass http://minio:9000;
+		include /etc/nginx/proxy.conf;
+		# proxy.conf already sets "Host $host". Setting Host again here made nginx
+		# emit two Host headers, and Go's net/http rejects that with a bare
+		# text/plain "400 Bad Request" - which looks like a MinIO error but is
+		# really a malformed proxied request.
+		proxy_http_version 1.1;
+		proxy_set_header Connection "";
+		# Audio is streamed and seeked with Range requests - buffering whole
+		# objects through nginx only adds latency and memory churn.
+		proxy_buffering off;
+		access_log /dev/stdout main;
+	}
+}

@@ -150,7 +150,7 @@ function Calls(props) {
     socket.emit("start", {
       filterCode: filter.code,
       filterType: filter.type,
-      filterName: "OpenMHz",
+      filterName: process.env.REACT_APP_SITE_NAME,
       filterStarred: filter.starred,
       shortName: shortName
     });

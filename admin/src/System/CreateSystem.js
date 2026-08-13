@@ -44,7 +44,6 @@ const CreateSystem = () => {
               back here and sign-up for an account so you can share your
               recordings
             </p>
-            <p> - Luke</p>
         <Divider />
         <p></p>
         </Container>

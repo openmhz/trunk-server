@@ -126,9 +126,8 @@ const Login = (props) => {
             </p>
             <p>
               {" "}
-              - Luke{" "}
               <a
-                href="mailto:{process.env.REACT_APP_ADMIN_EMAIL}?Subject={process.env.REACT_APP_SITE_NAME}"
+                href={`mailto:${process.env.REACT_APP_ADMIN_EMAIL}?Subject=${process.env.REACT_APP_SITE_NAME}`}
                 target="_top"
               >
                 {process.env.REACT_APP_ADMIN_EMAIL}

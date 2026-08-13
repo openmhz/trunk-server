@@ -14,7 +14,7 @@ const About = () => {
         <p>Each of the radio systems comes from different contributers around the country. The different
                       systems may come and go as new ones are added and taken down. {process.env.REACT_APP_SITE_NAME} only maintains the archive that
                       is available online.</p>
-        <p> - Luke  <a href="mailto:{process.env.REACT_APP_ADMIN_EMAIL}?Subject={process.env.REACT_APP_SITE_NAME}" target="_top">{process.env.REACT_APP_ADMIN_EMAIL}</a>  </p>
+        <p><a href={`mailto:${process.env.REACT_APP_ADMIN_EMAIL}?Subject=${process.env.REACT_APP_SITE_NAME}`} target="_top">{process.env.REACT_APP_ADMIN_EMAIL}</a></p>
       </Container>
     );
   

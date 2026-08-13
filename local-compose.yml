@@ -16,7 +16,10 @@ services:
       - "9000:9000"
       - "9001:9001"
     networks:
+      # proxy as well as node: nginx serves call audio through the
+      # media.${DOMAIN_NAME} vhost and has to be able to reach MinIO.
       - node
+      - proxy
     restart: always
     healthcheck:
       test: ["CMD", "mc", "ready", "local"]

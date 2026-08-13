@@ -27,7 +27,7 @@ export function useCallLink(currentCall) {
         }
         const callLink = "/system/" + shortName + "?" + search + "call-id=" + currentCall._id + "&time=" + (time.getTime() + 1);
         const callDownload = currentCall.url;
-        const callTweet = "https://twitter.com/intent/tweet?url=" + encodeURIComponent(document.location.origin + callLink) + "&via=" + encodeURIComponent("OpenMHz");
+        const callTweet = "https://twitter.com/intent/tweet?url=" + encodeURIComponent(document.location.origin + callLink) + "&via=" + encodeURIComponent(process.env.REACT_APP_SITE_NAME);
 
         return { callLink, callDownload, callTweet }
     } else {

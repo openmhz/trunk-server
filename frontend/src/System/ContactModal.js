@@ -55,7 +55,7 @@ function ContactModal(props) {
         <Grid columns={2} divided>
         <Grid.Row>
            <Grid.Column width={6}>
-            <p>The radio systems on OpenMHz are contributed by people from around the world.</p> <p>Use this form to contact the contributer for the <span style={{fontWeight: "bold"}}>{system.name}</span> system regarding:
+            <p>The radio systems on {process.env.REACT_APP_SITE_NAME} are contributed by people from around the world.</p> <p>Use this form to contact the contributer for the <span style={{fontWeight: "bold"}}>{system.name}</span> system regarding:
             <List as='ul'>
               <List.Item as='li'>Outages</List.Item>
               <List.Item as='li'>Audio quality</List.Item>
@@ -63,8 +63,8 @@ function ContactModal(props) {
               <List.Item as='li'>Thanks & appreciation</List.Item>
             </List>
             </p>
-            <p>If you have general questions about OpenMHz send me an email, </p>
-            <p> - Luke  <a href="mailto:luke@robotastic.com?Subject=OpenMHz" target="_top">luke@robotastic.com</a>  </p>
+            <p>If you have general questions about {process.env.REACT_APP_SITE_NAME} send me an email, </p>
+            <p><a href={`mailto:${process.env.REACT_APP_ADMIN_EMAIL}?Subject=${process.env.REACT_APP_SITE_NAME}`} target="_top">{process.env.REACT_APP_ADMIN_EMAIL}</a></p>
 
             </Grid.Column>
             <Grid.Column width={10}>

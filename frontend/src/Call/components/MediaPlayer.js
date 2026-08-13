@@ -43,7 +43,7 @@ const MediaPlayer = (props) => {
     if ('mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: "Waiting for Call...",
-        album: 'OpenMHz',
+        album: process.env.REACT_APP_SITE_NAME,
         artwork: [
           { src: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
           { src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
@@ -266,7 +266,7 @@ const MediaPlayer = (props) => {
       if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: "Waiting for Call...",
-          album: 'OpenMHz',
+          album: process.env.REACT_APP_SITE_NAME,
           artwork: [
             { src: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
             { src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },

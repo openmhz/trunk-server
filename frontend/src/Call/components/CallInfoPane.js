@@ -94,7 +94,7 @@ function CallInfoPane(props) {
 
       navigator.mediaSession.metadata = new MediaMetadata({
         title: title,
-        album: 'OpenMHz',
+        album: process.env.REACT_APP_SITE_NAME,
         artist: system ? system.name : "",
         artwork: [
           { src: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
