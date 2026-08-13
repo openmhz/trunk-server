@@ -59,7 +59,7 @@ function ContactModal(props) {
             <List as='ul'>
               <List.Item as='li'>Outages</List.Item>
               <List.Item as='li'>Audio quality</List.Item>
-              <List.Item as='li'>Talkgroup updates</List.Item>
+              <List.Item as='li'>Repeater updates</List.Item>
               <List.Item as='li'>Thanks & appreciation</List.Item>
             </List>
             </p>

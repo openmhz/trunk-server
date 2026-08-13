@@ -30,7 +30,7 @@ const ListEventCalls = (props) => {
             <Table.Row>
             <Table.HeaderCell> </Table.HeaderCell>
               <Table.HeaderCell>Len</Table.HeaderCell>
-              <Table.HeaderCell>Talkgroup</Table.HeaderCell>
+              <Table.HeaderCell>Repeater</Table.HeaderCell>
               <Table.HeaderCell>Time</Table.HeaderCell>
               <Table.HeaderCell>System</Table.HeaderCell>
             </Table.Row>

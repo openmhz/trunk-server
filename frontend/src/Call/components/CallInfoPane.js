@@ -12,6 +12,17 @@ import {
   Menu
 } from "semantic-ui-react";
 
+// Conventional ham systems have no real talkgroups, so the talkgroup number is
+// used to carry the repeater frequency in kHz (145430 -> "145.430 MHz").
+// Falls back to the raw value if it is not numeric.
+function formatFreq(num) {
+  // Number(null) and Number("") are both 0, not NaN, so those have to be
+  // rejected explicitly or they render as a bogus "0.000 MHz".
+  if (num === null || num === undefined || num === "") return num;
+  const kHz = Number(num);
+  return Number.isFinite(kHz) ? `${(kHz / 1000).toFixed(3)} MHz` : num;
+}
+
 // ----------------------------------------------------
 function CallInfoPane(props) {
 
@@ -41,7 +52,7 @@ function CallInfoPane(props) {
       header = talkgroupsData.talkgroups[currentCall.talkgroupNum].description;
       title = talkgroupsData.talkgroups[currentCall.talkgroupNum].description;
     } else {
-      title = `TG: ${currentCall.talkgroupNum}`;
+      title = formatFreq(currentCall.talkgroupNum);
     }
     const time = new Date(currentCall.time);
     callTime = time.toLocaleTimeString();
@@ -109,8 +120,8 @@ function CallInfoPane(props) {
         <Statistic.Value>{callLength}</Statistic.Value>
       </Statistic>
       <Statistic size='small'>
-        <Statistic.Label>Talkgroup</Statistic.Label>
-        <Statistic.Value>{talkgroupNum}</Statistic.Value>
+        <Statistic.Label>Frequency</Statistic.Label>
+        <Statistic.Value>{talkgroupNum === "-" ? talkgroupNum : formatFreq(talkgroupNum)}</Statistic.Value>
       </Statistic>
       <List divided verticalAlign='middle'>
         <List.Item>

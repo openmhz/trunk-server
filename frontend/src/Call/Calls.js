@@ -394,7 +394,7 @@ function Calls(props) {
       break;
 
     case 2:
-      filterLabel = "Talkgroups"
+      filterLabel = "Repeaters"
       break;
     default:
     case 0:

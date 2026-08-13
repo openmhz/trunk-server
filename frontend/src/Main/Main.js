@@ -612,7 +612,7 @@ const Main = (props) => {
                   <Header as='h3' style={{ fontSize: '2em' }}>
                     <Icon color='orange' name='list' />All The Calls
                   </Header>
-                  <p style={{ fontSize: '1.33em' }}>Every call, on every talkgroup is recorded</p>
+                  <p style={{ fontSize: '1.33em' }}>Every call, on every repeater is recorded</p>
                 </Grid.Column>
                 <Grid.Column style={{ paddingBottom: '5em', paddingTop: '5em' }}>
                   <Header as='h3' style={{ fontSize: '2em' }}>

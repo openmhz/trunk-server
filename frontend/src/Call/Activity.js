@@ -39,7 +39,7 @@ function Activity(props) {
 
     return (
         <Container style={{  marginTop: "65px"}}>
-            <Header as="h2">Talkgroup Activity</Header>
+            <Header as="h2">Repeater Activity</Header>
             {
                 talkgroupStats.map( chart => {
                    return chart

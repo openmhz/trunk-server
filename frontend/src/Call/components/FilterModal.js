@@ -113,10 +113,10 @@ function FilterModal(props) {
       }
     },
     {
-      menuItem: 'Talkgroups', render: () => {
+      menuItem: 'Repeaters', render: () => {
         return (
           <Tab.Pane attached={false}>
-            <Dropdown placeholder='Talkgroups' fluid multiple search selection options={talkgroupList} value={selectedTalkgroup} name='selectedTalkgroup' onChange={handleTalkgroupChange} />
+            <Dropdown placeholder='Repeaters' fluid multiple search selection options={talkgroupList} value={selectedTalkgroup} name='selectedTalkgroup' onChange={handleTalkgroupChange} />
           </Tab.Pane>
         )
       }
