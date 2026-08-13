@@ -392,10 +392,18 @@ function handleSendConfirmEmail(user) {
     }).catch(err => {
       console.error("Admin Email: " + admin_email + " User Email: " + user.email);
       console.error("Error - Send Confirm Email - caught: " + err);
-      res.status(500);
+      // Two crashes used to happen here whenever Mailjet returned an error:
+      //  1. `res.status(500)` - there is no `res` in this scope, since
+      //     handleSendConfirmEmail only takes `user`. The ReferenceError
+      //     escaped as an unhandled rejection and killed the process.
+      //  2. Rejecting with the raw Mailjet error. It holds circular
+      //     references, so the callers' res.json() threw inside
+      //     JSON.stringify - again crashing the process.
+      // Both callers .catch() this and build their own response, so reject
+      // with a plain serialisable message.
       reject({
         success: false,
-        message: err
+        message: err && err.message ? err.message : String(err)
       });
     });
   });
