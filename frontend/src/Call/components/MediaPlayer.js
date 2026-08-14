@@ -63,7 +63,10 @@ const MediaPlayer = (props) => {
   // the instance that owns it. Still stable across re-renders of the same call,
   // which matters because plugins is one of the options compared by identity.
   const callId = call ? call._id : null;
-  const regionsPlugin = useMemo(() => RegionsPlugin.create(), [callId]);
+  // One plugin for the life of the component, because the WaveSurfer instance
+  // is now also created once and never rebuilt - see the load effect below.
+  // Nothing destroys it, so nothing invalidates the plugin.
+  const regionsPlugin = useMemo(() => RegionsPlugin.create(), []);
   const plugins = useMemo(() => [regionsPlugin], [regionsPlugin]);
 
   // Which call is current, readable from inside a handler that closed over an
@@ -149,6 +152,25 @@ const MediaPlayer = (props) => {
       wavesurfer.setVolume(0);
     }
   }, [volume, wavesurfer]);
+
+  // Loads each call into the existing waveform instead of rebuilding the
+  // player. Passing url as a prop made the wrapper destroy and recreate
+  // WaveSurfer for every call, and the destroy aborted the download it needed
+  // to draw from - so only the first call ever got a waveform. Reloading the
+  // same instance leaves nothing to abort.
+  useEffect(() => {
+    if (!wavesurfer || !call || !call.url) return;
+    try {
+      const result = wavesurfer.load(call.url);
+      // load() rejects if a newer load supersedes this one, which is normal
+      // when calls advance quickly and must not surface as an error.
+      if (result && typeof result.catch === "function") {
+        result.catch(() => {});
+      }
+    } catch (err) {
+      console.warn("[player] waveform load failed: " + err);
+    }
+  }, [wavesurfer, call]);
 
 
   // Every handler below is wrapped in useCallback, and that is load-bearing
@@ -437,7 +459,6 @@ const MediaPlayer = (props) => {
           barGap={3}
           barRadius={6}
           waveColor="#E81B39"
-          url={call.url}
           fetchParams={FETCH_PARAMS}
           onLoad={stableOnLoad}
           onError={stableOnError}
