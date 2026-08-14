@@ -51,6 +51,29 @@ const MediaPlayer = (props) => {
   const currentCallIdRef = useRef(null);
   currentCallIdRef.current = call ? call._id : null;
 
+  // Playback lives on its own audio element, separate from the waveform.
+  //
+  // WaveSurfer downloads the audio itself in order to draw, and anything that
+  // rebuilds the player cancels that download. On a busy feed that happens
+  // constantly - an incoming socket call re-renders this component while a
+  // fetch is still running - and when playback rode on that same fetch, the
+  // call simply went silent. A static bucket file always finished downloading
+  // before anything could interrupt it, which is why this only began after the
+  // audio was gated.
+  //
+  // The element owns loading and playing; WaveSurfer only draws. A cancelled
+  // waveform fetch now costs a picture, never the audio.
+  const audioElRef = useRef(null);
+
+  // Bumped to retry a waveform whose download was cancelled. Part of the key on
+  // the player, so a retry builds a fresh instance rather than reusing a
+  // half-loaded one.
+  const [waveformAttempt, setWaveformAttempt] = useState(0);
+
+  useEffect(() => {
+    setWaveformAttempt(0);
+  }, [call]);
+
 
   useEffect(() => {
     setSourceIndex(0);
@@ -145,7 +168,85 @@ const MediaPlayer = (props) => {
     }, 0);
   }
   const onPlayPause = () => {
-    wavesurfer && wavesurfer.playPause()
+    const el = audioElRef.current;
+    if (!el) return;
+    if (el.paused) {
+      el.play().catch(err => console.warn("[wf] play rejected: " + err));
+    } else {
+      el.pause();
+    }
+  }
+
+  // --- the audio element drives everything you hear ------------------------
+  const onAudioPlay = () => {
+    setIsPlaying(true);
+    setTimeout(() => parentHandlePlayPause(true), 0);
+  }
+
+  const onAudioPause = () => {
+    const pausedCall = call ? call._id : null;
+    setIsPlaying(false);
+    setTimeout(() => {
+      if (pausedCall !== currentCallIdRef.current) return;
+      parentHandlePlayPause(false);
+    }, 0);
+  }
+
+  const onAudioEnded = () => {
+    if (props.onEnded) props.onEnded();
+  }
+
+  const onAudioError = () => {
+    const el = audioElRef.current;
+    console.error("[wf] audio ERROR call=" + (call ? call._id : "none") +
+      " code=" + (el && el.error ? el.error.code : "?"));
+    // Keep the queue moving rather than stalling on one unplayable call.
+    if (props.onEnded) props.onEnded();
+  }
+
+  const onAudioTimeUpdate = () => {
+    const el = audioElRef.current;
+    if (!el) return;
+    const currentTime = el.currentTime;
+
+    if (call && ((call.srcList.length - 1) >= (sourceIndex + 1)) && (currentTime > call.srcList[sourceIndex + 1].pos)) {
+      setSourceIndex(sourceIndex + 1);
+    }
+    setPlayTime(Math.floor(currentTime));
+
+    // Move the waveform cursor with real playback. As a proportion, so it stays
+    // correct even if WaveSurfer decoded a slightly different duration.
+    if (wavesurfer && el.duration && isFinite(el.duration) && el.duration > 0) {
+      try {
+        wavesurfer.seekTo(Math.min(1, Math.max(0, currentTime / el.duration)));
+      } catch (err) { /* waveform not drawn yet */ }
+    }
+  }
+
+  // Clicking the waveform seeks the audio, so scrubbing still works.
+  const onWaveformInteraction = (ws, newTime) => {
+    const el = audioElRef.current;
+    if (!el || typeof newTime !== "number" || !isFinite(newTime)) return;
+    const waveDuration = ws && ws.getDuration ? ws.getDuration() : 0;
+    let target = newTime;
+    if (waveDuration > 0 && el.duration && isFinite(el.duration)) {
+      target = (newTime / waveDuration) * el.duration;
+    }
+    el.currentTime = Math.min(el.duration || target, Math.max(0, target));
+    if (el.paused) {
+      el.play().catch(err => console.warn("[wf] play rejected: " + err));
+    }
+  }
+
+  const onWaveformError = (ws, err) => {
+    console.warn("[wf] waveform fetch cancelled call=" + (call ? call._id : "none") + " - retrying");
+    const forCall = call ? call._id : null;
+    // Retry once the churn that cancelled it has settled. Audio is unaffected
+    // either way; this is only about getting the picture drawn.
+    setTimeout(() => {
+      if (forCall !== currentCallIdRef.current) return;
+      setWaveformAttempt(a => (a < 3 ? a + 1 : a));
+    }, 500);
   }
 
   const updatePlayProgress = () => {
@@ -212,10 +313,29 @@ const MediaPlayer = (props) => {
         }
       </div>
 
+      {/* What you actually hear. Keyed per call so React swaps the source
+          cleanly, and autoPlay so a newly selected call starts on its own. */}
+      <audio
+        key={call ? call._id : "none"}
+        ref={audioElRef}
+        src={call ? call.url : undefined}
+        autoPlay
+        preload="auto"
+        style={{ display: "none" }}
+        onPlay={onAudioPlay}
+        onPause={onAudioPause}
+        onEnded={onAudioEnded}
+        onError={onAudioError}
+        onTimeUpdate={onAudioTimeUpdate}
+      />
+
       <div className="mediaplayer-item">
 
         <WavesurferPlayer
-          autoplay={true}
+          // Fresh instance per call, and per retry if a fetch was cancelled.
+          key={(call ? call._id : "none") + "-" + waveformAttempt}
+          // Display only - the audio element above makes the sound.
+          autoplay={false}
           height={25}
           barWidth={3}
           barGap={3}
@@ -223,13 +343,9 @@ const MediaPlayer = (props) => {
           waveColor="#E81B39"
           url={call.url}
           fetchParams={FETCH_PARAMS}
-          onLoad={(ws) => console.log("[wf] load    call=" + (call ? call._id : "none"))}
-          onError={(ws, err) => console.error("[wf] ERROR   call=" + (call ? call._id : "none") + "  " + err)}
+          onError={onWaveformError}
           onReady={onReady}
-          onPlay={onPlay}
-          onPause={onPause}
-          onAudioprocess={updatePlayProgress}
-          onFinish={props.onEnded}
+          onInteraction={onWaveformInteraction}
           plugins={plugins}
         />
       </div>
