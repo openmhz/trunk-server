@@ -20,6 +20,18 @@ import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js';
 import { is } from "date-fns/locale";
 import "./MediaPlayer.css";
 
+// WaveSurfer downloads the audio itself to draw the waveform, and fetch
+// defaults to credentials: "same-origin". Playback goes through a gated
+// endpoint on the api subdomain - a different origin - so without this the
+// request carries no session cookie and comes back 401.
+//
+// Declared out here, not inline on the element: @wavesurfer/react rebuilds its
+// create/destroy effect from Object.entries(options).flat(), so every option is
+// compared by identity. A fresh object literal on each render destroys and
+// recreates the player every render, which shows up as a flashing play button
+// and the same call repeating. Same reason `plugins` below is memoized.
+const FETCH_PARAMS = { credentials: "include" };
+
 
 
 
@@ -185,12 +197,7 @@ const MediaPlayer = (props) => {
           barRadius={6}
           waveColor="#E81B39"
           url={call.url}
-          // WaveSurfer downloads the audio itself to draw the waveform, and
-          // fetch defaults to credentials: "same-origin". Playback now goes
-          // through a gated endpoint on the api subdomain - a different origin -
-          // so without this the request carries no session cookie, comes back
-          // 401, and nothing plays.
-          fetchParams={{ credentials: "include" }}
+          fetchParams={FETCH_PARAMS}
           onReady={onReady}
           onPlay={onPlay}
           onPause={onPause}
