@@ -13,7 +13,7 @@ import {
   Button
 } from "semantic-ui-react";
 import ReactAudioPlayer from 'react-audio-player'
-import WavesurferPlayer from '@wavesurfer/react'
+import { useWavesurfer } from '@wavesurfer/react'
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js';
 
 
@@ -44,7 +44,7 @@ const MediaPlayer = (props) => {
   const call = props.call;
   const [volume, setVolume] = useState(1);
   const [sourceIndex, setSourceIndex] = useState(0);
-  const [wavesurfer, setWavesurfer] = useState(null)
+  const waveformContainerRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false)
   const [playTime, setPlayTime] = useState(0);
   const playSilence = props.playSilence;
@@ -82,6 +82,31 @@ const MediaPlayer = (props) => {
 
   // The element that actually plays the audio - see the playback section below.
   const audioElRef = useRef(null);
+
+  // Created once, via the hook rather than the WavesurferPlayer component.
+  //
+  // The component takes the audio url as a prop, and changing that prop makes
+  // it destroy and rebuild WaveSurfer - which aborts the download it needs to
+  // draw from, so no waveform appeared after the first call. Dropping the url
+  // prop stopped the rebuilds but broke it differently: the instance was only
+  // ever captured in the ready event, and with nothing to load ready never
+  // fired, so it was never captured at all.
+  //
+  // The hook hands over the instance as soon as it exists, independent of any
+  // load, which is what this needs: one long-lived player that each call is
+  // loaded into.
+  const { wavesurfer } = useWavesurfer({
+    container: waveformContainerRef,
+    height: 25,
+    barWidth: 3,
+    barGap: 3,
+    barRadius: 6,
+    waveColor: "#E81B39",
+    // Display only - the audio element makes the sound.
+    autoplay: false,
+    fetchParams: FETCH_PARAMS,
+    plugins,
+  });
 
   // Playback is owned by a plain audio element, not by WaveSurfer.
   //
@@ -184,12 +209,9 @@ const MediaPlayer = (props) => {
   const onReady = useCallback((ws) => {
     if (ws && !ws.__tag) { ws.__tag = "ws" + (++INSTANCE_COUNT); }
     console.log("[player] ready  " + (ws && ws.__tag) + "  call=" + (call ? call._id : "none") + "  duration=" + (ws && ws.getDuration ? ws.getDuration().toFixed(2) : "?"));
-    setWavesurfer(ws)
-    setIsPlaying(false)
-    // Drawing the source markers must never be able to stop the audio. If the
-    // regions plugin throws - it is torn down with the player each time the
-    // call changes - losing the markers is a far better outcome than losing
-    // playback, which is what used to happen.
+    // The instance comes from the hook now, so there is nothing to capture here.
+    // Drawing the source markers must never be able to stop the audio, so any
+    // failure costs the markers rather than playback.
     try {
       regionsPlugin.clearRegions();
       if (call) {
@@ -377,6 +399,18 @@ const MediaPlayer = (props) => {
   // identities the wrapper sees from ever changing.
   handlersRef.current = { onReady, onLoad, onError, onFinishLogged, onPlay, onPause, updatePlayProgress, onWaveformInteraction };
 
+  // Bound once per instance. The stable wrappers never change identity, so this
+  // does not rebind on every render.
+  useEffect(() => {
+    if (!wavesurfer) return;
+    const subs = [
+      wavesurfer.on("ready", () => stableOnReady(wavesurfer)),
+      wavesurfer.on("interaction", (newTime) => stableOnInteraction(wavesurfer, newTime)),
+      wavesurfer.on("error", (err) => stableOnError(wavesurfer, err)),
+    ];
+    return () => subs.forEach((unsub) => unsub());
+  }, [wavesurfer, stableOnReady, stableOnInteraction, stableOnError]);
+
   let playEnabled = { "disabled": true }
   let sourceId = "-";
 
@@ -436,40 +470,11 @@ const MediaPlayer = (props) => {
 
       <div className="mediaplayer-item">
 
-        <WavesurferPlayer
-          // One player per call, enforced by React rather than by option
-          // identity. Without this the component is reused across calls and
-          // the wrapper decides when to rebuild the WaveSurfer instance from
-          // the identity of every option and handler it was passed - which
-          // left event handlers bound twice, and destroyed the player while it
-          // was still fetching the next call ("AbortError: signal is aborted
-          // without reason"). Keying on the call id unmounts the old player
-          // and mounts a fresh one, so each call gets exactly one instance
-          // with exactly one set of bindings.
-          // Deliberately not keyed on the call. Remounting per call destroyed
-          // the instance mid-download and aborted the waveform fetch, which is
-          // why no waveform drew after the first call. Kept mounted, it reloads
-          // when the url changes and the fetch gets to finish.
-          //
-          // Display only. Playback belongs to the audio element below, so this
-          // must never start sound of its own or there would be two.
-          autoplay={false}
-          height={25}
-          barWidth={3}
-          barGap={3}
-          barRadius={6}
-          waveColor="#E81B39"
-          fetchParams={FETCH_PARAMS}
-          onLoad={stableOnLoad}
-          onError={stableOnError}
-          onReady={stableOnReady}
-          onPlay={stableOnPlay}
-          onPause={stableOnPause}
-          onAudioprocess={stableOnAudioprocess}
-          onInteraction={stableOnInteraction}
-          onFinish={stableOnFinish}
-          plugins={plugins}
-        />
+        {/* The waveform. WaveSurfer draws into this container, and each call
+            is loaded into the single long-lived instance created above - so
+            nothing is destroyed between calls and no fetch gets aborted.
+            Clicking it seeks the audio element. */}
+        <div ref={waveformContainerRef} className="waveform-container" />
       </div>
 
       <div className="label-item">
