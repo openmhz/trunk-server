@@ -190,7 +190,20 @@ async function getCalls(req, res, next) {
 
 }
 // -------------------------------------------
-app.use(express.static(path.join(__dirname, "public")));
+// index.html must never come from cache. It is the file that names the current
+// hashed bundle, so a stale copy pins the browser to an old build of the app -
+// the deploy looks correct on the server while the browser keeps running the
+// previous code, and a normal reload will not necessarily notice. The hashed
+// files under /static are content-addressed, so those can cache hard.
+app.use(express.static(path.join(__dirname, "public"), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith(".html")) {
+      res.setHeader("Cache-Control", "no-cache, must-revalidate");
+    } else if (filePath.includes(path.sep + "static" + path.sep)) {
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    }
+  }
+}));
 
 //app.get("/system/:shortName", getCalls)
 //app.get("/cards/:id", getCard)
@@ -198,7 +211,13 @@ app.use(express.static(path.join(__dirname, "public")));
 
 
 app.get("*", (req, res, next) => {
-  res.sendFile(__dirname + '/public/index.html');
+  // Same reasoning as above: this SPA fallback serves that same index.html.
+  // cacheControl must be off, otherwise sendFile writes its own Cache-Control
+  // header and overwrites the one set here.
+  res.sendFile(__dirname + '/public/index.html', {
+    cacheControl: false,
+    headers: { "Cache-Control": "no-cache, must-revalidate" }
+  });
 });
 
 // start listening to incoming requests

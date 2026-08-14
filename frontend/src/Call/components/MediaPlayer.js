@@ -32,6 +32,10 @@ import "./MediaPlayer.css";
 // and the same call repeating. Same reason `plugins` below is memoized.
 const FETCH_PARAMS = { credentials: "include" };
 
+// Temporary: tags each WaveSurfer instance so the console shows whether a
+// duplicate event comes from one instance bound twice or from two live players.
+let INSTANCE_COUNT = 0;
+
 
 
 
@@ -108,22 +112,45 @@ const MediaPlayer = (props) => {
 
 
   const onReady = (ws) => {
+    if (ws && !ws.__tag) { ws.__tag = "ws" + (++INSTANCE_COUNT); }
+    console.log("[player] ready  " + (ws && ws.__tag) + "  call=" + (call ? call._id : "none") + "  duration=" + (ws && ws.getDuration ? ws.getDuration().toFixed(2) : "?"));
     setWavesurfer(ws)
     setIsPlaying(false)
-    regionsPlugin.clearRegions();
-    if (call) {
-      call.srcList.forEach(src => {
-        regionsPlugin.addRegion({
-          start: src.pos,
-          color: "rgba(128, 128, 128, 1.0)",
-          drag: false,
-          resize: false
+    // Drawing the source markers must never be able to stop the audio. If the
+    // regions plugin throws - it is torn down with the player each time the
+    // call changes - losing the markers is a far better outcome than losing
+    // playback, which is what used to happen.
+    try {
+      regionsPlugin.clearRegions();
+      if (call) {
+        call.srcList.forEach(src => {
+          regionsPlugin.addRegion({
+            start: src.pos,
+            color: "rgba(128, 128, 128, 1.0)",
+            drag: false,
+            resize: false
+          });
         });
-      });
+      }
+    } catch (err) {
+      console.error("[player] regions failed (playback continues): " + err);
     }
   }
 
-  const onPlay = () => {
+  // Temporary instrumentation while playback is being diagnosed.
+  const onLoad = () => {
+    console.log("[player] load   call=" + (call ? call._id : "none") + "  url=" + (call ? call.url : "-"));
+  }
+  const onError = (ws, err) => {
+    console.error("[player] ERROR  call=" + (call ? call._id : "none") + "  " + err);
+  }
+  const onFinishLogged = (ws) => {
+    console.log("[player] finish " + (ws && ws.__tag) + "  call=" + (call ? call._id : "none"));
+    if (props.onEnded) props.onEnded(ws);
+  }
+
+  const onPlay = (ws) => {
+    console.log("[player] play   " + (ws && ws.__tag) + "  call=" + (call ? call._id : "none"));
     setIsPlaying(true);
     parentHandlePlayPause(true);
 
@@ -212,11 +239,13 @@ const MediaPlayer = (props) => {
           waveColor="#E81B39"
           url={call.url}
           fetchParams={FETCH_PARAMS}
+          onLoad={onLoad}
+          onError={onError}
           onReady={onReady}
           onPlay={onPlay}
           onPause={onPause}
           onAudioprocess={updatePlayProgress}
-          onFinish={props.onEnded}
+          onFinish={onFinishLogged}
           plugins={plugins}
         />
       </div>
