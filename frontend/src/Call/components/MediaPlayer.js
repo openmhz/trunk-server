@@ -185,6 +185,12 @@ const MediaPlayer = (props) => {
           barRadius={6}
           waveColor="#E81B39"
           url={call.url}
+          // WaveSurfer downloads the audio itself to draw the waveform, and
+          // fetch defaults to credentials: "same-origin". Playback now goes
+          // through a gated endpoint on the api subdomain - a different origin -
+          // so without this the request carries no session cookie, comes back
+          // 401, and nothing plays.
+          fetchParams={{ credentials: "include" }}
           onReady={onReady}
           onPlay={onPlay}
           onPause={onPause}
