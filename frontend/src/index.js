@@ -9,7 +9,7 @@ import App from "./app"
 // Printed first thing on load so it is obvious which build is actually running
 // in the browser. Diagnosing the player cost several rounds to stale bundles
 // being reported as current, which is invisible without a marker like this.
-console.log("[build] hamrecorder frontend BUILD-STAMP-9");
+console.log("[build] hamrecorder frontend BUILD-STAMP-10");
 
 const store = setupStore(/* provide initial state if any */)
 

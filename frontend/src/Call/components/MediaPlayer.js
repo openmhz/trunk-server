@@ -77,6 +77,28 @@ const MediaPlayer = (props) => {
   currentCallIdRef.current = callId;
   const isStale = (id) => id !== currentCallIdRef.current;
 
+  // Playback is owned by a plain audio element, not by WaveSurfer.
+  //
+  // Left to itself WaveSurfer fetches and decodes the audio to draw the
+  // waveform, and playback rides on that same fetch - so any rebuild of the
+  // player aborts the download and the call goes silent. That is the failure
+  // this component has been stuck on: the audio was fine, the fetch kept being
+  // cancelled underneath it.
+  //
+  // Handing it a media element inverts that. The element loads and plays the
+  // audio itself, natively and with cookies attached, and WaveSurfer attaches
+  // to it for display. If the waveform fetch is interrupted the worst outcome
+  // is a missing waveform - the audio keeps playing.
+  //
+  // One element for the life of the component: it is an option compared by
+  // identity, so a new one each render would rebuild the player constantly.
+  const mediaEl = useMemo(() => {
+    if (typeof Audio === "undefined") return undefined;
+    const el = new Audio();
+    el.preload = "auto";
+    return el;
+  }, []);
+
 
   useEffect(() => {
     setSourceIndex(0);
@@ -305,6 +327,7 @@ const MediaPlayer = (props) => {
           // and mounts a fresh one, so each call gets exactly one instance
           // with exactly one set of bindings.
           key={call ? call._id : "none"}
+          media={mediaEl}
           autoplay={true}
           height={25}
           barWidth={3}
