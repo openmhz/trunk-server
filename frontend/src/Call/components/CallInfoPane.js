@@ -150,9 +150,8 @@ function CallInfoPane(props) {
         </List.Item>
       </List>
       <Divider />
-      <Menu secondary fluid widths={2}>
+      <Menu secondary fluid widths={1}>
         <Menu.Item name="download" href={callDownload}><Icon name="download" />Download</Menu.Item>
-        <Menu.Item name="link" href={callLink}><Icon name="at" />Link</Menu.Item>
       </Menu>
     </>
   );

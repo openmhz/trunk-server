@@ -153,10 +153,8 @@ app.post('/:shortName/upload', upload.single('call'), uploads.upload, async func
   notify_clients(req.call);
 });
 
-/*------    SYSTEMS   ----------
-   Left public: the directory of feeds is how someone decides whether the site
-   is worth signing up for. It exposes no call content.                        */
-app.get('/systems', addSystemClients, systems.get_systems);
+/*------    SYSTEMS   ---------- signed-in listeners only */
+app.get('/systems', requireListener, addSystemClients, systems.get_systems);
 app.post('/:shortName/contact', systems.contact_system);
 app.post('/:shortName/authorize', systems.authorize_system);
 

@@ -227,9 +227,6 @@ function CallPlayer(props) {
           <div className="link-item desktop-only" >
             <a href={callDownload}><Icon name="download" />Download</a>
           </div>
-          <div className="link-item desktop-only">
-            <a href={callLink}><Icon name="at" />Link</a>
-          </div>
         </div>
       </Menu>
     </div>

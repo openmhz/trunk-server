@@ -28,7 +28,8 @@ usePageTracking();
 return (
         <Routes>
           <Route exact path="/" element={<Main/>} />
-          <Route exact path="/systems" element={<ListSystems/>} />
+          {/* The systems list needs a signed-in listener, same as the calls. */}
+          <Route exact path="/systems" element={<RequireListener><ListSystems/></RequireListener>} />
           {/* Call content is gated by the backend. Without this wrapper the
               page renders empty for signed-out visitors, which reads as broken
               rather than as needing an account. */}
