@@ -66,6 +66,17 @@ const MediaPlayer = (props) => {
   const regionsPlugin = useMemo(() => RegionsPlugin.create(), [callId]);
   const plugins = useMemo(() => [regionsPlugin], [regionsPlugin]);
 
+  // Which call is current, readable from inside a handler that closed over an
+  // older one. Destroying a player makes it emit pause and finish on the way
+  // out, and those late events were reaching the parent and setting state
+  // during teardown - which forced a synchronous re-render that rebuilt the
+  // player while it was still fetching the next call, aborting the load. A
+  // handler whose call is no longer current is reporting on a player that no
+  // longer exists, so it has nothing useful to say.
+  const currentCallIdRef = useRef(null);
+  currentCallIdRef.current = callId;
+  const isStale = (id) => id !== currentCallIdRef.current;
+
 
   useEffect(() => {
     setSourceIndex(0);
@@ -155,7 +166,12 @@ const MediaPlayer = (props) => {
 
   const onEnded = props.onEnded;
   const onFinishLogged = useCallback((ws) => {
-    console.log("[player] finish " + (ws && ws.__tag) + "  call=" + (call ? call._id : "none"));
+    const myCall = call ? call._id : null;
+    if (isStale(myCall)) {
+      console.log("[player] finish IGNORED (stale) " + (ws && ws.__tag) + "  call=" + myCall);
+      return;
+    }
+    console.log("[player] finish " + (ws && ws.__tag) + "  call=" + myCall);
     if (onEnded) onEnded(ws);
   }, [call, onEnded]);
 
@@ -167,12 +183,39 @@ const MediaPlayer = (props) => {
   }, [call, parentHandlePlayPause]);
 
   const onPause = useCallback(() => {
+    // A player emits pause as it is destroyed. Letting that reach the parent
+    // rebuilt the incoming player mid-fetch - see isStale above.
+    if (isStale(call ? call._id : null)) {
+      return;
+    }
     setIsPlaying(false);
     parentHandlePlayPause(false);
-  }, [parentHandlePlayPause]);
+  }, [call, parentHandlePlayPause]);
   const onPlayPause = () => {
     wavesurfer && wavesurfer.playPause()
   }
+
+  // Handlers with an identity that never changes.
+  //
+  // @wavesurfer/react rebuilds its event-binding effect whenever a handler
+  // identity changes, and every handler here is recreated on each render - the
+  // parent recreates its callbacks too, so memoizing on dependencies does not
+  // help. The bindings were observably ending up doubled: one instance (ws1)
+  // emitting play and finish twice per call, which advanced the playlist twice
+  // and tore the player down mid-fetch.
+  //
+  // Routing through a ref gives the wrapper a set of handlers that are stable
+  // for the lifetime of the component, so it binds once per player, while the
+  // functions those handlers call are still the current ones each render.
+  const handlersRef = useRef({});
+
+  const stableOnReady = useCallback((ws) => handlersRef.current.onReady(ws), []);
+  const stableOnLoad = useCallback((ws) => handlersRef.current.onLoad(ws), []);
+  const stableOnError = useCallback((ws, err) => handlersRef.current.onError(ws, err), []);
+  const stableOnFinish = useCallback((ws) => handlersRef.current.onFinishLogged(ws), []);
+  const stableOnPlay = useCallback((ws) => handlersRef.current.onPlay(ws), []);
+  const stableOnPause = useCallback((ws) => handlersRef.current.onPause(ws), []);
+  const stableOnAudioprocess = useCallback((ws) => handlersRef.current.updatePlayProgress(ws), []);
 
   const updatePlayProgress = () => {
 
@@ -196,6 +239,10 @@ const MediaPlayer = (props) => {
       setPlayTime(Math.floor(currentTime));
     }
   }
+
+  // Kept current every render, while the stable wrappers above keep the
+  // identities the wrapper sees from ever changing.
+  handlersRef.current = { onReady, onLoad, onError, onFinishLogged, onPlay, onPause, updatePlayProgress };
 
   let playEnabled = { "disabled": true }
   let sourceId = "-";
@@ -259,13 +306,13 @@ const MediaPlayer = (props) => {
           waveColor="#E81B39"
           url={call.url}
           fetchParams={FETCH_PARAMS}
-          onLoad={onLoad}
-          onError={onError}
-          onReady={onReady}
-          onPlay={onPlay}
-          onPause={onPause}
-          onAudioprocess={updatePlayProgress}
-          onFinish={onFinishLogged}
+          onLoad={stableOnLoad}
+          onError={stableOnError}
+          onReady={stableOnReady}
+          onPlay={stableOnPlay}
+          onPause={stableOnPause}
+          onAudioprocess={stableOnAudioprocess}
+          onFinish={stableOnFinish}
           plugins={plugins}
         />
       </div>
