@@ -331,9 +331,17 @@ const MediaPlayer = (props) => {
 
     // Keeps the waveform cursor tracking real playback. WaveSurfer is no longer
     // the thing playing, so without this the waveform would sit still while the
-    // audio ran - a visible change from how this has always behaved.
-    if (wavesurfer) {
-      try { wavesurfer.setTime(currentTime); } catch (err) { /* not ready yet */ }
+    // audio ran.
+    //
+    // Mapped as a proportion rather than in seconds. The waveform is drawn from
+    // WaveSurfer's own decode of the file, and if its idea of the duration
+    // differs at all from the element's, an absolute seek puts the cursor in
+    // the wrong place and the waveform reads as the wrong length. A fraction is
+    // correct whatever the two durations are.
+    if (wavesurfer && el.duration && isFinite(el.duration) && el.duration > 0) {
+      try {
+        wavesurfer.seekTo(Math.min(1, Math.max(0, currentTime / el.duration)));
+      } catch (err) { /* waveform not decoded yet */ }
     }
   }
 
@@ -341,11 +349,20 @@ const MediaPlayer = (props) => {
   // click landed and the audio element seeks there.
   const onWaveformInteraction = (ws, newTime) => {
     const el = audioElRef.current;
-    if (el && typeof newTime === "number" && isFinite(newTime)) {
-      el.currentTime = newTime;
-      if (el.paused) {
-        el.play().catch(err => console.warn("[player] play rejected: " + err));
-      }
+    if (!el || typeof newTime !== "number" || !isFinite(newTime)) return;
+
+    // newTime is in the waveform's own time domain, so convert through a
+    // proportion rather than assuming the two durations agree - the same
+    // reason the cursor is driven by fraction above.
+    const waveDuration = ws && ws.getDuration ? ws.getDuration() : 0;
+    let target = newTime;
+    if (waveDuration > 0 && el.duration && isFinite(el.duration)) {
+      target = (newTime / waveDuration) * el.duration;
+    }
+
+    el.currentTime = Math.min(el.duration || target, Math.max(0, target));
+    if (el.paused) {
+      el.play().catch(err => console.warn("[player] play rejected: " + err));
     }
   }
 
