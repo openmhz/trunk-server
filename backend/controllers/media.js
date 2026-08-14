@@ -12,9 +12,8 @@
  * still just plays call.url.
  */
 const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const { fromIni } = require("@aws-sdk/credential-providers");
-const mongoose = require("mongoose");
+const path = require("path");
 const { ObjectId } = require("mongodb");
 
 const Call = require("../models/call");
@@ -23,24 +22,13 @@ const s3_endpoint = process.env['S3_ENDPOINT'] ?? 'https://s3.us-west-1.wasabisy
 const s3_region = process.env['S3_REGION'] ?? 'us-west-1';
 const s3_bucket = process.env['S3_BUCKET'] ?? 'openmhz-west';
 const s3_profile = process.env['S3_PROFILE'] ?? 'wasabi-account';
-const s3_public_url = process.env['S3_PUBLIC_URL'] ?? `${s3_endpoint}/${s3_bucket}`;
 const s3_force_path_style = (process.env['S3_FORCE_PATH_STYLE'] ?? 'false') === 'true';
 
-// A presigned URL's signature covers the host the browser will use, so it has
-// to be generated against the public address of the store rather than the
-// internal one the backend uploads through. S3_PUBLIC_URL is the endpoint with
-// the bucket appended by convention, so strip the bucket back off; override
-// with S3_PUBLIC_ENDPOINT if that assumption ever fails to hold.
-const s3_public_endpoint = process.env['S3_PUBLIC_ENDPOINT']
-  ?? s3_public_url.replace(new RegExp('/' + s3_bucket + '/?$'), '');
-
-// Long enough to start playback and seek around, short enough that a leaked URL
-// is worth little. The player re-requests it whenever a call is played again.
-const URL_TTL_SECONDS = 300;
-
-const presignClient = new S3Client({
+// Reads from the store over the internal address - this is a server-side fetch,
+// so it never needs the browser-reachable one.
+const s3 = new S3Client({
   credentials: fromIni({ profile: s3_profile }),
-  endpoint: s3_public_endpoint,
+  endpoint: s3_endpoint,
   region: s3_region,
   forcePathStyle: s3_force_path_style,
 });
@@ -97,23 +85,55 @@ exports.get_media = async function (req, res) {
     return;
   }
 
-  let url;
+  // Streamed rather than redirected to a presigned URL. A redirect looks
+  // tidier, but the player fetches this with credentials, and on a cross-origin
+  // redirect the browser retries with "Origin: null" - to which the object
+  // store answers "Access-Control-Allow-Origin: *", which browsers reject
+  // outright on a credentialed request. The audio never loads. Serving the
+  // bytes from this origin keeps it to one hop with CORS that already works.
+  let out;
   try {
-    url = await getSignedUrl(
-      presignClient,
-      new GetObjectCommand({ Bucket: bucket, Key: key }),
-      { expiresIn: URL_TTL_SECONDS }
-    );
+    out = await s3.send(new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      // Forwarded so seeking works - media elements ask for byte ranges.
+      ...(req.headers.range ? { Range: req.headers.range } : {}),
+    }));
   } catch (err) {
-    console.error(`[${item.shortName}] Error signing playback URL: ${err}`);
+    const status = err.$metadata && err.$metadata.httpStatusCode;
+    if (status === 404 || err.name === 'NoSuchKey') {
+      console.warn(`[${item.shortName}] Audio missing from the bucket: ${key}`);
+      res.status(404);
+      res.contentType('json');
+      res.send(JSON.stringify({ success: false, message: "Audio not found" }));
+      return;
+    }
+    console.error(`[${item.shortName}] Error reading audio ${key}: ${err}`);
     res.status(500);
     res.contentType('json');
-    res.send(JSON.stringify({ success: false, message: "Could not sign playback URL" }));
+    res.send(JSON.stringify({ success: false, message: "Could not read audio" }));
     return;
   }
 
-  // The redirect target expires, so it must never be cached or shared by an
-  // intermediary as though it were the canonical location of the audio.
-  res.set('Cache-Control', 'private, no-store');
-  res.redirect(302, url);
+  // Objects were uploaded without a content type, so the store reports
+  // application/octet-stream. Name it properly here from the extension.
+  const ext = path.extname(key).toLowerCase();
+  res.set('Content-Type', ext === '.mp3' ? 'audio/mpeg' : 'audio/mp4');
+  res.set('Accept-Ranges', 'bytes');
+  // Private: this is per-listener content behind a session, so it must not be
+  // held by any shared cache.
+  res.set('Cache-Control', 'private, max-age=300');
+  if (out.ContentLength != null) {
+    res.set('Content-Length', String(out.ContentLength));
+  }
+  if (out.ContentRange) {
+    res.set('Content-Range', out.ContentRange);
+  }
+  res.status(out.ContentRange ? 206 : 200);
+
+  out.Body.on('error', (err) => {
+    console.error(`[${item.shortName}] Error streaming audio ${key}: ${err}`);
+    res.destroy();
+  });
+  out.Body.pipe(res);
 };
