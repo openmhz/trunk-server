@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import {
   Menu,
   Icon,
@@ -29,6 +29,41 @@ import "./MediaPlayer.css";
 // object each render rebuilds it continuously. That is the same reason `plugins`
 // below is memoized.
 const FETCH_PARAMS = { credentials: "include" };
+
+/**
+ * The waveform, isolated so the rest of the player cannot disturb it.
+ *
+ * MediaPlayer re-renders several times a second while a call plays, because it
+ * updates the elapsed-time readout. Every one of those renders reached into
+ * @wavesurfer/react and made it rebuild the player - which cancels the download
+ * it needs in order to draw. That is why only the first call ever got a
+ * waveform: nothing was playing yet, so nothing was re-rendering.
+ *
+ * Wrapped in memo and compared on the url alone, this only re-renders when the
+ * call actually changes. The handlers are stable wrappers that dispatch through
+ * a ref, so they never change identity but always call current code.
+ */
+const Waveform = React.memo(
+  function Waveform({ url, plugins, onReady, onError, onInteraction }) {
+    return (
+      <WavesurferPlayer
+        autoplay={false}
+        height={25}
+        barWidth={3}
+        barGap={3}
+        barRadius={6}
+        waveColor="#E81B39"
+        url={url}
+        fetchParams={FETCH_PARAMS}
+        plugins={plugins}
+        onReady={onReady}
+        onError={onError}
+        onInteraction={onInteraction}
+      />
+    );
+  },
+  (prev, next) => prev.url === next.url && prev.plugins === next.plugins
+);
 
 
 
@@ -239,15 +274,19 @@ const MediaPlayer = (props) => {
   }
 
   const onWaveformError = (ws, err) => {
-    console.warn("[wf] waveform fetch cancelled call=" + (call ? call._id : "none") + " - retrying");
-    const forCall = call ? call._id : null;
-    // Retry once the churn that cancelled it has settled. Audio is unaffected
-    // either way; this is only about getting the picture drawn.
-    setTimeout(() => {
-      if (forCall !== currentCallIdRef.current) return;
-      setWaveformAttempt(a => (a < 3 ? a + 1 : a));
-    }, 500);
+    console.warn("[wf] waveform fetch cancelled call=" + (call ? call._id : "none"));
   }
+
+  // Stable identities that dispatch through a ref, so the memoized Waveform
+  // above never re-renders on account of a handler while still calling current
+  // code. Without this, comparing on url alone would freeze the handlers at
+  // their first-render values.
+  const wfHandlersRef = useRef({});
+  wfHandlersRef.current = { onReady, onWaveformError, onWaveformInteraction };
+
+  const stableWfReady = useCallback((ws) => wfHandlersRef.current.onReady(ws), []);
+  const stableWfError = useCallback((ws, err) => wfHandlersRef.current.onWaveformError(ws, err), []);
+  const stableWfInteraction = useCallback((ws, t) => wfHandlersRef.current.onWaveformInteraction(ws, t), []);
 
   const updatePlayProgress = () => {
 
@@ -331,22 +370,12 @@ const MediaPlayer = (props) => {
 
       <div className="mediaplayer-item">
 
-        <WavesurferPlayer
-          // Fresh instance per call, and per retry if a fetch was cancelled.
-          key={(call ? call._id : "none") + "-" + waveformAttempt}
-          // Display only - the audio element above makes the sound.
-          autoplay={false}
-          height={25}
-          barWidth={3}
-          barGap={3}
-          barRadius={6}
-          waveColor="#E81B39"
+        <Waveform
           url={call.url}
-          fetchParams={FETCH_PARAMS}
-          onError={onWaveformError}
-          onReady={onReady}
-          onInteraction={onWaveformInteraction}
           plugins={plugins}
+          onReady={stableWfReady}
+          onError={stableWfError}
+          onInteraction={stableWfInteraction}
         />
       </div>
 
