@@ -93,7 +93,18 @@ function CallPlayer(props) {
 
   /* This function gets called whenever the currently playing call ends.*/
 
+  // Guards against a call being ended twice. The player has been observed
+  // firing finish twice for one call, and advancing twice from the same index
+  // skipped a call and tore the player down mid-load. Ending is idempotent per
+  // call now, so a duplicate event is harmless rather than destructive.
+  const endedCallRef = useRef(null);
+
   const callEnded = () => {
+    if (currentCallId && endedCallRef.current === currentCallId) {
+      return;
+    }
+    endedCallRef.current = currentCallId;
+
     if (callsData) {
       const currentIndex = callsData.ids.findIndex(callId => callId === currentCallId);
       if (autoPlay) {

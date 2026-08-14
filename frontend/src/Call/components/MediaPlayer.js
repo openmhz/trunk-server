@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import {
   Menu,
   Icon,
@@ -111,7 +111,15 @@ const MediaPlayer = (props) => {
   }, [volume, wavesurfer]);
 
 
-  const onReady = (ws) => {
+  // Every handler below is wrapped in useCallback, and that is load-bearing
+  // rather than an optimisation. @wavesurfer/react rebuilds its event-binding
+  // effect from the handler identities, so handlers recreated on each render
+  // make it unbind and rebind continuously - and the bindings were observably
+  // ending up doubled, firing play and finish twice per call. A duplicated
+  // finish advances the playlist twice, and the second advance tore down the
+  // player while it was still loading the next call, which surfaced as
+  // "AbortError: signal is aborted without reason" and no audio.
+  const onReady = useCallback((ws) => {
     if (ws && !ws.__tag) { ws.__tag = "ws" + (++INSTANCE_COUNT); }
     console.log("[player] ready  " + (ws && ws.__tag) + "  call=" + (call ? call._id : "none") + "  duration=" + (ws && ws.getDuration ? ws.getDuration().toFixed(2) : "?"));
     setWavesurfer(ws)
@@ -135,31 +143,33 @@ const MediaPlayer = (props) => {
     } catch (err) {
       console.error("[player] regions failed (playback continues): " + err);
     }
-  }
+  }, [call, regionsPlugin]);
 
   // Temporary instrumentation while playback is being diagnosed.
-  const onLoad = () => {
+  const onLoad = useCallback(() => {
     console.log("[player] load   call=" + (call ? call._id : "none") + "  url=" + (call ? call.url : "-"));
-  }
-  const onError = (ws, err) => {
+  }, [call]);
+  const onError = useCallback((ws, err) => {
     console.error("[player] ERROR  call=" + (call ? call._id : "none") + "  " + err);
-  }
-  const onFinishLogged = (ws) => {
-    console.log("[player] finish " + (ws && ws.__tag) + "  call=" + (call ? call._id : "none"));
-    if (props.onEnded) props.onEnded(ws);
-  }
+  }, [call]);
 
-  const onPlay = (ws) => {
+  const onEnded = props.onEnded;
+  const onFinishLogged = useCallback((ws) => {
+    console.log("[player] finish " + (ws && ws.__tag) + "  call=" + (call ? call._id : "none"));
+    if (onEnded) onEnded(ws);
+  }, [call, onEnded]);
+
+  const onPlay = useCallback((ws) => {
     console.log("[player] play   " + (ws && ws.__tag) + "  call=" + (call ? call._id : "none"));
     setIsPlaying(true);
     parentHandlePlayPause(true);
 
-  }
+  }, [call, parentHandlePlayPause]);
 
-  const onPause = () => {
+  const onPause = useCallback(() => {
     setIsPlaying(false);
     parentHandlePlayPause(false);
-  }
+  }, [parentHandlePlayPause]);
   const onPlayPause = () => {
     wavesurfer && wavesurfer.playPause()
   }
