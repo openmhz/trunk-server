@@ -23,19 +23,29 @@ module.exports = function(app, passport) {
 	app.use(bodyParser.urlencoded({ extended: true }))
 	app.use(express.static(path.join(process.cwd(), 'public')));
 
+	// Must stay identical to the account and backend services - one cookie is
+	// shared between all three. Admin routes additionally require a recent
+	// login; see the freshness check on isAdmin in index.js.
+	const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+	const THIRTY_DAYS_SEC = 30 * 24 * 60 * 60;
+
 	const sess = {
 		resave: false,
 		saveUninitialized: false,
 		secret: secrets.sessionSecret,
 		proxy: true,
+		rolling: true,
 		name: "sessionId",
 		cookie: {
 			httpOnly: true,
 			secure: false,
-			domain: cookie_domain
+			sameSite: 'lax',
+			domain: cookie_domain,
+			maxAge: THIRTY_DAYS_MS
 		},
 		store:  MongoStore.create({
 			mongoUrl: secrets.db,
+			ttl: THIRTY_DAYS_SEC,
 			autoReconnect: true,
 			autoRemove: 'interval',
 			autoRemoveInterval: 240,
@@ -51,7 +61,7 @@ module.exports = function(app, passport) {
 	if(node_env === 'production') {
 		console.log('===> 🚦  Note: In order for authentication to work in production');
 		console.log('===>           you will need a secure HTTPS connection');
-		//sess.cookie.secure = true; // Serve secure cookies
+		sess.cookie.secure = true; // Serve secure cookies
 	}
 
 	app.use(session(sess))

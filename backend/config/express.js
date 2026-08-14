@@ -1,6 +1,7 @@
 var path = require("path");
 var express = require("express");
 var bodyParser = require("body-parser");
+var sessionMiddleware = require("./session");
 
 var backend_server = process.env['REACT_APP_BACKEND_SERVER'] != null ? process.env['REACT_APP_BACKEND_SERVER'] : 'https://api.hamrecorder.com';
 var frontend_server = process.env['REACT_APP_FRONTEND_SERVER'] != null ? process.env['REACT_APP_FRONTEND_SERVER'] : 'https://hamrecorder.com';
@@ -20,6 +21,10 @@ module.exports = function(app) {
 	app.use(bodyParser.urlencoded({ extended: true }))
 	app.use(express.static(path.join(process.cwd(), 'public')));
 
+	// Reads the session issued by the account service. saveUninitialized is off,
+	// so anonymous traffic - including uploads - creates no session documents.
+	app.use(sessionMiddleware)
+
 	var node_env = process.env.NODE_ENV;
 	console.log('--------------------------');
 	console.log('===> 😊  Starting Server . . .');
@@ -29,6 +34,10 @@ module.exports = function(app) {
 		console.log('===>           you will need a secure HTTPS connection');
 	}
 
+	// The session cookie only reaches us on credentialed requests, and browsers
+	// refuse a credentialed request whose Access-Control-Allow-Origin is "*".
+	// This used to answer "*" for anything unrecognised, which silently made the
+	// cookie undeliverable - so the origin is now echoed back or simply omitted.
 	app.use('/*', function(req, res, next) {
 	    var allowedOrigins = [ admin_server];
 	    allowedOrigins.push(frontend_server);
@@ -40,19 +49,26 @@ module.exports = function(app) {
 
 	    if (allowedOrigins.indexOf(origin) > -1) {
 	        res.setHeader('Access-Control-Allow-Origin', origin);
-	    } else if (req.headers["user-agent"] == 'TrunkRecorder1.0') {
-	        res.setHeader('Access-Control-Allow-Origin', "*");
-	    } else {
-	        res.setHeader('Access-Control-Allow-Origin', "*");
-	        if (origin) {
-	          console.warn("forcing CORS for: " + origin + " referer: " + req.headers.referer + " url: " + req.originalUrl);
-	        }
+	        res.setHeader('Vary', 'Origin');
+	        res.header('Access-Control-Allow-Credentials', 'true');
+	    } else if (origin) {
+	        // Unknown browser origin: no CORS headers at all, so the browser
+	        // blocks it. Omitting is the correct answer here - answering "*"
+	        // would not help a credentialed request anyway.
+	        console.warn("blocked CORS for: " + origin + " referer: " + req.headers.referer + " url: " + req.originalUrl);
 	    }
-	    res.header("Access-Control-Allow-Headers", "X-Requested-With");
-	    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,WEBSOCKET');
-		res.header('Access-Control-Allow-Credentials', 'true');
-		res.header("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, Access-Control-Max-Age");
+	    // Requests with no Origin header - trunk-recorder uploads, curl, server
+	    // to server - are not subject to CORS and need no headers.
+
+	    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+		res.header("Access-Control-Allow-Headers", "Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
 	    res.header('Access-Control-Max-Age', '600');
+
+	    // Preflights need to end here. Credentialed cross-origin requests trigger
+	    // them, and previously they fell through to a 404.
+	    if (req.method === 'OPTIONS') {
+	        return res.sendStatus(204);
+	    }
 	    next();
 	});
 

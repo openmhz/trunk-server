@@ -29,11 +29,11 @@ function Register(props) {
     <div>
       <Container text>
         <Message icon>
-          <Icon name='trophy' />
+          <Icon name='headphones' />
           <Message.Content>
             <Message.Header>Welcome!</Message.Header>
-            <p>Creating an account on {process.env.REACT_APP_SITE_NAME} is the first step in sharing radio system recordings using Trunk Recorder.</p>
-            <p>After creating an account, head over <a href="https://github.com/robotastic/trunk-recorder">here</a> to learn more about Trunk Recorder</p>
+            <p>An account lets you listen to every radio system on {process.env.REACT_APP_SITE_NAME}. We ask for your callsign because it is how other listeners will see you.</p>
+            <p>Want to contribute a feed of your own? Once you are signed in you can add a system and start uploading with <a href="https://github.com/robotastic/trunk-recorder">Trunk Recorder</a>.</p>
           </Message.Content>
         </Message>
       </Container>

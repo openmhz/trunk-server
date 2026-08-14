@@ -113,6 +113,11 @@ exports.login = function (req, res, next) {
           });
         });
       }
+      // When this session was actually authenticated. Listener sessions roll for
+      // 30 days, but admin routes require a login within the last 12 hours, so
+      // the age of the login has to be recorded separately from the session.
+      req.session.loginAt = Date.now();
+
       //console.log("account/server/controllers/users.js - req.login() Authenicated: " + user.email);
       // go ahead and create the new user
       var clientUser = (({

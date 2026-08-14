@@ -17,6 +17,8 @@ const { ObjectId } = require('mongodb');
 const Group = require("./models/group");
 
 var multer = require('multer');
+const sessionMiddleware = require('./config/session');
+const { requireListener, resolveListener } = require('./middleware/auth');
 
 // -------------------------------------------
 var app = express();
@@ -25,10 +27,16 @@ var app = express();
 const server = require('http').createServer(app);
 
 
+const frontend_server = process.env['REACT_APP_FRONTEND_SERVER'] != null ? process.env['REACT_APP_FRONTEND_SERVER'] : 'https://hamrecorder.com';
+const socketOrigins = [frontend_server, frontend_server + ":3000", "https://www.hamrecorder.com"];
+
+// origin can no longer be "*": the handshake has to carry the session cookie,
+// and browsers refuse credentialed requests against a wildcard origin.
 const io = require('socket.io')(server, {
   cors: {
-    origin: "*",
+    origin: socketOrigins,
     methods: ["GET", "POST"],
+    credentials: true,
   }
 });
 
@@ -118,18 +126,20 @@ function addTotalClients(req, res, next) {
 }
 
 
-/*------    CALLS   ----------*/
-app.get('/card/:id', calls.get_card);
-app.post('/add_star/:id', calls.add_star);
-app.post('/remove_star/:id', calls.remove_star);
-app.get('/:shortName/call/:id', calls.get_call);
-app.get('/:shortName/calls/latest', calls.get_latest_calls);
-app.get('/:shortName/calls/next', calls.get_next_calls);
-app.get('/:shortName/calls/newer', calls.get_newer_calls);
-app.get('/:shortName/calls/older', calls.get_older_calls);
-app.get('/:shortName/calls/date', calls.get_date_calls);
-app.get('/:shortName/calls/:time/older', calls.get_iphone_calls);
-app.get('/:shortName/calls', calls.get_calls); 
+/*------    CALLS   ----------
+   Everything that exposes call content requires a signed-in listener. The
+   session comes from the account service - see middleware/auth.js.            */
+app.get('/card/:id', requireListener, calls.get_card);
+app.post('/add_star/:id', requireListener, calls.add_star);
+app.post('/remove_star/:id', requireListener, calls.remove_star);
+app.get('/:shortName/call/:id', requireListener, calls.get_call);
+app.get('/:shortName/calls/latest', requireListener, calls.get_latest_calls);
+app.get('/:shortName/calls/next', requireListener, calls.get_next_calls);
+app.get('/:shortName/calls/newer', requireListener, calls.get_newer_calls);
+app.get('/:shortName/calls/older', requireListener, calls.get_older_calls);
+app.get('/:shortName/calls/date', requireListener, calls.get_date_calls);
+app.get('/:shortName/calls/:time/older', requireListener, calls.get_iphone_calls);
+app.get('/:shortName/calls', requireListener, calls.get_calls);
 
 
 /*------    UPLOADS   ---------- upload.single('call'),  uploads.upload,*/
@@ -137,19 +147,21 @@ app.post('/:shortName/upload', upload.single('call'), uploads.upload, async func
   notify_clients(req.call);
 });
 
-/*------    SYSTEMS   ----------*/
+/*------    SYSTEMS   ----------
+   Left public: the directory of feeds is how someone decides whether the site
+   is worth signing up for. It exposes no call content.                        */
 app.get('/systems', addSystemClients, systems.get_systems);
 app.post('/:shortName/contact', systems.contact_system);
 app.post('/:shortName/authorize', systems.authorize_system);
 
 /*------    TALKGROUPS   ----------*/
-app.get('/:shortName/talkgroups', talkgroups.get_talkgroups);
+app.get('/:shortName/talkgroups', requireListener, talkgroups.get_talkgroups);
 
 /*------    GROUPS   ----------*/
-app.get('/:shortName/groups', talkgroups.get_groups);
+app.get('/:shortName/groups', requireListener, talkgroups.get_groups);
 
 
-/*------    STATS   ----------*/
+/*------    STATS   ---------- public: counts only, no call content */
 app.get('/:shortName/stats', stats.get_stats);
 app.get('/stats', addTotalClients, sys_stats.siteStats)
 
@@ -259,6 +271,27 @@ function notify_clients(call) {
     //console.log("[" + call.shortName.toLowerCase() + "] Sent call to " + sent + " clients");
   }
 }
+
+// Live calls are pushed over this socket, so it needs the same gate as the REST
+// routes - otherwise anyone could open a socket and receive audio URLs as they
+// are recorded. engine.use runs the session middleware over the handshake so
+// socket.request.session is populated the same way req.session is.
+io.engine.use(sessionMiddleware);
+
+io.use(async function (socket, next) {
+  let result;
+  try {
+    result = await resolveListener(socket.request.session);
+  } catch (err) {
+    console.error("Error resolving listener for socket: " + err);
+    return next(new Error("Could not verify session"));
+  }
+  if (result.error) {
+    return next(new Error(result.error));
+  }
+  socket.listenerId = result.user.id;
+  next();
+});
 
 io.sockets.on('connection', function (client) {
   clients[client.id] = { socket: client, active: false };

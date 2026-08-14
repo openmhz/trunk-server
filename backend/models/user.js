@@ -23,9 +23,21 @@ const UserSchema = new mongoose.Schema({
 		unique: true,
 		lowercase: true
 	},
+	// Kept in step with account/server/models/user.js. The backend only reads
+	// these - accounts are created and edited by the account service - but a
+	// field missing from this schema is silently dropped from query results.
+	callsign: {
+		type: String,
+		unique: true,
+		lowercase: true,
+		trim: true,
+		maxlength: 7
+	},
 	firstName: String,
 	lastName: String,
-	location: String,
+	city: String,
+	state: String,
+	country: String,
 	email: String,
 	resetPasswordToken: String,
 	resetPasswordTTL: Date,

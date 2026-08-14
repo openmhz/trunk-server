@@ -110,12 +110,30 @@ function isLoggedIn(req, res, next) {
 };
 
 
+// Listener sessions roll for 30 days, which is far too long to leave
+// administration open. Admin routes additionally require that the session was
+// authenticated within the last 12 hours - session.loginAt is stamped by the
+// account service at login.
+const ADMIN_MAX_LOGIN_AGE_MS = 12 * 60 * 60 * 1000;
+
 function isAdmin(req, res, next) {
-  if (req.isAuthenticated() && req.user.admin) return next();
-  res.status(401).send({
-    success: false,
-    message: "Not Authenticated."
-  });
+  if (!req.isAuthenticated() || !req.user.admin) {
+    return res.status(401).send({
+      success: false,
+      message: "Not Authenticated."
+    });
+  }
+
+  const loginAt = req.session && req.session.loginAt;
+  if (!loginAt || (Date.now() - loginAt) > ADMIN_MAX_LOGIN_AGE_MS) {
+    return res.status(401).send({
+      success: false,
+      message: "Please sign in again to continue - admin sessions expire after 12 hours.",
+      reason: "stale login"
+    });
+  }
+
+  return next();
 };
 
 

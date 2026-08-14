@@ -25,19 +25,30 @@ module.exports = function(app, passport) {
 	app.use(bodyParser.urlencoded({ extended: true }))
 	app.use(express.static(path.join(process.cwd(), 'public')));
 
+	// Rolling, so 30 days measures inactivity rather than age: someone who keeps
+	// listening is never signed out, someone who stops is asked to sign in again
+	// after a month. The store ttl matches so the sessions collection expires in
+	// step. These settings must stay identical to admin and backend.
+	const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+	const THIRTY_DAYS_SEC = 30 * 24 * 60 * 60;
+
 	const sess = {
 		resave: false,
 		saveUninitialized: false,
 		secret: secrets.sessionSecret,
 		proxy: true,
+		rolling: true,
 		name: "sessionId",
 		cookie: {
 			httpOnly: true,
 			secure: false,
-			domain: cookie_domain
+			sameSite: 'lax',
+			domain: cookie_domain,
+			maxAge: THIRTY_DAYS_MS
 		},
 		store:  MongoStore.create({
 			mongoUrl: secrets.db,
+			ttl: THIRTY_DAYS_SEC,
 			autoReconnect: true,
 			autoRemove: 'interval',
 			autoRemoveInterval: 240,
@@ -52,8 +63,7 @@ module.exports = function(app, passport) {
 	if(node_env === 'production') {
 		console.log('===> 🚦  Note: In order for authentication to work in production');
 		console.log('===>           you will need a secure HTTPS connection');
-		//sess.cookie.secure = true; // Serve secure cookies
-		//sess.cookie.httpOnly = false;
+		sess.cookie.secure = true; // Serve secure cookies
 	}
 
 	app.use(session(sess))
