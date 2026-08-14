@@ -24,7 +24,9 @@ import io from 'socket.io-client';
 
 
 
-const socket = io(process.env.REACT_APP_BACKEND_SERVER);
+// withCredentials so the handshake carries the session cookie. The backend
+// refuses anonymous socket connections - live calls are pushed over this.
+const socket = io(process.env.REACT_APP_BACKEND_SERVER, { withCredentials: true });
 
 // ----------------------------------------------------
 function Calls(props) {

@@ -9,7 +9,13 @@ export const apiSlice = createApi({
     reducerPath: 'api',
 
     // All of our requests will have URLs starting with '/fakeApi'
-    baseQuery: fetchBaseQuery({ baseUrl: process.env.REACT_APP_BACKEND_SERVER }),
+    // credentials: the backend requires a signed-in listener for call content,
+    // and the session cookie only travels on credentialed requests. Without
+    // this every gated endpoint answers 401 even when signed in.
+    baseQuery: fetchBaseQuery({
+        baseUrl: process.env.REACT_APP_BACKEND_SERVER,
+        credentials: 'include',
+    }),
     // The "endpoints" represent operations and requests for this server
     endpoints: builder => ({
         // The `getPosts` endpoint is a "query" operation that returns data

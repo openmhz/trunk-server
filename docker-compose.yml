@@ -199,6 +199,7 @@ services:
       args:
         - REACT_APP_BACKEND_SERVER
         - REACT_APP_FRONTEND_SERVER
+        - REACT_APP_ACCOUNT_SERVER
         - REACT_APP_SITE_NAME
         - REACT_APP_GOOGLE_ANALYTICS
         - NODE_ENV
@@ -207,6 +208,7 @@ services:
         - MONGO_NODE_DRIVER_HOST=mongo
         - REACT_APP_BACKEND_SERVER
         - REACT_APP_FRONTEND_SERVER
+        - REACT_APP_ACCOUNT_SERVER
         - REACT_APP_SITE_NAME
         - REACT_APP_GOOGLE_ANALYTICS
         - GLIBC_TUNABLES=glibc.pthread.rseq=0

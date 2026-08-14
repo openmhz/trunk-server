@@ -2,12 +2,14 @@ import { configureStore } from '@reduxjs/toolkit'
 import { apiSlice } from "../features/api/apiSlice"
 import callPlayerSlice from "../features/callPlayer/callPlayerSlice"
 import { callsReducer } from "../features/calls/callsSlice"
+import userReducer from "../features/user/userSlice"
 
 const setupStore = (preloadedState) => {
   const store = configureStore({
     reducer: {
       callPlayer: callPlayerSlice,
       calls: callsReducer,
+      user: userReducer,
       [apiSlice.reducerPath]: apiSlice.reducer,
     },
     middleware: (getDefaultMiddleware) =>

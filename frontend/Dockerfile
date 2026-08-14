@@ -5,6 +5,10 @@ ENV PATH /app/node_modules/.bin:$PATH
 ARG REACT_APP_BACKEND_SERVER
 ARG REACT_APP_SITE_NAME
 ARG REACT_APP_FRONTEND_SERVER
+# Where the player sends signed-out visitors to sign in. Create React App
+# inlines REACT_APP_* at build time, so this has to be a build arg, not just a
+# runtime environment variable.
+ARG REACT_APP_ACCOUNT_SERVER
 ARG REACT_APP_GOOGLE_ANALYTICS
 ARG NODE_ENV
 COPY package.json ./

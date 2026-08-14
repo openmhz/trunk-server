@@ -132,6 +132,7 @@ export const addStar = createAsyncThunk(
   async(callId,{getState, requestIdleCallback}) => {
     const url = process.env.REACT_APP_BACKEND_SERVER + "/add_star/" + callId
     const res = await fetch(url, {
+      credentials: 'include',
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -150,6 +151,7 @@ export const removeStar = createAsyncThunk(
   async(callId,{getState, requestIdleCallback}) => {
     const url = process.env.REACT_APP_BACKEND_SERVER + "/remove_star/" + callId
     const res = await fetch(url, {
+      credentials: 'include',
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -169,7 +171,7 @@ export const getCalls = createAsyncThunk(
     const state = getState()
     const {loading,oldestCallTime, newestCallTime} = getState().calls;
     const url = buildCallUrl(getState);
-    const res = await fetch(url).then(
+    const res = await fetch(url, { credentials: 'include' }).then(
       (data) => data.json()
     )
     return res;
@@ -180,7 +182,7 @@ export const getCalls = createAsyncThunk(
     async({},{getState, requestId} ) => {
       const {loading,oldestCallTime, newestCallTime} = getState().calls;
       const url = buildCallUrl(getState,"older",oldestCallTime);
-      const res = await fetch(url).then(
+      const res = await fetch(url, { credentials: 'include' }).then(
         (data) => data.json()
       )
       return res;
@@ -191,7 +193,7 @@ export const getCalls = createAsyncThunk(
       async({},{getState, requestId} ) => {
         const {loading,oldestCallTime, newestCallTime} = getState().calls;
         const url = buildCallUrl(getState,"newer",newestCallTime);
-        const res = await fetch(url).then(
+        const res = await fetch(url, { credentials: 'include' }).then(
           (data) => data.json()
         )
         return res;
