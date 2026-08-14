@@ -183,8 +183,18 @@ const MediaPlayer = (props) => {
   // WaveSurfer for every call, and the destroy aborted the download it needed
   // to draw from - so only the first call ever got a waveform. Reloading the
   // same instance leaves nothing to abort.
+  const loadedWaveformUrlRef = useRef(null);
   useEffect(() => {
     if (!wavesurfer || !call || !call.url) return;
+
+    // Only load when the audio actually changes. useWavesurfer keeps its own
+    // currentTime state and updates it on every timeupdate, and the cursor sync
+    // drives timeupdate several times a second - so this effect re-ran
+    // constantly, and each load aborted the one before it. The waveform never
+    // finished decoding, which is why it did not match the audio.
+    if (loadedWaveformUrlRef.current === call.url) return;
+    loadedWaveformUrlRef.current = call.url;
+
     try {
       const result = wavesurfer.load(call.url);
       // load() rejects if a newer load supersedes this one, which is normal
@@ -324,6 +334,10 @@ const MediaPlayer = (props) => {
     const el = audioElRef.current;
     console.error("[player] audio ERROR  call=" + (call ? call._id : "none") +
       "  code=" + (el && el.error ? el.error.code : "?"));
+    // Move on rather than stalling. One call whose audio will not load used to
+    // stop autoplay dead, because nothing ever reported that it had finished.
+    // Treating a failure like an ending keeps the feed moving.
+    if (props.onEnded) props.onEnded();
   }
 
   // Keeps the existing progress readout and source-id stepping working, driven
