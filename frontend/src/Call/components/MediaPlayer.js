@@ -178,18 +178,25 @@ const MediaPlayer = (props) => {
   const onPlay = useCallback((ws) => {
     console.log("[player] play   " + (ws && ws.__tag) + "  call=" + (call ? call._id : "none"));
     setIsPlaying(true);
-    parentHandlePlayPause(true);
+    // Deferred for the same reason as onPause below.
+    setTimeout(() => parentHandlePlayPause(true), 0);
 
   }, [call, parentHandlePlayPause]);
 
   const onPause = useCallback(() => {
-    // A player emits pause as it is destroyed. Letting that reach the parent
-    // rebuilt the incoming player mid-fetch - see isStale above.
+    // A player emits pause as it is destroyed, and this runs inside that event.
+    // Telling the parent synchronously here made React re-render during the
+    // commit that was building the next player, which destroyed it while its
+    // fetch was still in flight - "AbortError: signal is aborted without
+    // reason", and no audio from the second call onwards.
+    //
+    // Deferring to the next task lets the current commit finish first. The
+    // state still updates, just not in the middle of the player being built.
     if (isStale(call ? call._id : null)) {
       return;
     }
     setIsPlaying(false);
-    parentHandlePlayPause(false);
+    setTimeout(() => parentHandlePlayPause(false), 0);
   }, [call, parentHandlePlayPause]);
   const onPlayPause = () => {
     wavesurfer && wavesurfer.playPause()
