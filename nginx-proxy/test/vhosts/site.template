@@ -3,6 +3,16 @@ server {
 	listen 80;
 
   server_name ${DOMAIN_NAME} www.${DOMAIN_NAME};
+	# Upstream hostnames held in variables so nginx resolves them per request
+	# instead of caching the address from config load. See the resolver in
+	# nginx.conf. Recreating a container changes its IP; without this nginx
+	# keeps dialling the old one and returns 502 until it is reloaded.
+	set $upstream_frontend frontend;
+	set $upstream_backend backend;
+	set $upstream_account account;
+	set $upstream_admin admin;
+	set $upstream_minio minio;
+
 
 
 	location /.well-known/acme-challenge/ {
@@ -10,12 +20,12 @@ server {
     }
 
    location /static {
-		proxy_pass http://frontend:3000;
+		proxy_pass http://$upstream_frontend:3000$request_uri;
 		access_log off;
     }
 
 	location /favicon.ico {
-		proxy_pass http://frontend:3000;
+		proxy_pass http://$upstream_frontend:3000$request_uri;
 		expires 1M;
 		add_header Surrogate-Control "public, max-age=604800";  
 		add_header Cache-Control "max-age=604800, public";
@@ -23,7 +33,7 @@ server {
 	}
 
 	location ~* \.(gif|jpg|png)$ {
-                proxy_pass http://frontend:3000;
+                proxy_pass http://$upstream_frontend:3000$request_uri;
 
 				add_header Pragma public;
 				add_header Surrogate-Control "public, max-age=604800";  
@@ -32,7 +42,7 @@ server {
     }
 
 	location  /silence.m4a {
-                proxy_pass http://frontend:3000;
+                proxy_pass http://$upstream_frontend:3000$request_uri;
 				access_log /dev/stdout main;
 
 				add_header Surrogate-Control "public, max-age=604800";  
@@ -41,7 +51,7 @@ server {
     }
 	
    location / {
-				proxy_pass http://frontend:3000;
+				proxy_pass http://$upstream_frontend:3000$request_uri;
 				include /etc/nginx/proxy.conf;
 				access_log /dev/stdout main;
     }
@@ -51,13 +61,23 @@ server {
 	listen 80;
 
   server_name account.${DOMAIN_NAME};
+	# Upstream hostnames held in variables so nginx resolves them per request
+	# instead of caching the address from config load. See the resolver in
+	# nginx.conf. Recreating a container changes its IP; without this nginx
+	# keeps dialling the old one and returns 502 until it is reloaded.
+	set $upstream_frontend frontend;
+	set $upstream_backend backend;
+	set $upstream_account account;
+	set $upstream_admin admin;
+	set $upstream_minio minio;
+
 
 	location /.well-known/acme-challenge/ {
         root /var/www/certbot;
     }
 
    location / {
-				proxy_pass http://account:3009;
+				proxy_pass http://$upstream_account:3009$request_uri;
 				include /etc/nginx/proxy.conf;
 				access_log    off; 
     }
@@ -67,13 +87,23 @@ server {
 	listen 80;
 
   server_name admin.${DOMAIN_NAME};
+	# Upstream hostnames held in variables so nginx resolves them per request
+	# instead of caching the address from config load. See the resolver in
+	# nginx.conf. Recreating a container changes its IP; without this nginx
+	# keeps dialling the old one and returns 502 until it is reloaded.
+	set $upstream_frontend frontend;
+	set $upstream_backend backend;
+	set $upstream_account account;
+	set $upstream_admin admin;
+	set $upstream_minio minio;
+
 
 	location /.well-known/acme-challenge/ {
         root /var/www/certbot;
     }
 
    location / {
-				proxy_pass http://admin:3008;
+				proxy_pass http://$upstream_admin:3008$request_uri;
 				include /etc/nginx/proxy.conf;
 				access_log    off; 
     }
@@ -83,13 +113,23 @@ server {
 	listen 80;
 
 	server_name api.${DOMAIN_NAME};
+	# Upstream hostnames held in variables so nginx resolves them per request
+	# instead of caching the address from config load. See the resolver in
+	# nginx.conf. Recreating a container changes its IP; without this nginx
+	# keeps dialling the old one and returns 502 until it is reloaded.
+	set $upstream_frontend frontend;
+	set $upstream_backend backend;
+	set $upstream_account account;
+	set $upstream_admin admin;
+	set $upstream_minio minio;
+
 
 	location /.well-known/acme-challenge/ {
         root /var/www/certbot;
     }
 
 	location / {
-		proxy_pass http://backend:3005;
+		proxy_pass http://$upstream_backend:3005$request_uri;
 		include /etc/nginx/proxy.conf;
 		proxy_http_version 1.1;
 		proxy_set_header Upgrade $http_upgrade;
@@ -104,6 +144,16 @@ server {
 	listen 80;
 
 	server_name media.${DOMAIN_NAME};
+	# Upstream hostnames held in variables so nginx resolves them per request
+	# instead of caching the address from config load. See the resolver in
+	# nginx.conf. Recreating a container changes its IP; without this nginx
+	# keeps dialling the old one and returns 502 until it is reloaded.
+	set $upstream_frontend frontend;
+	set $upstream_backend backend;
+	set $upstream_account account;
+	set $upstream_admin admin;
+	set $upstream_minio minio;
+
 
 	location /.well-known/acme-challenge/ {
         root /var/www/certbot;
@@ -113,7 +163,7 @@ server {
 	# is a hostname instead of an IP:port. A changed LAN address then costs one
 	# hosts entry rather than rewriting the url field on every call in the DB.
 	location / {
-		proxy_pass http://minio:9000;
+		proxy_pass http://$upstream_minio:9000$request_uri;
 		include /etc/nginx/proxy.conf;
 		# proxy.conf already sets "Host $host". Setting Host again here made nginx
 		# emit two Host headers, and Go's net/http rejects that with a bare

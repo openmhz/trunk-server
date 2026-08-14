@@ -3,6 +3,16 @@ limit_req_zone $binary_remote_addr zone=perip:10m rate=1r/s;
 server {
 	listen 80;
 	server_name account.${DOMAIN_NAME} api.${DOMAIN_NAME} admin.${DOMAIN_NAME} www.${DOMAIN_NAME} ${DOMAIN_NAME};
+	# Upstream hostnames held in variables so nginx resolves them per request
+	# instead of caching the address from config load. See the resolver in
+	# nginx.conf. Recreating a container changes its IP; without this nginx
+	# keeps dialling the old one and returns 502 until it is reloaded.
+	set $upstream_frontend frontend;
+	set $upstream_backend backend;
+	set $upstream_account account;
+	set $upstream_admin admin;
+	set $upstream_minio minio;
+
 
 	location /.well-known/acme-challenge/ {
         root /var/www/certbot;
@@ -26,18 +36,28 @@ server {
         #add_header Strict-Transport-Security max-age=15768000;
 
         server_name ${DOMAIN_NAME} www.${DOMAIN_NAME};
+	# Upstream hostnames held in variables so nginx resolves them per request
+	# instead of caching the address from config load. See the resolver in
+	# nginx.conf. Recreating a container changes its IP; without this nginx
+	# keeps dialling the old one and returns 502 until it is reloaded.
+	set $upstream_frontend frontend;
+	set $upstream_backend backend;
+	set $upstream_account account;
+	set $upstream_admin admin;
+	set $upstream_minio minio;
+
 
 	location /.well-known/acme-challenge/ {
         root /var/www/certbot;
     }
 
    location /static {
-		proxy_pass http://frontend:3000;
+		proxy_pass http://$upstream_frontend:3000$request_uri;
 		access_log off;
     }
 
 	location /favicon.ico {
-		proxy_pass http://frontend:3000;
+		proxy_pass http://$upstream_frontend:3000$request_uri;
 		expires 1M;
 		add_header Surrogate-Control "public, max-age=2629746";  
 		add_header Cache-Control "max-age=2629746, public";
@@ -45,7 +65,7 @@ server {
 	}
 
 	location /*.png {
-                proxy_pass http://frontend:3000;
+                proxy_pass http://$upstream_frontend:3000$request_uri;
                 access_log off;
                 expires 1M;
 				add_header Surrogate-Control "public, max-age=2629746";  
@@ -53,7 +73,7 @@ server {
     }
 
 	location  /*.m4a {
-                proxy_pass http://frontend:3000;
+                proxy_pass http://$upstream_frontend:3000$request_uri;
                 access_log off;
                 expires 1M;
 				add_header Surrogate-Control "public, max-age=2629746";  
@@ -61,7 +81,7 @@ server {
     }
 
    location / {
-		proxy_pass http://frontend:3000;
+		proxy_pass http://$upstream_frontend:3000$request_uri;
 		access_log /dev/stdout main;
     }
 }
@@ -80,6 +100,16 @@ server {
         add_header Strict-Transport-Security max-age=15768000;
 
 	server_name api.${DOMAIN_NAME};
+	# Upstream hostnames held in variables so nginx resolves them per request
+	# instead of caching the address from config load. See the resolver in
+	# nginx.conf. Recreating a container changes its IP; without this nginx
+	# keeps dialling the old one and returns 502 until it is reloaded.
+	set $upstream_frontend frontend;
+	set $upstream_backend backend;
+	set $upstream_account account;
+	set $upstream_admin admin;
+	set $upstream_minio minio;
+
 
 		location /.well-known/acme-challenge/ {
 			root /var/www/certbot;
@@ -87,7 +117,7 @@ server {
 
 
 	location / {
-		proxy_pass http://backend:3005;
+		proxy_pass http://$upstream_backend:3005$request_uri;
 		proxy_http_version 1.1;
 		proxy_set_header Upgrade $http_upgrade;
 		proxy_set_header Connection "upgrade";
@@ -113,13 +143,23 @@ server {
         add_header Strict-Transport-Security max-age=15768000;
 
 		server_name account.${DOMAIN_NAME};
+	# Upstream hostnames held in variables so nginx resolves them per request
+	# instead of caching the address from config load. See the resolver in
+	# nginx.conf. Recreating a container changes its IP; without this nginx
+	# keeps dialling the old one and returns 502 until it is reloaded.
+	set $upstream_frontend frontend;
+	set $upstream_backend backend;
+	set $upstream_account account;
+	set $upstream_admin admin;
+	set $upstream_minio minio;
+
 
 		location /.well-known/acme-challenge/ {
 			root /var/www/certbot;
 		}
 
 		location / {
-			proxy_pass http://account:3009;
+			proxy_pass http://$upstream_account:3009$request_uri;
 			proxy_http_version 1.1;
 			proxy_set_header Upgrade $http_upgrade;
 			proxy_set_header Connection "upgrade";
@@ -144,13 +184,23 @@ server {
         add_header Strict-Transport-Security max-age=15768000;
 
 		server_name admin.${DOMAIN_NAME};
+	# Upstream hostnames held in variables so nginx resolves them per request
+	# instead of caching the address from config load. See the resolver in
+	# nginx.conf. Recreating a container changes its IP; without this nginx
+	# keeps dialling the old one and returns 502 until it is reloaded.
+	set $upstream_frontend frontend;
+	set $upstream_backend backend;
+	set $upstream_account account;
+	set $upstream_admin admin;
+	set $upstream_minio minio;
+
 
 		location /.well-known/acme-challenge/ {
 			root /var/www/certbot;
 		}
 
 		location / {
-			proxy_pass http://admin:3008;
+			proxy_pass http://$upstream_admin:3008$request_uri;
 			proxy_http_version 1.1;
 			proxy_set_header Upgrade $http_upgrade;
 			proxy_set_header Connection "upgrade";
