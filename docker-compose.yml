@@ -123,6 +123,8 @@ services:
         - NODE_ENV
     image: "admin:${TAG}-${STAGE}"
     environment:
+      # Must match the account service exactly - see the note there.
+      - SESSION_SECRET
       - REACT_APP_BACKEND_SERVER
       - REACT_APP_ADMIN_SERVER
       - REACT_APP_ACCOUNT_SERVER
@@ -157,6 +159,9 @@ services:
         - NODE_ENV
     image: "acount:${TAG}-${STAGE}"
     environment:
+      # Signs the session cookie. Must match admin (and later backend) exactly,
+      # or the services cannot read each other's sessions.
+      - SESSION_SECRET
       - MONGO_HOST
       - MONGO_PORT
       - MONGO_USER
