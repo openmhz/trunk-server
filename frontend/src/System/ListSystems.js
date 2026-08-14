@@ -66,16 +66,20 @@ const ListSystems = (props) => {
       <NavBar />
       <ContactModal system={contactSystem} open={contactVisible} onClose={()=> setContactVisible(false)}/>
       <Container >
-        <Divider horizontal style={{ paddingTop: "5em", paddingBottom: "2em" }}><Header as="h1">Radio Systems<Icon name='rss' /></Header></Divider>
+        <Divider horizontal style={{ paddingTop: "5em", paddingBottom: "2em" }}><Header as="h1">Repeater Systems<Icon name='rss' /></Header></Divider>
         <Grid centered columns={2}>
           <Grid.Column width="15">
             <List horizontal>
               {stateList}
-              <List.Item>
-                <List.Content>
-                  <List.Header><a href="#international">International</a></List.Header>
-                </List.Content>
-              </List.Item>
+              {/* Only link to the International anchor when that section exists,
+                  otherwise it is a dead link to nothing. */}
+              {other.length > 0 && (
+                <List.Item>
+                  <List.Content>
+                    <List.Header><a href="#international">International</a></List.Header>
+                  </List.Content>
+                </List.Item>
+              )}
             </List>
             {trending}
             {systemsByState}
