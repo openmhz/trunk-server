@@ -28,7 +28,9 @@ const server = require('http').createServer(app);
 
 
 const frontend_server = process.env['REACT_APP_FRONTEND_SERVER'] != null ? process.env['REACT_APP_FRONTEND_SERVER'] : 'https://hamrecorder.com';
-const socketOrigins = [frontend_server, frontend_server + ":3000", "https://www.hamrecorder.com"];
+// Same list the REST routes use - see EXTRA_CORS_ORIGINS in config/express.js.
+const socketOrigins = [frontend_server, frontend_server + ":3000", "https://www.hamrecorder.com"]
+  .concat((process.env['EXTRA_CORS_ORIGINS'] || '').split(',').map(o => o.trim()).filter(o => o.length > 0));
 
 // origin can no longer be "*": the handshake has to carry the session cookie,
 // and browsers refuse credentialed requests against a wildcard origin.

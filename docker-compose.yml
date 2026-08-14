@@ -66,6 +66,9 @@ services:
       # Signs the session cookie. Must match account and admin exactly - the
       # backend reads the sessions they issue, it does not create its own.
       - SESSION_SECRET
+      # Extra browser origins allowed to send the session cookie, comma
+      # separated - e.g. a LAN IP used during local development.
+      - EXTRA_CORS_ORIGINS
       # Defaults to disabled: otel-tracing.js starts the SDK unconditionally at
       # require time, so without this the OTel stack is live (and parsing the
       # baggage/traceparent headers off every public request) even with no

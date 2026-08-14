@@ -8,6 +8,16 @@ var frontend_server = process.env['REACT_APP_FRONTEND_SERVER'] != null ? process
 var admin_server = process.env['REACT_APP_ADMIN_SERVER'] != null ? process.env['REACT_APP_ADMIN_SERVER'] : 'https://admin.hamrecorder.com'; //'https://s3.amazonaws.com/robotastic';
 var dev_server = frontend_server + ":3000"
 
+// Additional browser origins allowed to make credentialed requests, comma
+// separated. Needed for anything that reaches the site by an address the
+// DOMAIN_NAME-derived values do not cover - a LAN IP during local development,
+// for instance. It cannot be a wildcard: browsers reject "*" on credentialed
+// requests, and the session cookie makes every player request credentialed.
+var extra_origins = (process.env['EXTRA_CORS_ORIGINS'] || '')
+	.split(',')
+	.map(function (o) { return o.trim(); })
+	.filter(function (o) { return o.length > 0; });
+
 
 module.exports = function(app) {
 	app.set("port", 3005)
@@ -44,6 +54,7 @@ module.exports = function(app) {
 	    allowedOrigins.push(backend_server);
 		allowedOrigins.push(dev_server);
 		allowedOrigins.push("https://www.hamrecorder.com");
+		extra_origins.forEach(function (o) { allowedOrigins.push(o); });
 
 	    var origin = req.headers.origin;
 
