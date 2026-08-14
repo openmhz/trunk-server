@@ -46,6 +46,11 @@ const MediaPlayer = (props) => {
   const regionsPlugin = useMemo(() => RegionsPlugin.create(), []);
   const plugins = useMemo(() => [regionsPlugin], [regionsPlugin]);
 
+  // Which call is current, readable from a handler that closed over an older
+  // one - see the deferred notification in onPause.
+  const currentCallIdRef = useRef(null);
+  currentCallIdRef.current = call ? call._id : null;
+
 
   useEffect(() => {
     setSourceIndex(0);
@@ -92,6 +97,7 @@ const MediaPlayer = (props) => {
 
 
   const onReady = (ws) => {
+    console.log("[wf] ready   call=" + (call ? call._id : "none") + "  duration=" + (ws && ws.getDuration ? ws.getDuration().toFixed(2) : "?"));
     setWavesurfer(ws)
     setIsPlaying(false)
     regionsPlugin.clearRegions();
@@ -115,7 +121,28 @@ const MediaPlayer = (props) => {
 
   const onPause = () => {
     setIsPlaying(false);
-    parentHandlePlayPause(false);
+
+    // Deferred by a task, and this is the whole reason the second call would
+    // not play.
+    //
+    // A WaveSurfer instance emits pause as it is destroyed, so this runs inside
+    // that teardown - which happens during the commit that is building the
+    // player for the next call. Setting parent state synchronously here forces
+    // React to re-render mid-commit, the create effect runs a second time, and
+    // the player that was already fetching the next call is destroyed with its
+    // download in flight: "AbortError: signal is aborted without reason".
+    //
+    // This never showed before the audio was gated because a static bucket file
+    // finished downloading before there was anything to interrupt.
+    //
+    // The call id is captured so a pause from a call that has already been
+    // replaced cannot report "nothing is playing" over the call that now is.
+    const pausedCall = call ? call._id : null;
+    setTimeout(() => {
+      const currentCall = currentCallIdRef.current;
+      if (pausedCall !== currentCall) return;
+      parentHandlePlayPause(false);
+    }, 0);
   }
   const onPlayPause = () => {
     wavesurfer && wavesurfer.playPause()
@@ -196,6 +223,8 @@ const MediaPlayer = (props) => {
           waveColor="#E81B39"
           url={call.url}
           fetchParams={FETCH_PARAMS}
+          onLoad={(ws) => console.log("[wf] load    call=" + (call ? call._id : "none"))}
+          onError={(ws, err) => console.error("[wf] ERROR   call=" + (call ? call._id : "none") + "  " + err)}
           onReady={onReady}
           onPlay={onPlay}
           onPause={onPause}
