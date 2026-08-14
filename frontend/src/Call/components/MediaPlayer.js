@@ -241,6 +241,16 @@ const MediaPlayer = (props) => {
       <div className="mediaplayer-item">
 
         <WavesurferPlayer
+          // One player per call, enforced by React rather than by option
+          // identity. Without this the component is reused across calls and
+          // the wrapper decides when to rebuild the WaveSurfer instance from
+          // the identity of every option and handler it was passed - which
+          // left event handlers bound twice, and destroyed the player while it
+          // was still fetching the next call ("AbortError: signal is aborted
+          // without reason"). Keying on the call id unmounts the old player
+          // and mounts a fresh one, so each call gets exactly one instance
+          // with exactly one set of bindings.
+          key={call ? call._id : "none"}
           autoplay={true}
           height={25}
           barWidth={3}
