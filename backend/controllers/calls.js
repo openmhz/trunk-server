@@ -15,9 +15,7 @@ const build_call_list = (items) => {
         call = {
             _id: item._id.toHexString(),
             talkgroupNum: item.talkgroupNum,
-            // Gated redirect rather than item.url, which points straight at the
-            // bucket - see controllers/media.js.
-            url: media.playbackUrl(item.shortName, item._id.toHexString()),
+            url: item.url,
             filename: item.path + item.name,
             time: item.time,
             srcList: item.srcList,
@@ -211,9 +209,7 @@ function package_call(item) {
         shortName: item.shortName,
         talkgroupNum: item.talkgroupNum,
         filename: item.path + item.name,
-        // Gated redirect rather than item.url, which points straight at the
-        // bucket - see controllers/media.js.
-        url: media.playbackUrl(item.shortName, item._id.toHexString()),
+        url: item.url,
         time: item.time,
         timeString: timeString,
         dateString: dateString,

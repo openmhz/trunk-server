@@ -271,11 +271,6 @@ exports.upload = async function (req, res, next) {
 
         if (call.len >= 1) {
           req.call = call.toObject();
-          // The stored url points straight at the bucket, which is private -
-          // fetching it returns 403. The REST responses replace it with the
-          // gated playback endpoint, and calls pushed over the socket have to
-          // match, or a listener receives a live call it cannot play.
-          req.call.url = media.playbackUrl(call.shortName, call._id.toString());
           next();
         }
 
