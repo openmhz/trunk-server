@@ -45,7 +45,21 @@ const MediaPlayer = (props) => {
   const [playTime, setPlayTime] = useState(0);
   const playSilence = props.playSilence;
   const parentHandlePlayPause = props.onPlayPause
-  const regionsPlugin = useMemo(() => RegionsPlugin.create(), []);
+  // A fresh plugin per call, because the player is rebuilt per call.
+  //
+  // Changing the url makes @wavesurfer/react destroy the WaveSurfer instance
+  // and create a new one, and WaveSurfer.destroy() destroys its registered
+  // plugins too - the plugin ends up with isDestroyed set and its wavesurfer
+  // reference cleared. A plugin memoized once for the component's lifetime is
+  // therefore dead from the second call onwards, and onReady below then throws
+  // calling clearRegions() on it. The symptom is that exactly one call plays
+  // per page load and nothing plays again until a refresh.
+  //
+  // Keyed on the call id rather than [] so the plugin is recreated in step with
+  // the instance that owns it. Still stable across re-renders of the same call,
+  // which matters because plugins is one of the options compared by identity.
+  const callId = call ? call._id : null;
+  const regionsPlugin = useMemo(() => RegionsPlugin.create(), [callId]);
   const plugins = useMemo(() => [regionsPlugin], [regionsPlugin]);
 
 
