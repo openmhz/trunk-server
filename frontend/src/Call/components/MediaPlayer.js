@@ -77,6 +77,9 @@ const MediaPlayer = (props) => {
   currentCallIdRef.current = callId;
   const isStale = (id) => id !== currentCallIdRef.current;
 
+  // The element that actually plays the audio - see the playback section below.
+  const audioElRef = useRef(null);
+
   // Playback is owned by a plain audio element, not by WaveSurfer.
   //
   // Left to itself WaveSurfer fetches and decodes the audio to draw the
@@ -138,8 +141,12 @@ const MediaPlayer = (props) => {
   }, [call]);
 
   useEffect(() => {
+    // Volume belongs to the element that actually makes sound.
+    if (audioElRef.current) {
+      audioElRef.current.volume = volume;
+    }
     if (wavesurfer) {
-      wavesurfer.setVolume(volume);
+      wavesurfer.setVolume(0);
     }
   }, [volume, wavesurfer]);
 
@@ -193,8 +200,10 @@ const MediaPlayer = (props) => {
       console.log("[player] finish IGNORED (stale) " + (ws && ws.__tag) + "  call=" + myCall);
       return;
     }
-    console.log("[player] finish " + (ws && ws.__tag) + "  call=" + myCall);
-    if (onEnded) onEnded(ws);
+    // Deliberately does not advance the playlist. The audio element owns
+    // playback and reports the end of a call; WaveSurfer only draws. Letting
+    // both report would advance twice.
+    console.log("[player] waveform finish " + (ws && ws.__tag) + "  call=" + myCall);
   }, [call, onEnded]);
 
   const onPlay = useCallback((ws) => {
@@ -220,8 +229,80 @@ const MediaPlayer = (props) => {
     setIsPlaying(false);
     setTimeout(() => parentHandlePlayPause(false), 0);
   }, [call, parentHandlePlayPause]);
+  // ---------------------------------------------------------------------
+  // Playback.
+  //
+  // This is a plain audio element that React owns, and it is the only thing
+  // that plays sound. WaveSurfer draws the waveform and nothing else.
+  //
+  // WaveSurfer downloads and decodes the audio itself in order to draw, and
+  // when playback rode on that same fetch, every rebuild of the player
+  // cancelled the download and the call went silent. Nothing can cancel this:
+  // the element has a src and plays it. If the waveform fetch is interrupted
+  // the cost is a missing picture.
+  // ---------------------------------------------------------------------
+
   const onPlayPause = () => {
-    wavesurfer && wavesurfer.playPause()
+    const el = audioElRef.current;
+    if (!el) return;
+    if (el.paused) {
+      el.play().catch(err => console.warn("[player] play rejected: " + err));
+    } else {
+      el.pause();
+    }
+  }
+
+  const onAudioPlay = () => {
+    console.log("[player] audio play   call=" + (call ? call._id : "none"));
+    setIsPlaying(true);
+    setTimeout(() => parentHandlePlayPause(true), 0);
+  }
+
+  const onAudioPause = () => {
+    setIsPlaying(false);
+    setTimeout(() => parentHandlePlayPause(false), 0);
+  }
+
+  const onAudioEnded = () => {
+    console.log("[player] audio ended  call=" + (call ? call._id : "none"));
+    if (props.onEnded) props.onEnded();
+  }
+
+  const onAudioError = () => {
+    const el = audioElRef.current;
+    console.error("[player] audio ERROR  call=" + (call ? call._id : "none") +
+      "  code=" + (el && el.error ? el.error.code : "?"));
+  }
+
+  // Keeps the existing progress readout and source-id stepping working, driven
+  // by the element rather than by WaveSurfer.
+  const onAudioTimeUpdate = () => {
+    const el = audioElRef.current;
+    if (!el) return;
+    const currentTime = el.currentTime;
+    if (call && ((call.srcList.length - 1) >= (sourceIndex + 1)) && (currentTime > call.srcList[sourceIndex + 1].pos)) {
+      setSourceIndex(sourceIndex + 1);
+    }
+    setPlayTime(Math.floor(currentTime));
+
+    // Keeps the waveform cursor tracking real playback. WaveSurfer is no longer
+    // the thing playing, so without this the waveform would sit still while the
+    // audio ran - a visible change from how this has always behaved.
+    if (wavesurfer) {
+      try { wavesurfer.setTime(currentTime); } catch (err) { /* not ready yet */ }
+    }
+  }
+
+  // Clicking the waveform to scrub still works: WaveSurfer reports where the
+  // click landed and the audio element seeks there.
+  const onWaveformInteraction = (ws, newTime) => {
+    const el = audioElRef.current;
+    if (el && typeof newTime === "number" && isFinite(newTime)) {
+      el.currentTime = newTime;
+      if (el.paused) {
+        el.play().catch(err => console.warn("[player] play rejected: " + err));
+      }
+    }
   }
 
   // Handlers with an identity that never changes.
@@ -245,6 +326,7 @@ const MediaPlayer = (props) => {
   const stableOnPlay = useCallback((ws) => handlersRef.current.onPlay(ws), []);
   const stableOnPause = useCallback((ws) => handlersRef.current.onPause(ws), []);
   const stableOnAudioprocess = useCallback((ws) => handlersRef.current.updatePlayProgress(ws), []);
+  const stableOnInteraction = useCallback((ws, newTime) => handlersRef.current.onWaveformInteraction(ws, newTime), []);
 
   const updatePlayProgress = () => {
 
@@ -271,7 +353,7 @@ const MediaPlayer = (props) => {
 
   // Kept current every render, while the stable wrappers above keep the
   // identities the wrapper sees from ever changing.
-  handlersRef.current = { onReady, onLoad, onError, onFinishLogged, onPlay, onPause, updatePlayProgress };
+  handlersRef.current = { onReady, onLoad, onError, onFinishLogged, onPlay, onPause, updatePlayProgress, onWaveformInteraction };
 
   let playEnabled = { "disabled": true }
   let sourceId = "-";
@@ -314,6 +396,22 @@ const MediaPlayer = (props) => {
         }
       </div>
 
+      {/* The actual player. Keyed on the call so React swaps the src cleanly,
+          and autoPlay so a newly selected call starts on its own. */}
+      <audio
+        key={call ? call._id : "none"}
+        ref={audioElRef}
+        src={call ? call.url : undefined}
+        autoPlay
+        preload="auto"
+        style={{ display: "none" }}
+        onPlay={onAudioPlay}
+        onPause={onAudioPause}
+        onEnded={onAudioEnded}
+        onError={onAudioError}
+        onTimeUpdate={onAudioTimeUpdate}
+      />
+
       <div className="mediaplayer-item">
 
         <WavesurferPlayer
@@ -327,8 +425,9 @@ const MediaPlayer = (props) => {
           // and mounts a fresh one, so each call gets exactly one instance
           // with exactly one set of bindings.
           key={call ? call._id : "none"}
-          media={mediaEl}
-          autoplay={true}
+          // Display only. Playback belongs to the audio element below, so this
+          // must never start sound of its own or there would be two.
+          autoplay={false}
           height={25}
           barWidth={3}
           barGap={3}
@@ -342,6 +441,7 @@ const MediaPlayer = (props) => {
           onPlay={stableOnPlay}
           onPause={stableOnPause}
           onAudioprocess={stableOnAudioprocess}
+          onInteraction={stableOnInteraction}
           onFinish={stableOnFinish}
           plugins={plugins}
         />
