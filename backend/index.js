@@ -282,7 +282,20 @@ function notify_clients(call) {
 // routes - otherwise anyone could open a socket and receive audio URLs as they
 // are recorded. engine.use runs the session middleware over the handshake so
 // socket.request.session is populated the same way req.session is.
-io.engine.use(sessionMiddleware);
+io.engine.use((req, res, next) => {
+  // Skipped for the WebSocket upgrade. express-session wraps the response to
+  // write its cookie, and doing that during an upgrade breaks the handshake -
+  // the browser reports "WebSocket is closed before the connection is
+  // established", engine.io then discards the session, and every following
+  // poll answers 400. The session has already been resolved during the polling
+  // handshake by then, and io.use below has already accepted the connection,
+  // so there is nothing to re-read here.
+  const upgrade = req.headers && req.headers.upgrade;
+  if (upgrade && String(upgrade).toLowerCase() === 'websocket') {
+    return next();
+  }
+  return sessionMiddleware(req, res, next);
+});
 
 io.use(async function (socket, next) {
   let result;

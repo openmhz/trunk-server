@@ -303,8 +303,16 @@ const MediaPlayer = (props) => {
   }
 
   const onAudioPause = () => {
+    const myCall = call ? call._id : null;
     setIsPlaying(false);
-    setTimeout(() => parentHandlePlayPause(false), 0);
+    // Deferred, so by the time this runs the next call may already be playing.
+    // Reporting "paused" then would tell the parent nothing is playing while it
+    // is, and the parent uses that to decide whether to accept an incoming
+    // call - so a late pause from a finished call must not be reported.
+    setTimeout(() => {
+      if (isStale(myCall)) return;
+      parentHandlePlayPause(false);
+    }, 0);
   }
 
   const onAudioEnded = () => {
