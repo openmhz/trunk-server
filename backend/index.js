@@ -3,6 +3,7 @@ var express = require("express");
 var configureExpress = require("./config/express");
 
 var calls = require("./controllers/calls");
+var media = require("./controllers/media");
 var uploads = require("./controllers/uploads");
 var systems = require("./controllers/systems");
 var talkgroups = require("./controllers/talkgroups");
@@ -135,6 +136,9 @@ app.get('/card/:id', requireListener, calls.get_card);
 app.post('/add_star/:id', requireListener, calls.add_star);
 app.post('/remove_star/:id', requireListener, calls.remove_star);
 app.get('/:shortName/call/:id', requireListener, calls.get_call);
+// Redirects to a short-lived presigned URL. This is what the player actually
+// plays - objects in the bucket are private.
+app.get('/:shortName/call/:id/media', requireListener, media.get_media);
 app.get('/:shortName/calls/latest', requireListener, calls.get_latest_calls);
 app.get('/:shortName/calls/next', requireListener, calls.get_next_calls);
 app.get('/:shortName/calls/newer', requireListener, calls.get_newer_calls);

@@ -223,11 +223,14 @@ exports.upload = async function (req, res, next) {
           try {
             fileContent = fs.readFileSync(req.file.path);
             readFileTime = Date.now();
+            // No ACL: objects are private and reached through a presigned URL
+            // issued by controllers/media.js once the listener is verified.
+            // public-read here would make the listener gate decorative, since
+            // the object keys are predictable.
             const command = new PutObjectCommand({
               Bucket: s3_bucket,
               Key: object_key,
               Body: fileContent,
-              ACL: 'public-read',
             });
             var result = await client.send(command);
             if (result && result.$metadata.httpStatusCode !== 200) {

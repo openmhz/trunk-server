@@ -31,9 +31,11 @@ services:
       options:
         tag: "minio"
 
-  # One-shot: create the bucket and open it for anonymous reads.
-  # The backend stores plain public URLs on each Call and never presigns,
-  # so without the anonymous download policy the UI lists calls that will not play.
+  # One-shot: create the bucket and make sure it is NOT anonymously readable.
+  # The backend now hands the player a gated redirect that presigns a
+  # short-lived URL, so nothing needs public access. An anonymous download
+  # policy would override every object ACL and make the listener gate
+  # decorative, since the object keys are guessable.
   minio-init:
     image: minio/mc:latest
     depends_on:
@@ -43,8 +45,8 @@ services:
       /bin/sh -c "
       mc alias set local http://minio:9000 minioadmin minioadmin &&
       mc mb --ignore-existing local/${S3_BUCKET} &&
-      mc anonymous set download local/${S3_BUCKET} &&
-      echo 'MinIO bucket ${S3_BUCKET} ready'
+      mc anonymous set none local/${S3_BUCKET} &&
+      echo 'MinIO bucket ${S3_BUCKET} ready (private - playback uses presigned URLs)'
       "
     networks:
       - node

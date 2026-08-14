@@ -2,6 +2,7 @@
 const { ObjectId } = require('mongodb');
 const Call = require("../models/call");
 const Group = require("../models/group");
+const media = require("./media");
 const opentelemetry = require('@opentelemetry/api');
 var defaultNumResults = 50;
 
@@ -14,7 +15,9 @@ const build_call_list = (items) => {
         call = {
             _id: item._id.toHexString(),
             talkgroupNum: item.talkgroupNum,
-            url: item.url,
+            // Gated redirect rather than item.url, which points straight at the
+            // bucket - see controllers/media.js.
+            url: media.playbackUrl(item.shortName, item._id.toHexString()),
             filename: item.path + item.name,
             time: item.time,
             srcList: item.srcList,
@@ -33,6 +36,8 @@ async function get_calls(query, numResults, middleDate, res) {
     var calls = [];
     var fields = {
         _id: true,
+        // Needed to build the playback URL, which is namespaced by system.
+        shortName: true,
         talkgroupNum: true,
         path: true,
         name: true,
@@ -206,7 +211,9 @@ function package_call(item) {
         shortName: item.shortName,
         talkgroupNum: item.talkgroupNum,
         filename: item.path + item.name,
-        url: item.url,
+        // Gated redirect rather than item.url, which points straight at the
+        // bucket - see controllers/media.js.
+        url: media.playbackUrl(item.shortName, item._id.toHexString()),
         time: item.time,
         timeString: timeString,
         dateString: dateString,
