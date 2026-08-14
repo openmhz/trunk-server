@@ -13,7 +13,7 @@ import {
   Button
 } from "semantic-ui-react";
 import ReactAudioPlayer from 'react-audio-player'
-import WavesurferPlayer from '@wavesurfer/react'
+import WaveSurfer from 'wavesurfer.js'
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js';
 
 
@@ -30,40 +30,7 @@ import "./MediaPlayer.css";
 // below is memoized.
 const FETCH_PARAMS = { credentials: "include" };
 
-/**
- * The waveform, isolated so the rest of the player cannot disturb it.
- *
- * MediaPlayer re-renders several times a second while a call plays, because it
- * updates the elapsed-time readout. Every one of those renders reached into
- * @wavesurfer/react and made it rebuild the player - which cancels the download
- * it needs in order to draw. That is why only the first call ever got a
- * waveform: nothing was playing yet, so nothing was re-rendering.
- *
- * Wrapped in memo and compared on the url alone, this only re-renders when the
- * call actually changes. The handlers are stable wrappers that dispatch through
- * a ref, so they never change identity but always call current code.
- */
-const Waveform = React.memo(
-  function Waveform({ url, plugins, onReady, onError, onInteraction }) {
-    return (
-      <WavesurferPlayer
-        autoplay={false}
-        height={25}
-        barWidth={3}
-        barGap={3}
-        barRadius={6}
-        waveColor="#E81B39"
-        url={url}
-        fetchParams={FETCH_PARAMS}
-        plugins={plugins}
-        onReady={onReady}
-        onError={onError}
-        onInteraction={onInteraction}
-      />
-    );
-  },
-  (prev, next) => prev.url === next.url && prev.plugins === next.plugins
-);
+
 
 
 
@@ -100,14 +67,76 @@ const MediaPlayer = (props) => {
   // waveform fetch now costs a picture, never the audio.
   const audioElRef = useRef(null);
 
-  // Bumped to retry a waveform whose download was cancelled. Part of the key on
-  // the player, so a retry builds a fresh instance rather than reusing a
-  // half-loaded one.
-  const [waveformAttempt, setWaveformAttempt] = useState(0);
+  // The waveform, built directly on wavesurfer.js rather than through
+  // @wavesurfer/react.
+  //
+  // The wrapper decides for itself when to rebuild the player, from the
+  // identity of everything passed to it, and it rebuilt during the commit that
+  // switches calls - cancelling the download it needed in order to draw. There
+  // is no way to prevent that from outside the wrapper, which is why no call
+  // after the first ever drew.
+  //
+  // Owning the instance here means the effect below depends on exactly one
+  // thing: the audio url. Nothing else in this component can trigger a rebuild,
+  // so the download is never interrupted.
+  const waveContainerRef = useRef(null);
+  const wsRef = useRef(null);
+  const waveUrl = call ? call.url : null;
 
   useEffect(() => {
-    setWaveformAttempt(0);
-  }, [call]);
+    const container = waveContainerRef.current;
+    if (!container || !waveUrl) return;
+
+    const regions = RegionsPlugin.create();
+    const ws = WaveSurfer.create({
+      container,
+      height: 25,
+      barWidth: 3,
+      barGap: 3,
+      barRadius: 6,
+      waveColor: "#E81B39",
+      // Display only. The audio element makes the sound, so this stays silent.
+      autoplay: false,
+      fetchParams: FETCH_PARAMS,
+      plugins: [regions],
+    });
+    wsRef.current = ws;
+    ws.setVolume(0);
+
+    ws.on("ready", () => {
+      console.log("[wf] ready   call=" + (call ? call._id : "none") + "  duration=" + ws.getDuration().toFixed(2));
+      // Markers must never be able to break the waveform.
+      try {
+        regions.clearRegions();
+        (call && call.srcList ? call.srcList : []).forEach((src) => {
+          regions.addRegion({
+            start: src.pos,
+            color: "rgba(128, 128, 128, 1.0)",
+            drag: false,
+            resize: false,
+          });
+        });
+      } catch (err) {
+        console.warn("[wf] markers failed: " + err);
+      }
+    });
+
+    // Clicking the waveform seeks the audio element, so scrubbing controls
+    // real playback.
+    ws.on("interaction", (newTime) => onWaveformInteraction(ws, newTime));
+    ws.on("error", (err) => console.warn("[wf] " + err));
+
+    const loading = ws.load(waveUrl);
+    if (loading && typeof loading.catch === "function") {
+      loading.catch(() => { /* superseded or torn down */ });
+    }
+
+    return () => {
+      wsRef.current = null;
+      try { ws.destroy(); } catch (err) { /* already gone */ }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [waveUrl]);
 
 
   useEffect(() => {
@@ -125,8 +154,7 @@ const MediaPlayer = (props) => {
       });
     }
 
-    wavesurfer && wavesurfer.load("/silence.m4a");
-    regionsPlugin.clearRegions();
+    // The waveform is rebuilt per call by its own effect; nothing to do here.
 
     // // In browsers that don’t yet support this functionality,
     // // playPromise won’t be defined.
@@ -148,10 +176,11 @@ const MediaPlayer = (props) => {
   }, [call]);
 
   useEffect(() => {
-    if (wavesurfer) {
-      wavesurfer.setVolume(volume);
+    // Volume belongs to the audio element; the waveform stays silent.
+    if (audioElRef.current) {
+      audioElRef.current.volume = volume;
     }
-  }, [volume, wavesurfer]);
+  }, [volume]);
 
 
   const onReady = (ws) => {
@@ -251,9 +280,9 @@ const MediaPlayer = (props) => {
 
     // Move the waveform cursor with real playback. As a proportion, so it stays
     // correct even if WaveSurfer decoded a slightly different duration.
-    if (wavesurfer && el.duration && isFinite(el.duration) && el.duration > 0) {
+    if (wsRef.current && el.duration && isFinite(el.duration) && el.duration > 0) {
       try {
-        wavesurfer.seekTo(Math.min(1, Math.max(0, currentTime / el.duration)));
+        wsRef.current.seekTo(Math.min(1, Math.max(0, currentTime / el.duration)));
       } catch (err) { /* waveform not drawn yet */ }
     }
   }
@@ -370,13 +399,7 @@ const MediaPlayer = (props) => {
 
       <div className="mediaplayer-item">
 
-        <Waveform
-          url={call.url}
-          plugins={plugins}
-          onReady={stableWfReady}
-          onError={stableWfError}
-          onInteraction={stableWfInteraction}
-        />
+        <div ref={waveContainerRef} className="waveform-container" />
       </div>
 
       <div className="label-item">
