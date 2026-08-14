@@ -79,8 +79,15 @@ mongoose.connection.on("error", console.error)
 mongoose.connection.on("disconnected", connect)
 
 
+// fileSize matches client_max_body_size in nginx-proxy/proxy.conf. Without a
+// limit here, anything that reaches port 3005 without going through nginx can
+// write unbounded files into the upload directory.
 var upload = multer({
-  dest: config.uploadDirectory
+  dest: config.uploadDirectory,
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+    files: 1
+  }
 });
 
 var clients = [];
@@ -186,13 +193,16 @@ app.get('/:shortName/clients', get_clients);
 app.use(function (err, req, res, next) {
   console.error("Caught an error");
   console.error(err.stack);
-  /*
-  res.status(err.status || 500);
-  res.contentType('json');
-  res.send(JSON.stringify({
-      message: err.message,
-      error: err
-  }));*/
+  if (res.headersSent) {
+    return next(err);
+  }
+  // multer routes malformed multipart and limit violations here. Without a
+  // response the client just hangs until it times out.
+  if (err instanceof multer.MulterError) {
+    res.status(400).send(err.code + "\n");
+  } else {
+    res.status(err.status || 500).send("Error\n");
+  }
 });
 
 

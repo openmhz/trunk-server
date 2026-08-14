@@ -61,6 +61,18 @@ const client = new S3Client({
   forcePathStyle: s3_force_path_style,
 });
 
+// Multer has already written the upload to disk by the time this handler runs -
+// including for requests that turn out to be unauthenticated - so every early
+// return has to clean up after itself or the temp file is orphaned forever.
+function discardTempFile(req) {
+  if (!req.file) return;
+  try {
+    fs.unlinkSync(req.file.path);
+  } catch (err) {
+    console.warn(`[${req.params.shortName}] error deleting: ${req.file.path}`);
+  }
+}
+
 exports.upload = async function (req, res, next) {
   const tracer = trace.getTracer("upload-service");
   let start_time = Date.now();
@@ -84,6 +96,7 @@ exports.upload = async function (req, res, next) {
             code: opentelemetry.SpanStatusCode.ERROR,
             message: "Invalid file or filename",
           });
+          discardTempFile(req);
           res.status(500).send("Error, invalid filename:\n");
           return;
         }
@@ -108,6 +121,7 @@ exports.upload = async function (req, res, next) {
           srcList = JSON.parse(req.body.source_list);
         } catch (err) {
           console.warn(`[${req.params.shortName}] Error /:shortName/upload Parsing Source/Freq List - Error: ${err}`);
+          discardTempFile(req);
           res.status(500).send("Error parsing sourcelist " + err);
           return;
         }
@@ -144,16 +158,19 @@ exports.upload = async function (req, res, next) {
 
         if (!item) {
           console.warn(`[${req.params.shortName}] Error /:shortName/upload ShortName does not exist`);
+          discardTempFile(req);
           res.status(500).send("ShortName does not exist: " + shortName + "\n");
           return;
         }
         if (apiKey !== item.key) {
           console.warn(`[${req.params.shortName}] Error /:shortName/upload API Key Mismatch - Provided key: ${apiKey}`);
+          discardTempFile(req);
           res.status(500).send("API Keys do not match!\n");
           return;
         }
 
         if (shortName === "hennearmer" && [3421, 3423].includes(talkgroupNum)) {
+          discardTempFile(req);
           res.status(200).end();
           return;
         }
