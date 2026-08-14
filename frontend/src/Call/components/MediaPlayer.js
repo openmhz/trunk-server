@@ -424,7 +424,11 @@ const MediaPlayer = (props) => {
           // without reason"). Keying on the call id unmounts the old player
           // and mounts a fresh one, so each call gets exactly one instance
           // with exactly one set of bindings.
-          key={call ? call._id : "none"}
+          // Deliberately not keyed on the call. Remounting per call destroyed
+          // the instance mid-download and aborted the waveform fetch, which is
+          // why no waveform drew after the first call. Kept mounted, it reloads
+          // when the url changes and the fetch gets to finish.
+          //
           // Display only. Playback belongs to the audio element below, so this
           // must never start sound of its own or there would be two.
           autoplay={false}
