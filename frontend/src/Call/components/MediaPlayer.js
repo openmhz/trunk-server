@@ -193,16 +193,29 @@ const MediaPlayer = (props) => {
     // constantly, and each load aborted the one before it. The waveform never
     // finished decoding, which is why it did not match the audio.
     if (loadedWaveformUrlRef.current === call.url) return;
-    loadedWaveformUrlRef.current = call.url;
+
+    const requested = call.url;
+    loadedWaveformUrlRef.current = requested;
+    console.log("[player] waveform load  call=" + call._id);
 
     try {
-      const result = wavesurfer.load(call.url);
-      // load() rejects if a newer load supersedes this one, which is normal
-      // when calls advance quickly and must not surface as an error.
+      const result = wavesurfer.load(requested);
       if (result && typeof result.catch === "function") {
-        result.catch(() => {});
+        result.catch((err) => {
+          // Clear the marker so this call can be drawn again. Marking it loaded
+          // up front and leaving it there meant a failed or superseded load was
+          // never retried, and the waveform kept showing whichever call last
+          // succeeded - which is why every call appeared to have the same one.
+          if (loadedWaveformUrlRef.current === requested) {
+            loadedWaveformUrlRef.current = null;
+          }
+          console.warn("[player] waveform load did not finish: " + (err && err.message ? err.message : err));
+        });
       }
     } catch (err) {
+      if (loadedWaveformUrlRef.current === requested) {
+        loadedWaveformUrlRef.current = null;
+      }
       console.warn("[player] waveform load failed: " + err);
     }
   }, [wavesurfer, call]);
