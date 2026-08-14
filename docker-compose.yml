@@ -63,6 +63,11 @@ services:
     image: "backend:${TAG}-${STAGE}"
     pid: "host"
     environment:
+      # Defaults to disabled: otel-tracing.js starts the SDK unconditionally at
+      # require time, so without this the OTel stack is live (and parsing the
+      # baggage/traceparent headers off every public request) even with no
+      # collector configured. Set OTEL_SDK_DISABLED=false to turn tracing on.
+      - OTEL_SDK_DISABLED=${OTEL_SDK_DISABLED:-true}
       - OTEL_EXPORTER_OTLP_PROTOCOL
       - OTEL_EXPORTER_OTLP_ENDPOINT
       - OTEL_EXPORTER_OTLP_HEADERS
@@ -92,7 +97,10 @@ services:
     depends_on:
       - mongo
     ports:
-      - "3005:3005"
+      # Loopback only. nginx reaches the backend over the "proxy" network as
+      # http://backend:3005, so publishing this on 0.0.0.0 only exposes a route
+      # around nginx (and around ufw, since docker writes its own iptables rules).
+      - "127.0.0.1:3005:3005"
     networks:
       - node
       - proxy
