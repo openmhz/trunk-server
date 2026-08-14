@@ -4,9 +4,9 @@ var System = require("../models/system");
 const Mailjet = require('node-mailjet');
 var schedule = require('node-schedule');
 
-var admin_email = process.env['REACT_APP_ADMIN_EMAIL'] != null ? process.env['REACT_APP_ADMIN_EMAIL'] : "luke@openmhz.com";
-var admin_server = process.env['REACT_APP_ADMIN_SERVER'] != null ? process.env['REACT_APP_ADMIN_SERVER'] : "https://admin.openmhz.com";
-var site_name = process.env['REACT_APP_SITE_NAME'] != null ? process.env['REACT_APP_SITE_NAME'] : "OpenMHz";
+var admin_email = process.env['REACT_APP_ADMIN_EMAIL'] != null ? process.env['REACT_APP_ADMIN_EMAIL'] : "admin@hamrecorder.com";
+var admin_server = process.env['REACT_APP_ADMIN_SERVER'] != null ? process.env['REACT_APP_ADMIN_SERVER'] : "https://admin.hamrecorder.com";
+var site_name = process.env['REACT_APP_SITE_NAME'] != null ? process.env['REACT_APP_SITE_NAME'] : "HamRecorder";
 
 const mailjet = new Mailjet({
   apiKey: process.env['MAILJET_KEY'],

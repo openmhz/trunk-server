@@ -2,9 +2,9 @@ var path = require("path");
 var express = require("express");
 var bodyParser = require("body-parser");
 
-var backend_server = process.env['REACT_APP_BACKEND_SERVER'] != null ? process.env['REACT_APP_BACKEND_SERVER'] : 'https://api.openmhz.com';
-var frontend_server = process.env['REACT_APP_FRONTEND_SERVER'] != null ? process.env['REACT_APP_FRONTEND_SERVER'] : 'https://openmhz.com';
-var admin_server = process.env['REACT_APP_ADMIN_SERVER'] != null ? process.env['REACT_APP_ADMIN_SERVER'] : 'https://admin.openmhz.com'; //'https://s3.amazonaws.com/robotastic';
+var backend_server = process.env['REACT_APP_BACKEND_SERVER'] != null ? process.env['REACT_APP_BACKEND_SERVER'] : 'https://api.hamrecorder.com';
+var frontend_server = process.env['REACT_APP_FRONTEND_SERVER'] != null ? process.env['REACT_APP_FRONTEND_SERVER'] : 'https://hamrecorder.com';
+var admin_server = process.env['REACT_APP_ADMIN_SERVER'] != null ? process.env['REACT_APP_ADMIN_SERVER'] : 'https://admin.hamrecorder.com'; //'https://s3.amazonaws.com/robotastic';
 var dev_server = frontend_server + ":3000"
 
 
@@ -34,7 +34,7 @@ module.exports = function(app) {
 	    allowedOrigins.push(frontend_server);
 	    allowedOrigins.push(backend_server);
 		allowedOrigins.push(dev_server);
-		allowedOrigins.push("https://www.openmhz.com");
+		allowedOrigins.push("https://www.hamrecorder.com");
 
 	    var origin = req.headers.origin;
 
