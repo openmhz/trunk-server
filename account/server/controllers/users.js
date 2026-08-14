@@ -35,7 +35,10 @@ exports.authenticated = function (req, res, next) {
       firstName,
       lastName,
       screenName,
-      location,
+      callsign,
+      city,
+      state,
+      country,
       email,
       admin,
       terms
@@ -43,7 +46,10 @@ exports.authenticated = function (req, res, next) {
       firstName,
       lastName,
       screenName,
-      location,
+      callsign,
+      city,
+      state,
+      country,
       email,
       admin,
       terms
@@ -113,7 +119,10 @@ exports.login = function (req, res, next) {
         firstName,
         lastName,
         screenName,
-        location,
+        callsign,
+        city,
+        state,
+        country,
         email,
         admin,
         terms
@@ -121,7 +130,10 @@ exports.login = function (req, res, next) {
         firstName,
         lastName,
         screenName,
-        location,
+        callsign,
+        city,
+        state,
+        country,
         email,
         admin,
         terms
@@ -532,18 +544,50 @@ exports.validateProfile = function (req, res, next) {
   }
   res.locals.lastName = req.body.lastName.replace(/[^\w\s\.\,\-\'\`]/gi, '');
 
-
-  res.locals.screenName = req.body.screenName.replace(/[^\w\s\.\,\-\_]/gi, '');
-
-  if (!req.body.location || (req.body.location.length < 2)) {
-    console.error("ERROR: Validate System - req.body.location");
+  // The callsign is the account's public identity, and screenName is derived
+  // from it on save. Stored lowercase so the unique index matches
+  // case-insensitively; the UI uppercases it for display.
+  if (!req.body.callsign) {
+    console.error("ERROR: Validate Profile - req.body.callsign");
     res.json({
       success: false,
-      message: "System location is Required"
+      message: "Callsign is Required"
     });
     return;
   }
-  res.locals.location = req.body.location.replace(/[^\w\s\.\,\-\_]/gi, '');
+  const callsign = req.body.callsign.trim().toLowerCase();
+  if (!/^[a-z0-9]{3,7}$/.test(callsign)) {
+    console.error("ERROR: Validate Profile - callsign format: " + callsign);
+    res.json({
+      success: false,
+      message: "Callsign must be 3 to 7 letters and numbers, with no spaces or punctuation"
+    });
+    return;
+  }
+  res.locals.callsign = callsign;
+
+  if (!req.body.city || (req.body.city.length < 2)) {
+    console.error("ERROR: Validate Profile - req.body.city");
+    res.json({
+      success: false,
+      message: "City is Required"
+    });
+    return;
+  }
+  res.locals.city = req.body.city.replace(/[^\w\s\.\,\-\'\`]/gi, '');
+
+  // State, province or region is optional - much of the world has no equivalent.
+  res.locals.state = req.body.state ? req.body.state.replace(/[^\w\s\.\,\-\'\`]/gi, '') : "";
+
+  if (!req.body.country || (req.body.country.length < 2)) {
+    console.error("ERROR: Validate Profile - req.body.country");
+    res.json({
+      success: false,
+      message: "Country is Required"
+    });
+    return;
+  }
+  res.locals.country = req.body.country.replace(/[^\w\s\.\,\-\'\`]/gi, '');
 
   next();
 }
@@ -575,9 +619,9 @@ exports.updateProfile = async function (req, res, next) {
     return;
   }
 
-  // Lets make sure someone else isn't using this screenName
-
-  screenNameUser = await User.findOne({ screenName:  { '$regex': escapeRegExp(req.body.screenName) , $options: 'i' }  }).catch(err => {
+  // Lets make sure someone else isn't using this callsign. Both sides are
+  // stored lowercase, so this is a plain equality check rather than a regex.
+  const callsignUser = await User.findOne({ callsign: res.locals.callsign }).catch(err => {
     console.error(err);
     res.status(500);
     res.json({
@@ -587,12 +631,14 @@ exports.updateProfile = async function (req, res, next) {
     return;
   });
 
-  // Did we find a user with the screeName, is it not us?
-  if (screenNameUser && (screenNameUser.userId != user.userId)) {
+  // Did we find a user with this callsign, and is it not us? Compare _id -
+  // User documents have no userId field, so the previous comparison was always
+  // false and let the unique index fail the save instead.
+  if (callsignUser && !callsignUser._id.equals(user._id)) {
     res.status(500);
     res.json({
       success: false,
-      message: "Screen Name already in use"
+      message: "Callsign already in use"
     });
     return;
   }
@@ -602,8 +648,10 @@ exports.updateProfile = async function (req, res, next) {
   // go ahead and create the new user
   user.firstName = res.locals.firstName
   user.lastName = res.locals.lastName
-  user.screenName = res.locals.screenName
-  user.location = res.locals.location
+  user.callsign = res.locals.callsign
+  user.city = res.locals.city
+  user.state = res.locals.state
+  user.country = res.locals.country
 
 
   await user.save().catch(err => {
@@ -618,12 +666,18 @@ exports.updateProfile = async function (req, res, next) {
     firstName,
     lastName,
     screenName,
-    location
+    callsign,
+    city,
+    state,
+    country
   }) => ({
     firstName,
     lastName,
     screenName,
-    location
+    callsign,
+    city,
+    state,
+    country
   }))(
     user
   );
@@ -665,7 +719,9 @@ exports.register = async function (req, res, next) {
     });
     return;
   }
-  user = await User.findOne({ screenName: req.body.screenName }).catch(err => {
+  // res.locals.callsign is already normalized to lowercase by validateProfile,
+  // and the stored value is lowercase too, so this compares like for like.
+  user = await User.findOne({ callsign: res.locals.callsign }).catch(err => {
     console.error(err);
     res.status(500);
     res.json({
@@ -674,29 +730,31 @@ exports.register = async function (req, res, next) {
     });
     return;
   });
-  // is email address already in use?
+  // is the callsign already claimed?
   if (user) {
     res.status(500);
     res.json({
       success: false,
-      message: "Screen Name already in use"
+      message: "Callsign already in use"
     });
     return;
   }
-  // go ahead and create the new user
+  // go ahead and create the new user. screenName is not taken from input - the
+  // model derives it from the callsign on save.
   user = (({
     firstName,
     lastName,
-    screenName,
-    location,
-    email,
-    password
+    callsign,
+    city,
+    state,
+    country
   }) => ({
     firstName,
     lastName,
-    screenName,
-    location,
-
+    callsign,
+    city,
+    state,
+    country
   }))(
     res.locals
   );

@@ -18,14 +18,28 @@ const UserSchema = new mongoose.Schema({
 		lowercase: true
 	},
 	password: String,
+	// Mirrors callsign - see the pre-save hook below. Kept as its own field so
+	// showScreenName on systems and the existing admin queries keep working.
 	screenName: {
 		type: String,
 		unique: true,
 		lowercase: true
 	},
+	// Stored lowercase so the unique index enforces case-insensitively - N6KEN
+	// and n6ken cannot become two accounts. Uppercased for display only.
+	callsign: {
+		type: String,
+		unique: true,
+		lowercase: true,
+		trim: true,
+		maxlength: 7
+	},
 	firstName: String,
 	lastName: String,
-	location: String,
+	city: String,
+	// Optional: much of the world has no state or province.
+	state: String,
+	country: String,
 	email: String,
 	resetPasswordToken: String,
 	resetPasswordTTL: Date,
@@ -69,6 +83,21 @@ UserSchema.pre("save", function(next) {
 	})
 })*/
 
+/**
+ * The callsign is the account's public identity, so screenName is derived from
+ * it rather than entered separately. Both carry lowercase: true, so this stays
+ * normalized whatever case the callsign arrives in.
+ */
+UserSchema.pre("save", function(next) {
+	if (this.isModified("callsign") && this.callsign) {
+		this.screenName = this.callsign;
+	}
+	next();
+});
+
+/**
+ * Password hash middleware.
+ */
 UserSchema.pre("save", function(next) {
     if(!this.isModified("password")) {
         return next();

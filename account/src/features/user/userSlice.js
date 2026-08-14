@@ -188,7 +188,10 @@ export const userSlice = createSlice({
         email: "",
         firstName: "",
         lastName: "",
-        location: "",
+        city: "",
+        state: "",
+        country: "",
+        callsign: "",
         screenName: "",
         terms: 0,
     },
@@ -213,7 +216,10 @@ export const userSlice = createSlice({
                 state.email = payload.user.email;
                 state.firstName = payload.user.firstName;
                 state.lastName = payload.user.lastName;
-                state.location = payload.user.location;
+                state.city = payload.user.city;
+                state.state = payload.user.state;
+                state.country = payload.user.country;
+                state.callsign = payload.user.callsign;
                 state.screenName = payload.user.screenName;
                 state.terms = payload.user.terms;
             } else {
@@ -226,9 +232,12 @@ export const userSlice = createSlice({
             if (payload.success) {
                 state.firstName = payload.user.firstName;
                 state.lastName = payload.user.lastName;
-                state.location = payload.user.location;
+                state.city = payload.user.city;
+                state.state = payload.user.state;
+                state.country = payload.user.country;
+                state.callsign = payload.user.callsign;
                 state.screenName = payload.user.screenName;
-            } 
+            }
         },
         [loginUser.rejected]: (state, { payload }) => {
             state.authenticated = false;
@@ -250,7 +259,10 @@ export const userSlice = createSlice({
                 state.email = payload.user.email;
                 state.firstName = payload.user.firstName;
                 state.lastName = payload.user.lastName;
-                state.location = payload.user.location;
+                state.city = payload.user.city;
+                state.state = payload.user.state;
+                state.country = payload.user.country;
+                state.callsign = payload.user.callsign;
                 state.screenName = payload.user.screenName;
                 state.terms = payload.user.terms;
             } else {

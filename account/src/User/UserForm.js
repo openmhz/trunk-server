@@ -15,29 +15,35 @@ const UserForm = (props) => {
   const [checkInputMessages, setCheckInputMessages] = useState([]);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [screenName, setScreenName] = useState("");
+  const [callsign, setCallsign] = useState("");
   const [email, setEmail] = useState("");
-  const [location, setLocation] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [country, setCountry] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstNameError, setFirstNameError] = useState(false);
   const [lastNameError, setLastNameError] = useState(false);
-  const [screenNameError, setScreenNameError] = useState(false);
+  const [callsignError, setCallsignError] = useState(false);
   const [emailError, setEmailError] = useState(false);
-  const [locationError, setLocationError] = useState(false);
+  const [cityError, setCityError] = useState(false);
+  const [countryError, setCountryError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
   const [isEditing] = useState(props.isEditing);
   const [changed, setChanged] = useState(false);
   const requestMessage = props.requestMessage;
-  
+
   useEffect(() => {
     if (props.isEditing) {
       setFirstName(props.user.firstName);
       setLastName(props.user.lastName);
-      setScreenName(props.user.screenName);
+      // Stored lowercase, shown uppercase - see the callsign field below.
+      setCallsign((props.user.callsign || "").toUpperCase());
       setEmail(props.user.email);
-      setLocation(props.user.location);
+      setCity(props.user.city || "");
+      setState(props.user.state || "");
+      setCountry(props.user.country || "");
       setChanged(false);
     }
   }, [props.isEditing, props.user]);
@@ -70,20 +76,34 @@ const UserForm = (props) => {
       setEmailError(false);
     }
 
-    if (location === "") {
-      setLocationError(true);
-      inputMessages.push("Location is required");
+    if (city === "") {
+      setCityError(true);
+      inputMessages.push("City is required");
       error = true;
     } else {
-      setLocationError(false);
+      setCityError(false);
     }
 
-    if (screenName === "") {
-      setScreenNameError(true);
-      inputMessages.push("Screen Name is required");
+    if (country === "") {
+      setCountryError(true);
+      inputMessages.push("Country is required");
       error = true;
     } else {
-      setScreenNameError(false);
+      setCountryError(false);
+    }
+
+    // Mirrors the server rule in validateProfile so the message arrives before
+    // a round trip. 3 to 7 characters covers base callsigns worldwide.
+    if (callsign === "") {
+      setCallsignError(true);
+      inputMessages.push("Callsign is required");
+      error = true;
+    } else if (!/^[A-Z0-9]{3,7}$/.test(callsign)) {
+      setCallsignError(true);
+      inputMessages.push("Callsign must be 3 to 7 letters and numbers, with no spaces or punctuation");
+      error = true;
+    } else {
+      setCallsignError(false);
     }
 
     if (props.isEditing) {
@@ -121,7 +141,9 @@ const UserForm = (props) => {
     let inputError = checkInputs();
 
     if (!inputError) {
-      const user ={ firstName, lastName, screenName, location, email, password };
+      // The callsign goes up as typed - the server lowercases it, and the
+      // model derives screenName from it.
+      const user = { firstName, lastName, callsign, city, state, country, email, password };
       setChanged(false);
       props.onSubmit(user);
     }
@@ -208,15 +230,18 @@ const UserForm = (props) => {
           <Form.Field>
             <Form.Input
               type="text"
-              name="screenName"
-              onChange={e => {setScreenName(e.target.value); setChanged(true)}}
-              error={screenNameError}
-              value={screenName}
-              label="Screen Name"
-              placeholder="Screen Name..."
+              name="callsign"
+              maxLength={7}
+              // Uppercased as you type so what you see here matches how it is
+              // displayed everywhere else. The server stores it lowercase.
+              onChange={e => {setCallsign(e.target.value.toUpperCase()); setChanged(true)}}
+              error={callsignError}
+              value={callsign}
+              label="Amateur Radio Callsign"
+              placeholder="N0CALL"
             />
             <p style={{ fontStyle: "italic" }}>
-              Shown on OpenMHz for each of your systems
+              Your callsign is how you are identified on {process.env.REACT_APP_SITE_NAME}
             </p>
           </Form.Field>
         </Form.Group>
@@ -224,12 +249,33 @@ const UserForm = (props) => {
           <Form.Field>
             <Form.Input
               type="text"
-              name="location"
-              onChange={e => {setLocation(e.target.value); setChanged(true)}}
-              error={locationError}
-              value={location}
-              label="General Location"
-              placeholder="City, State..."
+              name="city"
+              onChange={e => {setCity(e.target.value); setChanged(true)}}
+              error={cityError}
+              value={city}
+              label="City"
+              placeholder="City..."
+            />
+          </Form.Field>
+          <Form.Field>
+            <Form.Input
+              type="text"
+              name="state"
+              onChange={e => {setState(e.target.value); setChanged(true)}}
+              value={state}
+              label="State / Province / Region"
+              placeholder="Optional..."
+            />
+          </Form.Field>
+          <Form.Field>
+            <Form.Input
+              type="text"
+              name="country"
+              onChange={e => {setCountry(e.target.value); setChanged(true)}}
+              error={countryError}
+              value={country}
+              label="Country"
+              placeholder="Country..."
             />
           </Form.Field>
         </Form.Group>
