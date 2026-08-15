@@ -21,7 +21,6 @@ const CallItem = (props) => {
   const talkgroups = props.talkgroups;
   const activeCall = props.activeCall;
   const [starVisible, setStarVisible] = useState(false);
-  const [starClicked, setStarClicked] = useState(false);
   const [inPlaylist, setInPlaylist] = useState(false);
 
   const dispatch = useDispatch();
@@ -36,22 +35,26 @@ const CallItem = (props) => {
     }
   }, [playlist]);
 
+  // Whether this call is starred comes from the server, not from local state.
+  // It used to be tracked in a `starClicked` flag that always began false, so
+  // clicking a call that was already starred sent addStar again and the star
+  // could never be removed. The reducers swap in the call the server returns,
+  // so the icon follows the real answer.
+  const isStarred = !!call.star;
+
   const handleStarClicked = (e) => {
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
-    if (!starClicked) {
-      setStarClicked(true);
-      dispatch(addStar(props.call._id));
-    } else {
-      setStarClicked(false);
+    if (isStarred) {
       dispatch(removeStar(props.call._id));
+    } else {
+      dispatch(addStar(props.call._id));
     }
   }
 
   let rowSelected = {};
   let starButton;
-  let starClickable = {};
 
   const onDragStart = (event) => {
     // It receives a DragEvent
@@ -79,23 +82,13 @@ const CallItem = (props) => {
     }
   }
 
-  if (!starClicked) {
-    starClickable = { link: true };
-  }
-  if (!call.star && starVisible) {
-    starButton = <Icon name='star outline' />
-  }
-
-  if (call.star) {
-    starButton = <Icon name='star' />
-  }
-  if (call.star && call.star > 1) {
-    starButton = (<Icon.Group >
-      <Icon {...starClickable} name='star' />
-      <Label circular color='red' size='mini' floating>
-        {call.star}
-      </Label>
-    </Icon.Group>)
+  // A hollow star appears on hover as an invitation; a filled one means you
+  // have starred it. There is no count any more - a star is yours alone, so
+  // the badge that used to show how many people had starred a call is gone.
+  if (isStarred) {
+    starButton = <Icon link name='star' color='yellow' title='Remove from your starred calls' />
+  } else if (starVisible) {
+    starButton = <Icon link name='star outline' title='Star this call' />
   }
 
   if (activeCall) {

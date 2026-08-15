@@ -232,8 +232,11 @@ function notify_clients(call) {
       var client = clients[key];
       if (client.active) {
         if (client.shortName == call.shortName.toLowerCase()) {
-          // if client is not filtering for stars, or if the client is filtering and the call has stars
-          if (!client.filterStarred || call.star) {
+          // A star is now one listener's bookmark rather than a counter on the
+          // call, and a call that has only just been recorded cannot have been
+          // starred by anyone. So a client watching only its starred calls gets
+          // no live traffic - there is nothing new that could match.
+          if (!client.filterStarred) {
             if (client.filterCode == "") {
               sent++;
               client.socket.emit("new message", JSON.stringify(call));
