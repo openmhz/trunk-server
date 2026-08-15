@@ -225,6 +225,36 @@ services:
       options:
         tag: "frontend"
 
+  # Speech-to-text for call audio. Self-hosted, so no audio ever leaves the
+  # server and a transcript costs nothing per call.
+  #
+  # Deliberately on the "node" network only, with no published port and no
+  # nginx vhost: this service has no authentication of its own, and anything
+  # that can reach it can transcribe arbitrary audio on your CPU.
+  whisper:
+    build:
+      context: ./whisper
+      args:
+        - WHISPER_MODEL=${WHISPER_MODEL:-small.en}
+    image: "whisper:${TAG}-${STAGE}"
+    environment:
+      - WHISPER_MODEL=${WHISPER_MODEL:-small.en}
+      - WHISPER_MAX_SECONDS
+      - WHISPER_MIN_SECONDS
+      - WHISPER_MIN_AVG_LOGPROB
+      - WHISPER_PROMPT
+    # Whisper is the only thing here that can eat a whole core and a gigabyte.
+    # Capped so a burst of long calls cannot starve mongo or the backend.
+    mem_limit: 2g
+    cpus: "1.5"
+    networks:
+      - node
+    restart: always
+    logging:
+      driver: syslog
+      options:
+        tag: "whisper"
+
 networks:
   proxy:
   node:

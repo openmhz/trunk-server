@@ -1,0 +1,8 @@
+# Pinned exactly, for the same reason the node services use npm ci: an image
+# built from a given commit should install the same thing every time.
+faster-whisper==1.1.1
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+huggingface_hub==0.27.1
+numpy==2.2.1

@@ -107,6 +107,23 @@ services:
       - ./frontend/server/card.ejs:/app/card.ejs
       - ./frontend/server/env.ejs:/app/env.ejs
 
+  # Same syslog problem as certbot below: no syslog listener under Docker
+  # Desktop, so the container refuses to start. app.py is bind-mounted so the
+  # service can be edited and restarted without a rebuild - the model lives in
+  # the image at /models and is deliberately not mounted.
+  whisper:
+    volumes:
+      # A directory mount, not ./whisper/app.py:/app/app.py - Docker Desktop
+      # invalidates a per-file bind mount when the file is edited through the
+      # Windows path, and `docker restart` then fails to recreate the container.
+      # Safe to mount over /app because nothing there is generated at build
+      # time; the model lives at /models and is deliberately left in the image.
+      - ./whisper:/app
+    logging:
+      driver: "json-file"
+      options:
+        tag: "whisper"
+
   # Upstream leaves certbot on the syslog log driver in every compose file,
   # including test-compose.yml. There is no syslog listener under Docker Desktop,
   # so the container fails to start. It has nothing to do locally anyway.
