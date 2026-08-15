@@ -31,6 +31,21 @@ position: unset;
   margin-top: 55px;
 }
 
+/*
+Semantic stacks .ui.sticky at 800 and .ui.menu.fixed at 101, so the Call Info
+rail sat 700 layers above the top bar. A dropdown opened in that bar cannot
+escape the bar's own stacking context, so the account menu - which opens
+directly over the rail - was drawn underneath it and looked like it had not
+opened at all.
+
+The rail is page content and belongs under the fixed chrome. 100 keeps it above
+the call list while leaving both fixed bars (101), the sidebar (102) and the
+modal dimmer (1000) where they were.
+*/
+.right.rail .ui.sticky {
+  z-index: 100;
+}
+
 
 @media only screen and (min-width: 1024px) {
 
