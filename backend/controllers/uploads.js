@@ -25,6 +25,9 @@ const s3_public_url = process.env['S3_PUBLIC_URL'] ?? `${s3_endpoint}/${s3_bucke
 // MinIO (and some other S3-compatible stores) only serve path-style requests.
 // Wasabi/AWS use virtual-host style, so this stays off unless asked for.
 const s3_force_path_style = (process.env['S3_FORCE_PATH_STYLE'] ?? 'false') === 'true';
+// Shorter than this is a kerchunk - a keyed mic with nothing said - and is
+// marked skipped rather than queued for transcription.
+const TRANSCRIBE_MIN_LEN = parseFloat(process.env['TRANSCRIBE_MIN_LEN'] ?? '1.5');
 const host = process.env['MONGO_NODE_DRIVER_HOST'] != null ? process.env['MONGO_NODE_DRIVER_HOST'] : 'mongo';
 const port = process.env['MONGO_NODE_DRIVER_PORT'] != null ? process.env['MONGO_NODE_DRIVER_PORT'] : 27017;
 const mongoUrl = 'mongodb://' + host + ':' + port + '/scanner';
@@ -199,6 +202,8 @@ exports.upload = async function (req, res, next) {
         const object_key = `media/${shortName}/${talkgroupNum}/${shortName}-${talkgroupNum}-${startTime}${path.extname(req.file.originalname)}`;
         const url = `${s3_public_url}/${object_key}`;
 
+        const callLength = req.body.call_length ? parseFloat(req.body.call_length) : (stopTime - time) / 1000;
+
         const call = new (mongo_conn_slow.model("Call"))({
           shortName,
           talkgroupNum,
@@ -215,7 +220,15 @@ exports.upload = async function (req, res, next) {
           path: local_path,
           patches: patches,
           srcList,
-          len: req.body.call_length ? parseFloat(req.body.call_length) : (stopTime - time) / 1000,
+          len: callLength,
+          // Enqueue for transcription. This is the whole of the producer side:
+          // one more field on a write that was happening anyway, so there is no
+          // extra round trip and no window where a call exists but was never
+          // queued. The transcriber claims it from here.
+          //
+          // Anything below TRANSCRIBE_MIN_LEN is a kerchunk with nothing in it
+          // to transcribe, and is marked skipped rather than queued.
+          transcriptStatus: callLength >= TRANSCRIBE_MIN_LEN ? 'pending' : 'skipped',
         });
 
         let fileContent;

@@ -225,6 +225,49 @@ services:
       options:
         tag: "frontend"
 
+  # Claims calls waiting for transcription and feeds them to whisper.
+  #
+  # Same build context and image as the backend - one image, one lockfile, just
+  # a different command. It runs as its own process so that a multi-second
+  # transcription never shares an event loop with call ingest or the read API.
+  transcriber:
+    build:
+      context: ./backend
+    image: "backend:${TAG}-${STAGE}"
+    command: node transcribe-worker.js
+    environment:
+      - MONGO_HOST
+      - MONGO_PORT
+      - MONGO_USER
+      - MONGO_PASSWORD
+      - MONGO_NODE_DRIVER_HOST
+      - MONGO_NODE_DRIVER_PORT
+      - S3_ENDPOINT
+      - S3_BUCKET
+      - S3_PROFILE
+      - S3_REGION
+      - S3_FORCE_PATH_STYLE
+      - WHISPER_URL
+      - TRANSCRIBE_POLL_MS
+      - TRANSCRIBE_MAX_ATTEMPTS
+      - TRANSCRIBE_CLAIM_TTL_MS
+      - TRANSCRIBE_MAX_AGE_MS
+      - TRANSCRIBE_BREAKER_MS
+      - TRANSCRIBE_TIMEOUT_MS
+      - NODE_ENV
+    volumes:
+      - "~/.aws:/home/app/.aws"
+    depends_on:
+      - mongo
+      - whisper
+    networks:
+      - node
+    restart: always
+    logging:
+      driver: syslog
+      options:
+        tag: "transcriber"
+
   # Speech-to-text for call audio. Self-hosted, so no audio ever leaves the
   # server and a transcript costs nothing per call.
   #

@@ -84,6 +84,21 @@ services:
       - mongo
       - minio
 
+  # Without this block the transcriber runs the code baked into the image and
+  # local edits appear to do nothing - the same trap the other services hit.
+  # Mirrors the backend's mounts because it is the same image.
+  transcriber:
+    environment:
+      - S3_FORCE_PATH_STYLE
+    volumes:
+      - ./backend:/home/app
+      - /home/app/node_modules
+      - /home/app/upload
+    logging:
+      driver: "json-file"
+      options:
+        tag: "transcriber"
+
   account:
     volumes:
       - ./account/server:/app
