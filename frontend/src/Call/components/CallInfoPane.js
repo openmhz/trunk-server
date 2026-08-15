@@ -1,5 +1,4 @@
 import React, { useMemo, useEffect } from "react";
-import { useCallLink } from "./CallLinks";
 import { skipToken } from '@reduxjs/toolkit/query'
 import { useGetSystemsQuery, useGetTalkgroupsQuery } from '../../features/api/apiSlice'
 import {  useParams } from 'react-router-dom';
@@ -8,8 +7,7 @@ import {
   Divider,
   List,
   Statistic,
-  Icon,
-  Menu
+  Icon
 } from "semantic-ui-react";
 
 // Conventional ham systems have no real talkgroups, so the talkgroup number is
@@ -32,13 +30,10 @@ function CallInfoPane(props) {
   let callFreq = "-";
   let callDate = "-";
   let callTime = "-";
-  let talkgroupNum = "-";
-  let patches = [];
   let patchString = "";
   let header = "Call Info"
   let title = ""
   const currentCall = props.call ? props.call : false;
-  const { callLink, callDownload, callTweet } = useCallLink(props.call)
   const { data: allSystems, isSuccess } = useGetSystemsQuery();
   let { shortName } = useParams();
   if (!shortName && currentCall) {
@@ -61,17 +56,21 @@ function CallInfoPane(props) {
       const freq = currentCall.freq / 1000000;
       callFreq = Math.round(freq * 1000) / 1000;
     }
-    srcList = currentCall.srcList.map((source, index) => <List.Item key={index}>{source.src}[{source.pos}]</List.Item>);
+    // src is the radio ID of the unit that keyed up and pos is how far into the
+    // recording they started. Only trunked systems carry a unit ID; a
+    // conventional repeater has none, so trunk-recorder writes src "-1" at
+    // position 0 and the pane filled up with "-1[0]" for every call. Show only
+    // real units, so this still works if a trunked system is ever added.
+    const realSources = (currentCall.srcList || []).filter(source => Number(source.src) > 0);
+    srcList = realSources.map((source, index) => <List.Item key={index}>{source.src}[{source.pos}]</List.Item>);
     callLength = currentCall.len;
-    talkgroupNum = currentCall.talkgroupNum;
-    patches = currentCall.patches;
-    
-    if(patches.length > 1) {
-      patchString = patches.join(", ");
-    }
-    else{
-      patchString = "No Patches";
-    }
+
+    // Patches are talkgroups a trunked dispatcher has tied together. Nothing
+    // patches a repeater, and trunk-recorder sends [null], so the row only said
+    // "No Patches" forever. The old test was length > 1, which also hid a
+    // single genuine patch.
+    const realPatches = (currentCall.patches || []).filter(Boolean);
+    patchString = realPatches.length > 0 ? realPatches.join(", ") : "";
 
   }
   let system = false;
@@ -111,18 +110,18 @@ function CallInfoPane(props) {
   return (
     <>
       <Header as='h1'>{header}</Header>
-      <List bulleted horizontal link>
-        {srcList}
-      </List>
+      {srcList.length > 0 &&
+        <List bulleted horizontal link>
+          {srcList}
+        </List>}
       <Divider />
       <Statistic size='small'>
         <Statistic.Label>Seconds</Statistic.Label>
         <Statistic.Value>{callLength}</Statistic.Value>
       </Statistic>
-      <Statistic size='small'>
-        <Statistic.Label>Frequency</Statistic.Label>
-        <Statistic.Value>{talkgroupNum === "-" ? talkgroupNum : formatFreq(talkgroupNum)}</Statistic.Value>
-      </Statistic>
+      {/* The frequency used to be repeated here as a large statistic, derived
+          from the talkgroup number. It is the same number as the MHz line
+          below, so only the line below remains. */}
       <List divided verticalAlign='middle'>
         <List.Item>
           <Icon name="wait" />
@@ -142,17 +141,16 @@ function CallInfoPane(props) {
             {callFreq} MHz
           </List.Content>
         </List.Item>
-        <List.Item>
-          <Icon name="exchange" />
-          <List.Content>
-            {patchString}
-          </List.Content>
-        </List.Item>
+        {patchString &&
+          <List.Item>
+            <Icon name="exchange" />
+            <List.Content>
+              {patchString}
+            </List.Content>
+          </List.Item>}
       </List>
-      <Divider />
-      <Menu secondary fluid widths={1}>
-        <Menu.Item name="download" href={callDownload}><Icon name="download" />Download</Menu.Item>
-      </Menu>
+      {/* Download lived here too. The player already has one next to the
+          waveform, so this was the same control twice on the same screen. */}
     </>
   );
 }
