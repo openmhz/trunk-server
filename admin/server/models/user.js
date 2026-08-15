@@ -56,6 +56,14 @@ const UserSchema = new mongoose.Schema({
 	},
 	disabledAt: Date,
 	disabledReason: String,
+	// Kept in step with account/server/models/user.js - see the note there.
+	plan: {
+		type: String,
+		enum: ['free', 'supporter'],
+		default: 'free'
+	},
+	planGrantedAt: Date,
+	planGrantedBy: mongoose.Schema.Types.ObjectId,
 	terms: {
 		type: Number,
 		default: 0

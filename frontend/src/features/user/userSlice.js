@@ -74,6 +74,9 @@ export const userSlice = createSlice({
         callsign: "",
         firstName: "",
         admin: false,
+        // 'free' or 'supporter'. Comes from the account service, which is the
+        // only thing that knows it - the player never decides this itself.
+        plan: "free",
     },
     reducers: {},
     extraReducers: {
@@ -84,6 +87,7 @@ export const userSlice = createSlice({
                 state.callsign = (payload.user.callsign || "").toUpperCase();
                 state.firstName = payload.user.firstName || "";
                 state.admin = !!payload.user.admin;
+                state.plan = payload.user.plan || "free";
             } else {
                 state.authenticated = false;
             }
@@ -101,6 +105,7 @@ export const userSlice = createSlice({
                 state.callsign = (payload.user.callsign || "").toUpperCase();
                 state.firstName = payload.user.firstName || "";
                 state.admin = !!payload.user.admin;
+                state.plan = payload.user.plan || "free";
             }
             // A rejected sign-in leaves the state alone. The modal shows the
             // reason the server gave; the visitor is no more signed out than
@@ -111,10 +116,14 @@ export const userSlice = createSlice({
             state.callsign = "";
             state.firstName = "";
             state.admin = false;
+            state.plan = "free";
         },
     },
 })
 
 export const selectUser = (state) => state.user;
+// Supporters get the enhanced features. The backend enforces this - the flag
+// here only decides what the UI offers, never what it is allowed to see.
+export const selectIsSupporter = (state) => state.user.plan === "supporter";
 
 export default userSlice.reducer;

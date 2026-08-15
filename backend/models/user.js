@@ -55,6 +55,15 @@ const UserSchema = new mongoose.Schema({
 		type: Boolean,
 		default: false
 	},
+	// Read-only here - the account service owns writes. Must exist in this
+	// schema all the same: a field missing from it is silently dropped from
+	// query results, so req.listener.plan would be undefined and every account
+	// would read as free with nothing erroring anywhere.
+	plan: {
+		type: String,
+		enum: ['free', 'supporter'],
+		default: 'free'
+	},
 	terms: {
 		type: Number,
 		default: 0

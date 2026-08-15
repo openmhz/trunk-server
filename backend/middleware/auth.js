@@ -30,7 +30,10 @@ async function resolveListener(session) {
     return { error: "Sign in to listen", reason: "unauthenticated" };
   }
 
-  const user = await User.findById(userId, "email confirmEmail admin disabled callsign screenName");
+  // `plan` must stay in this projection. Leaving it out does not error - it
+  // just makes req.listener.plan undefined, so every Supporter silently reads
+  // as a free account and the gated features quietly stop working for everyone.
+  const user = await User.findById(userId, "email confirmEmail admin disabled plan callsign screenName");
   if (!user) {
     // The session outlived the account - treat it as signed out rather than
     // leaving a ghost session that half works.

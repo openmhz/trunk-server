@@ -24,6 +24,7 @@ import {
 
 const FILTERS = [
   { key: "all", value: "all", text: "All accounts" },
+  { key: "supporters", value: "supporters", text: "Supporters" },
   { key: "admins", value: "admins", text: "Admins" },
   { key: "disabled", value: "disabled", text: "Disabled" },
   { key: "unconfirmed", value: "unconfirmed", text: "Unconfirmed email" },
@@ -75,6 +76,10 @@ const ListUsers = () => {
         result = await updateUser({ userId: user._id, admin: true }).unwrap();
       } else if (action === "revoke-admin") {
         result = await updateUser({ userId: user._id, admin: false }).unwrap();
+      } else if (action === "grant-supporter") {
+        result = await updateUser({ userId: user._id, plan: "supporter" }).unwrap();
+      } else if (action === "remove-supporter") {
+        result = await updateUser({ userId: user._id, plan: "free" }).unwrap();
       } else if (action === "resend") {
         result = await resendConfirmation(user._id).unwrap();
       } else if (action === "delete") {
@@ -162,32 +167,39 @@ const ListUsers = () => {
                 <Table.Cell>{formatLocation(user)}</Table.Cell>
                 <Table.Cell textAlign="center">{user.systemCount}</Table.Cell>
                 <Table.Cell>
+                  {user.plan === "supporter" && <Label size="tiny" color="teal">Supporter</Label>}
                   {user.admin && <Label size="tiny" color="blue">Admin</Label>}
                   {user.disabled && <Label size="tiny" color="red">Disabled</Label>}
                   {!user.confirmEmail && <Label size="tiny" color="orange">Unconfirmed</Label>}
-                  {!user.admin && !user.disabled && user.confirmEmail && <span>Active</span>}
+                  {user.plan !== "supporter" && !user.admin && !user.disabled && user.confirmEmail && <span>Active</span>}
                 </Table.Cell>
                 <Table.Cell>{formatWhen(user.lastLogin)}</Table.Cell>
                 <Table.Cell textAlign="right">
+                  {/* The whole menu used to be disabled on your own row. Only
+                      the items that could lock you out of the portal need that
+                      - granting yourself Supporter is how you test the feature,
+                      so the plan items stay live. */}
                   <Dropdown
                     button
                     className="icon"
                     icon="ellipsis horizontal"
                     direction="left"
-                    disabled={isSelf}
-                    title={isSelf ? "You cannot act on your own account" : undefined}
                   >
                     <Dropdown.Menu>
+                      {user.plan === "supporter"
+                        ? <Dropdown.Item icon="star outline" text="Remove supporter" onClick={() => openConfirm("remove-supporter", user)} />
+                        : <Dropdown.Item icon="star" text="Grant supporter" onClick={() => openConfirm("grant-supporter", user)} />}
+                      <Dropdown.Divider />
                       {user.disabled
-                        ? <Dropdown.Item icon="check" text="Enable account" onClick={() => openConfirm("enable", user)} />
-                        : <Dropdown.Item icon="ban" text="Disable account" onClick={() => openConfirm("disable", user)} />}
+                        ? <Dropdown.Item icon="check" text="Enable account" disabled={isSelf} onClick={() => openConfirm("enable", user)} />
+                        : <Dropdown.Item icon="ban" text="Disable account" disabled={isSelf} onClick={() => openConfirm("disable", user)} />}
                       {user.admin
-                        ? <Dropdown.Item icon="user" text="Remove admin access" onClick={() => openConfirm("revoke-admin", user)} />
-                        : <Dropdown.Item icon="user plus" text="Grant admin access" onClick={() => openConfirm("grant-admin", user)} />}
+                        ? <Dropdown.Item icon="user" text="Remove admin access" disabled={isSelf} onClick={() => openConfirm("revoke-admin", user)} />
+                        : <Dropdown.Item icon="user plus" text="Grant admin access" disabled={isSelf} onClick={() => openConfirm("grant-admin", user)} />}
                       {!user.confirmEmail &&
                         <Dropdown.Item icon="mail" text="Resend confirmation email" onClick={() => openConfirm("resend", user)} />}
                       <Dropdown.Divider />
-                      <Dropdown.Item icon="trash" text="Delete account" onClick={() => openConfirm("delete", user)} />
+                      <Dropdown.Item icon="trash" text="Delete account" disabled={isSelf} onClick={() => openConfirm("delete", user)} />
                     </Dropdown.Menu>
                   </Dropdown>
                 </Table.Cell>
@@ -234,6 +246,8 @@ function describeSuccess(action, user) {
     case "enable": return `${who} can sign in again.`;
     case "grant-admin": return `${who} now has admin access.`;
     case "revoke-admin": return `${who} no longer has admin access.`;
+    case "grant-supporter": return `${who} is now a Supporter.`;
+    case "remove-supporter": return `${who} is no longer a Supporter.`;
     case "resend": return `Confirmation email sent to ${user.email}.`;
     case "delete": return `Deleted the account for ${who}.`;
     default: return "Done.";
@@ -263,6 +277,18 @@ const COPY = {
     header: "Remove admin access?",
     body: "They keep their account and their own systems, but lose access to the admin portal.",
     button: "Remove admin access",
+    color: "orange",
+  },
+  "grant-supporter": {
+    header: "Make this account a Supporter?",
+    body: "Supporters get the enhanced features, starting with call transcripts. Use this for people who have paid or donated - there is no billing wired up yet, so this is the only way to grant it.",
+    button: "Grant supporter",
+    color: "teal",
+  },
+  "remove-supporter": {
+    header: "Remove Supporter status?",
+    body: "They keep their account and can still listen, but lose the enhanced features. Nothing is deleted and this can be undone at any time.",
+    button: "Remove supporter",
     color: "orange",
   },
   resend: {

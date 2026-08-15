@@ -62,6 +62,25 @@ const UserSchema = new mongoose.Schema({
 	},
 	disabledAt: Date,
 	disabledReason: String,
+	// What this account has paid for, or been given. "Supporter" is the only
+	// word a user ever sees for it - never premium, paid or pro - because it
+	// covers both people who subscribe and people who donate.
+	//
+	// A string enum rather than a boolean so further tiers need no migration.
+	// Deliberately NOT called planType: that name already means something else
+	// on the System model (its archive tier), and one name for two entities is
+	// how a billing bug happens.
+	plan: {
+		type: String,
+		enum: ['free', 'supporter'],
+		default: 'free'
+	},
+	// Granted by an admin for now; Stripe comes later. Recording who and when is
+	// cheap today and impossible to reconstruct afterwards - and once Supporter
+	// can be earned by either a subscription or a one-off donation, "why does
+	// this account have it" becomes a real support question.
+	planGrantedAt: Date,
+	planGrantedBy: mongoose.Schema.Types.ObjectId,
 	terms: {
 		type: Number,
 		default: 0

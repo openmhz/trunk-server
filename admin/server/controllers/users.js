@@ -24,7 +24,9 @@ const escapeRegExp = (string) => {
 // Never send password hashes or the reset/confirm tokens to the browser. An
 // admin has no use for them, and a token here would be a working password reset
 // for somebody else's account.
-const USER_FIELDS = "_id email callsign screenName firstName lastName city state country admin disabled disabledAt disabledReason confirmEmail terms lastLogin sysCount";
+const USER_FIELDS = "_id email callsign screenName firstName lastName city state country admin disabled disabledAt disabledReason plan planGrantedAt confirmEmail terms lastLogin sysCount";
+
+const PLANS = ["free", "supporter"];
 
 function fail(res, status, message) {
   res.status(status);
@@ -58,6 +60,8 @@ exports.listUsers = async function (req, res, next) {
     query.disabled = true;
   } else if (filter === "unconfirmed") {
     query.confirmEmail = { $ne: true };
+  } else if (filter === "supporters") {
+    query.plan = "supporter";
   }
 
   try {
@@ -134,6 +138,24 @@ exports.updateUser = async function (req, res, next) {
       user.admin = req.body.admin;
     }
 
+    // Note there is deliberately no isSelf guard here. The guards on admin and
+    // disabled exist to stop an operator locking themselves out of the portal;
+    // neither risk applies to a plan, and granting yourself Supporter is how you
+    // test the feature. Do not "fix" this by making it consistent.
+    if (typeof req.body.plan === "string") {
+      if (!PLANS.includes(req.body.plan)) {
+        return fail(res, 400, `Unknown plan "${req.body.plan}".`);
+      }
+      user.plan = req.body.plan;
+      if (req.body.plan === "supporter") {
+        user.planGrantedAt = new Date();
+        user.planGrantedBy = req.user._id;
+      } else {
+        user.planGrantedAt = undefined;
+        user.planGrantedBy = undefined;
+      }
+    }
+
     if (typeof req.body.disabled === "boolean") {
       if (isSelf) {
         return fail(res, 400, "You cannot disable your own account.");
@@ -149,7 +171,7 @@ exports.updateUser = async function (req, res, next) {
     }
 
     await user.save();
-    console.log(`Admin ${req.user.email} updated account ${user.email} - admin: ${user.admin} disabled: ${user.disabled}`);
+    console.log(`Admin ${req.user.email} updated account ${user.email} - admin: ${user.admin} disabled: ${user.disabled} plan: ${user.plan}`);
 
     const updated = await User.findById(user._id, USER_FIELDS).lean();
     updated.systemCount = await System.countDocuments({ userId: user._id });

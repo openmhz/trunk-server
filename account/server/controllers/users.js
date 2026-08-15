@@ -42,6 +42,7 @@ exports.authenticated = function (req, res, next) {
       country,
       email,
       admin,
+      plan,
       terms
     }) => ({
       firstName,
@@ -53,6 +54,7 @@ exports.authenticated = function (req, res, next) {
       country,
       email,
       admin,
+      plan,
       terms
     }))(
       req.user
@@ -174,6 +176,7 @@ exports.login = function (req, res, next) {
         country,
         email,
         admin,
+        plan,
         terms
       }) => ({
         firstName,
@@ -185,6 +188,7 @@ exports.login = function (req, res, next) {
         country,
         email,
         admin,
+        plan,
         terms
       }))(
         user
