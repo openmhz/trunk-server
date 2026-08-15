@@ -20,6 +20,25 @@ as the basis for later per-user features (favourites, transcription, AI).
 
 Branch is `local-dev`. `origin` is the fork, `upstream` is openmhz.
 
+> **Known-good checkpoint: tag `pre-transcription` (`9b2b71e`).** Everything
+> described below works and is deployed as of that tag: account gating, user
+> administration, the login audit trail, per-user starred calls, and
+> lockfile-pinned images. Transcription work starts after it, so
+> `git diff pre-transcription` is the whole of that feature and
+> `git reset --hard pre-transcription` is the way back.
+>
+> **`local-dev` has never been pushed.** At the time of the tag, 55 commits
+> existed only on this machine — `origin/local-dev` does not exist and
+> `origin/master` is 55 behind. There is no GitHub credential configured in WSL
+> or Windows (no `gh`, no SSH key, no credential helper), so the push needs
+> authenticating first:
+>
+> ```bash
+> gh auth login          # or configure a credential helper / SSH key
+> git push -u origin local-dev
+> git push origin pre-transcription
+> ```
+
 ## Running it
 
 ```bash
@@ -169,6 +188,29 @@ a deploy while the server looks correct.
 - Starred calls are per listener (`backend/models/starred_call.js`). They used
   to be a counter on the call shared by everyone.
 - Removed the Trending section from the systems list.
+- Trimmed the call info pane of things that only mean something on a trunked
+  system: the `-1[0]` source list, the duplicated frequency statistic, the
+  permanent "No Patches" row, and a second Download control.
+
+## In progress: transcription
+
+The next feature is machine transcription of call audio, as the first thing
+worth paying for. The full plan lives outside the repo at
+`~/.claude/plans/valiant-shimmying-wilkes.md`. The shape of it:
+
+- **Self-hosted Whisper** (`faster-whisper`, `small.en`, int8) in its own
+  container on the `node` network, with no published port and no vhost — it has
+  no authentication of its own. Audio never leaves the server.
+- **The Call document is the queue.** `transcriptStatus` plus an atomic
+  `findOneAndUpdate` claim; no Redis, no queue library. A `transcriber` service
+  runs the same image as `backend` with a different `command`, so ingest and the
+  read API never share an event loop with transcription.
+- **The paid tier is called "Supporter"** in every user-visible string — never
+  "premium", "paid" or "pro". Stored as `plan: 'free' | 'supporter'` on the
+  user. Granted by an admin for now; Stripe and donations come later.
+- **Transcription runs for every call; the gate is on reading**, because calls
+  are shared between listeners. Free accounts get a `transcriptState` of
+  `'locked'` and no text in the payload at all.
 
 ### Notes on those
 
