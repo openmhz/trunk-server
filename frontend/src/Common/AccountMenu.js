@@ -11,7 +11,7 @@ import { authenticateUser, logoutUser, selectUser } from "../features/user/userS
  * lowercase and shown uppercase, which is the convention everywhere else in the
  * UI.
  */
-const AccountMenu = () => {
+const AccountMenu = ({ onSignIn }) => {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const [confirming, setConfirming] = useState(false);
@@ -39,6 +39,21 @@ const AccountMenu = () => {
   }
 
   if (!user.authenticated) {
+    // On the front page onSignIn is supplied and opens a modal, so a visitor
+    // signs in without being sent to another hostname. Elsewhere there is no
+    // modal to open and the account site handles it.
+    if (onSignIn) {
+      return (
+        <>
+          <Menu.Item link onClick={onSignIn}>
+            <Icon name="sign in" /> Sign in
+          </Menu.Item>
+          <Menu.Item link href={`${accountServer}/register`}>
+            Register
+          </Menu.Item>
+        </>
+      );
+    }
     return (
       <Menu.Item link href={`${accountServer}/login?nextLocation=frontend`}>
         <Icon name="sign in" /> Sign in

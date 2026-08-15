@@ -281,12 +281,13 @@ export const userSlice = createSlice({
                 state.userId = null;
             }
         },
-        [loginUser.fulfilled]: (state, { payload }) => {
-            if (payload.success) {
-                state.authenticated = false;
-                state.userId = null;
-            }
-        },
+        // There was a second [loginUser.fulfilled] here, a copy of the logout
+        // reducer above. Duplicate keys in an object literal silently overwrite
+        // each other, so it replaced the real one and cleared authenticated and
+        // userId on every *successful* login. It went unnoticed because Login.js
+        // navigates off the thunk's own result, and Restricted then refills the
+        // store via authenticateUser. It broke anything reading userId straight
+        // after a login - the resend button on the confirm-email screen, for one.
     }
 })
 

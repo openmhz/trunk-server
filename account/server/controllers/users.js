@@ -88,11 +88,29 @@ exports.login = function (req, res, next) {
         userId: info && info.userId,
         callsign: info && info.callsign
       });
-      return res.json({
+      // The audit trail gets the precise reason; the visitor does not. "bad
+      // password" and "no such account" are deliberately collapsed back to one
+      // answer, because telling them apart is exactly how an attacker works out
+      // which addresses have accounts. They were both "invalid" before the
+      // audit trail split them, and to the client they still are.
+      const publicReason = (info.reason === "bad password" || info.reason === "no such account")
+        ? "invalid"
+        : info.reason;
+
+      const failure = {
         success: false,
         message: info.message,
-        reason: info.reason
-      });
+        reason: publicReason
+      };
+      // userId only for an unconfirmed address, so the resend flow has
+      // something to act on. Deliberately not for a wrong password: that
+      // answer is worded identically to "no such account" so it cannot be used
+      // to discover which addresses have accounts, and returning an id here
+      // would give that away.
+      if (info && info.reason === "unconfirmed email" && info.userId) {
+        failure.userId = info.userId;
+      }
+      return res.json(failure);
     }
     // ***********************************************************************
     // "Note that when using a custom callback, it becomes the application's

@@ -1,15 +1,23 @@
 import { sendConfirmEmail  } from "../features/user/userSlice";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux'
 import { Container, Header, Button, Message, Icon } from "semantic-ui-react";
 
 const WaitConfirmEmail = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { email, userId } = useSelector((state) => state.user);
+  const [searchParams] = useSearchParams();
+  const stored = useSelector((state) => state.user);
+
+  // Arriving from the sign-in modal on the main site means a fresh page load
+  // and an empty store, so fall back to the query string it hands over.
+  // Without this the resend button posts to /users//send-confirm and 404s.
+  const userId = stored.userId || searchParams.get("userId");
+  const email = stored.email || searchParams.get("email");
 
   const handleSendConfirmEmail = async () => {
-    await dispatch(sendConfirmEmail(userId)).unwrap(); 
+    if (!userId) return;
+    await dispatch(sendConfirmEmail(userId)).unwrap();
     navigate("/sent-confirm-email")
   };
 
@@ -32,6 +40,7 @@ const WaitConfirmEmail = () => {
             size="large"
             content="Resend Email Confirmation"
             onClick={handleSendConfirmEmail}
+            disabled={!userId}
           />
         </Message.Content>
       </Message>

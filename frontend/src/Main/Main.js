@@ -33,6 +33,10 @@ import { max, extent, bisector } from 'd3-array';
 import { timeFormat } from 'd3-time-format';
 import {  AxisLeft } from '@visx/axis';
 import { useGetSystemsQuery, useGetSiteStatsQuery } from "../features/api/apiSlice";
+import { useSelector, useDispatch } from 'react-redux'
+import { authenticateUser, selectUser } from "../features/user/userSlice";
+import AccountMenu from "../Common/AccountMenu";
+import SignInModal from "../Common/SignInModal";
 
 /* Responsive component was removed from Semantic UI. This is discussed here: https://github.com/Semantic-Org/Semantic-UI-React/pull/4008 */
 
@@ -53,7 +57,13 @@ const { Media } = AppMedia;
 /* Heads up! HomepageHeading uses inline styling, however it's not the best practice. Use CSS or styled components for
  * such things.
  */
-const HomepageHeading = ({ mobile }) => (
+const HomepageHeading = ({ mobile, onSignIn }) => {
+  // Listening needs an account, so the hero says so and offers both doors
+  // rather than leaving a visitor to discover the requirement on /systems.
+  const user = useSelector(selectUser);
+  const accountServer = process.env.REACT_APP_ACCOUNT_SERVER;
+
+  return (
   <Container text style={{ paddingBottom: '0px' }} >
     <Header
       as='h1'
@@ -77,8 +87,22 @@ const HomepageHeading = ({ mobile }) => (
         marginBottom: mobile ? '0.5em' : '0em',
       }}
     />
+    {user.hasChecked && !user.authenticated &&
+      <div style={{ marginTop: mobile ? '1em' : '1.8em' }}>
+        <Button primary size={mobile ? 'large' : 'huge'} onClick={onSignIn}>
+          Sign in
+        </Button>
+        <Button
+          size={mobile ? 'large' : 'huge'}
+          style={{ marginLeft: '10px' }}
+          href={`${accountServer}/register`}
+        >
+          Create a free account
+        </Button>
+      </div>}
   </Container>
-)
+  );
+}
 
 /*
 HomepageHeading.propTypes = {
@@ -101,7 +125,7 @@ const DesktopContainer = (props) => {
   const [fixed, setFixed] = useState(false);
 
 
-  const { children } = props
+  const { children, onSignIn } = props
 
   return (
     <Media greaterThanOrEqual="tablet">
@@ -132,9 +156,12 @@ const DesktopContainer = (props) => {
               <Menu.Item ><Header as='h3' inverted>{process.env.REACT_APP_SITE_NAME}</Header></Menu.Item>
               <Link to="/systems"><Menu.Item link >Listen</Menu.Item></Link>
               <Link to="/about"><Menu.Item link >About</Menu.Item></Link>
+              <Menu.Menu position="right">
+                <AccountMenu onSignIn={onSignIn} />
+              </Menu.Menu>
             </Container>
           </Menu>
-          <HomepageHeading />
+          <HomepageHeading onSignIn={onSignIn} />
         </Segment>
       </div>
 
@@ -159,7 +186,7 @@ const MobileContainer = (props) => {
   const handleToggle = () => setSidebarOpened(!sidebarOpened)
 
 
-  const { children } = props
+  const { children, onSignIn } = props
 
   return (
     <Media lessThan="tablet">
@@ -170,6 +197,7 @@ const MobileContainer = (props) => {
           </Menu.Item>
           <Menu.Item ><Link to="/systems">Systems</Link></Menu.Item>
           <Menu.Item ><Link to="/about">About</Link></Menu.Item>
+          <AccountMenu onSignIn={onSignIn} />
         </Sidebar>
 
         <Sidebar.Pusher
@@ -201,7 +229,7 @@ const MobileContainer = (props) => {
                   <Menu.Item header>{process.env.REACT_APP_SITE_NAME}</Menu.Item>
                 </Menu>
               </Container>
-              <HomepageHeading mobile />
+              <HomepageHeading mobile onSignIn={onSignIn} />
             </Segment>
           </div>
           {children}
@@ -217,10 +245,10 @@ MobileContainer.propTypes = {
   children: PropTypes.node,
 }
 */
-const ResponsiveContainer = ({ children }) => (
+const ResponsiveContainer = ({ children, onSignIn }) => (
   <div>
-    <DesktopContainer>{children}</DesktopContainer>
-    <MobileContainer>{children}</MobileContainer>
+    <DesktopContainer onSignIn={onSignIn}>{children}</DesktopContainer>
+    <MobileContainer onSignIn={onSignIn}>{children}</MobileContainer>
   </div>
 )
 
@@ -477,7 +505,18 @@ const Main = (props) => {
 
   const [visible, setVisible] = useState(true);
   const [currentSystem, setCurrentSystem] = useState(0);
+  const [signInOpen, setSignInOpen] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
+
+  // Both containers and the hero render at once (Fresnel hides one with CSS),
+  // so the modal is owned here and there is exactly one of it.
+  useEffect(() => {
+    if (!user.hasChecked) {
+      dispatch(authenticateUser());
+    }
+  }, [dispatch, user.hasChecked]);
   const { data: systems, isSuccess } = useGetSystemsQuery();   //= selectAllSystems();
   const { data: siteStats, isSuccess: siteStatsSuccess } = useGetSiteStatsQuery();
   
@@ -528,7 +567,8 @@ const Main = (props) => {
   return (
     <>
       <style>{mediaStyles}</style>
-      <ResponsiveContainer>
+      <SignInModal open={signInOpen} onClose={() => setSignInOpen(false)} />
+      <ResponsiveContainer onSignIn={() => setSignInOpen(true)}>
         <div style={{ top: '-120px', position: 'relative' }}>
           <Segment style={{ padding: ' 0em', height: '350px', backgroudColor: '#FFF' }} vertical basic>
             <Grid columns='equal' stackable textAlign='center' style={{ height: '350px', marginRight: '0px' }}>
