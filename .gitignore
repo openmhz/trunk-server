@@ -13,3 +13,7 @@ data/*
 
 # multer scratch dir for talkgroup CSV uploads
 admin/server/uploads/
+
+# Never commit installed dependencies. The root ones were committed by
+# accident - there is no package.json at the root at all.
+node_modules/

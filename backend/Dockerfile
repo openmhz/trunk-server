@@ -14,8 +14,12 @@ ENV HOME=/home/app
 
 
 RUN mkdir -p /home/app
-COPY package.json /tmp
-RUN cd /tmp && npm --unsafe-perm install -g node-gyp && npm --unsafe-perm install
+COPY package.json package-lock.json /tmp/
+# npm ci, not npm install: it installs exactly what package-lock.json
+# records and fails if the lock and package.json disagree. npm install would
+# re-resolve every range on each build, so two builds of the same commit could
+# ship different dependency trees.
+RUN cd /tmp && npm --unsafe-perm install -g node-gyp && npm --unsafe-perm ci
 RUN mkdir -p /home/app/upload && cp -a /tmp/node_modules /home/app
 
 WORKDIR $HOME/
