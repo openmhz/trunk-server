@@ -49,6 +49,26 @@ is rebuilt. `-v` is what drops them. Applies to `account` and `admin`;
 Env lives in `test.env` / `prod.env` (both gitignored). `prod.env.example` is
 the template.
 
+### Dependencies
+
+Each service commits a `package-lock.json` and its Dockerfile installs with
+`npm ci`, so an image built from a given commit has the same dependency tree
+every time. **After editing any `package.json`, regenerate that service's lock
+or the build fails** — `npm ci` treats disagreement as an error, which is the
+point. There is no npm on the host, so use the image's own Node version:
+
+```bash
+docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD/account:/w" -w /w node:19-alpine3.16 npm install --package-lock-only
+```
+
+`node:19-alpine3.16` for account/admin/frontend, `node:22-bookworm` for backend.
+Note that `--package-lock-only` only *satisfies* the existing lock; delete the
+lock first if you want versions genuinely refreshed.
+
+There are deliberately no `yarn.lock` files. Nothing read them, and npm rewrites
+a yarn.lock as a side effect whenever it finds one, so they generated endless
+diffs for a file no build consumed.
+
 ## Authentication
 
 There is one session, shared by all services, and the backend does not create
