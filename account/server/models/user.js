@@ -53,6 +53,15 @@ const UserSchema = new mongoose.Schema({
 		type: Boolean,
 		default: false
 	},
+	// Set from the admin portal. A disabled account keeps its data and its
+	// systems - it just cannot sign in and cannot listen. Deleting is the
+	// destructive option; this is the reversible one.
+	disabled: {
+		type: Boolean,
+		default: false
+	},
+	disabledAt: Date,
+	disabledReason: String,
 	terms: {
 		type: Number,
 		default: 0

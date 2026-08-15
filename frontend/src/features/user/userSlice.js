@@ -20,6 +20,23 @@ export const authenticateUser = createAsyncThunk(
     }
 )
 
+/**
+ * Ends the session. One cookie covers the player, the account site and the
+ * admin portal, so this signs you out of all three - which is why the UI asks
+ * before calling it.
+ */
+export const logoutUser = createAsyncThunk(
+    'user/logout',
+    async () => {
+        const url = process.env.REACT_APP_ACCOUNT_SERVER + "/logout";
+        const res = await fetch(url, {
+            method: 'GET',
+            credentials: 'include',
+        }).then((data) => data.json());
+        return res;
+    }
+)
+
 export const userSlice = createSlice({
     name: 'user',
     initialState: {
@@ -49,6 +66,12 @@ export const userSlice = createSlice({
             // signed out, but there is nothing the player can do either way.
             state.hasChecked = true;
             state.authenticated = false;
+        },
+        [logoutUser.fulfilled]: (state) => {
+            state.authenticated = false;
+            state.callsign = "";
+            state.firstName = "";
+            state.admin = false;
         },
     },
 })

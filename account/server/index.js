@@ -7,7 +7,9 @@ const secrets = require("./config/secrets");
 const configurePassport = require("./config/passport");
 const configureExpress = require("./config/express");
 const users = require("./controllers/users");
+const limits = require("./config/rate-limits");
 require("./models/user");
+require("./models/login_event");
 
 // -------------------------------------------
 
@@ -86,15 +88,15 @@ app.all('*', function (req, res, next) {
 
 // -------------------------------------------
 app.use(express.static(path.join(__dirname, "public")));
-app.post("/login", users.login)
+app.post("/login", limits.loginLimiter, users.login)
 app.get("/logout", users.logout)
 app.get("/authenticated", users.authenticated)
-app.post("/register", users.validateProfile, users.register)
+app.post("/register", limits.registerLimiter, users.validateProfile, users.register)
 app.post("/users/:userId/reset-password/:token", users.resetPassword)
-app.post("/api/send-reset-password", users.sendResetPassword)
+app.post("/api/send-reset-password", limits.resetPasswordLimiter, users.sendResetPassword)
 app.post("/users/:userId", users.isLoggedIn, users.validateProfile, users.updateProfile)
 app.post("/users/:userId/terms", users.isLoggedIn, users.terms)
-app.post("/users/:userId/send-confirm", users.sendConfirmEmail)
+app.post("/users/:userId/send-confirm", limits.confirmEmailLimiter, users.sendConfirmEmail)
 app.post("/users/:userId/confirm/:token", users.confirmEmail)
 
 app.get("*", (req, res, next) => {

@@ -1,5 +1,6 @@
 const passport = require("passport");
 const User = require("../models/user");
+const loginEvents = require("./login-events");
 const Mailjet = require('node-mailjet');
 
 const crypto = require("crypto");
@@ -77,6 +78,16 @@ exports.login = function (req, res, next) {
     if (err) return next(err);
     if (!user) {
       console.log("No user");
+      // Every rejection is recorded, with the reason the strategy gave. The
+      // strategy passes userId along when the account exists, so the trail can
+      // tell a wrong password on a real account apart from a guessed address.
+      loginEvents.record(req, {
+        success: false,
+        reason: info && info.reason ? info.reason : "no such account",
+        email: req.body.email,
+        userId: info && info.userId,
+        callsign: info && info.callsign
+      });
       return res.json({
         success: false,
         message: info.message,
@@ -117,6 +128,21 @@ exports.login = function (req, res, next) {
       // 30 days, but admin routes require a login within the last 12 hours, so
       // the age of the login has to be recorded separately from the session.
       req.session.loginAt = Date.now();
+
+      loginEvents.record(req, {
+        success: true,
+        reason: "ok",
+        email: user.email,
+        callsign: user.callsign,
+        userId: user.id
+      });
+
+      // lastLogin had a default of Date.now and was then never written again,
+      // so it recorded when the account was created. The admin portal shows it
+      // as "last login", so it needs to actually mean that. Fire and forget -
+      // a failure here should not fail the login.
+      User.updateOne({ _id: user._id }, { $set: { lastLogin: new Date() } })
+        .catch(err => console.error("Error - could not stamp lastLogin: " + err));
 
       //console.log("account/server/controllers/users.js - req.login() Authenicated: " + user.email);
       // go ahead and create the new user

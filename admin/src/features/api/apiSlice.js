@@ -25,6 +25,10 @@ export const apiSlice = createApi({
   reducerPath: 'api',
   // All of our requests will have URLs starting with '/fakeApi'
   baseQuery: fetchBaseQuery({ baseUrl: process.env.REACT_APP_ADMIN_SERVER }),
+  // Only the user administration tags are declared. 'Group' below has always
+  // been undeclared, which makes those tags a no-op; declaring it now would
+  // quietly change how the group screens refetch, so it is left alone.
+  tagTypes: ['UserAccount', 'LoginEvent'],
   // The "endpoints" represent operations and requests for this server
   endpoints: builder => ({
     // The `getPosts` endpoint is a "query" operation that returns data
@@ -144,6 +148,46 @@ export const apiSlice = createApi({
       // The URL for the request is '/fakeApi/posts'
       query: () => ({ url: `/admin/users/active`, credentials: "include" })
     }),
+
+    // ---- User administration -------------------------------------------
+    getUserAccounts: builder.query({
+      query: ({ q = "", filter = "all", page = 1 } = {}) => ({
+        url: `/admin/user-accounts?q=${encodeURIComponent(q)}&filter=${filter}&page=${page}`,
+        credentials: "include"
+      }),
+      providesTags: ['UserAccount'],
+    }),
+    updateUserAccount: builder.mutation({
+      query: ({ userId, ...changes }) => ({
+        url: `/admin/user-accounts/${userId}`,
+        method: 'POST',
+        credentials: "include",
+        body: changes,
+      }),
+      invalidatesTags: ['UserAccount'],
+    }),
+    deleteUserAccount: builder.mutation({
+      query: (userId) => ({
+        url: `/admin/user-accounts/${userId}`,
+        method: 'DELETE',
+        credentials: "include",
+      }),
+      invalidatesTags: ['UserAccount'],
+    }),
+    resendConfirmation: builder.mutation({
+      query: (userId) => ({
+        url: `/admin/user-accounts/${userId}/resend-confirmation`,
+        method: 'POST',
+        credentials: "include",
+      }),
+    }),
+    getLoginEvents: builder.query({
+      query: ({ q = "", onlyFailures = false, page = 1 } = {}) => ({
+        url: `/admin/login-events?q=${encodeURIComponent(q)}&onlyFailures=${onlyFailures}&page=${page}`,
+        credentials: "include"
+      }),
+      providesTags: ['LoginEvent'],
+    }),
     createSystem: builder.mutation({
       query: (system) => ({
         url: `/systems`,
@@ -206,4 +250,4 @@ export const apiSlice = createApi({
 })
 
 // Export the auto-generated hook for the `getPosts` query endpoint
-export const { useGetGroupsQuery, useGetSystemsQuery, useGetAllSystemsQuery, useGetActiveUsersQuery, useGetTalkgroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useCreateSystemMutation, useUpdateSystemMutation, useDeleteSystemMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation } = apiSlice
+export const { useGetGroupsQuery, useGetSystemsQuery, useGetAllSystemsQuery, useGetActiveUsersQuery, useGetTalkgroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useCreateSystemMutation, useUpdateSystemMutation, useDeleteSystemMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation, useGetUserAccountsQuery, useUpdateUserAccountMutation, useDeleteUserAccountMutation, useResendConfirmationMutation, useGetLoginEventsQuery } = apiSlice

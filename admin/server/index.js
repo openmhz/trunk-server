@@ -8,8 +8,10 @@ const configureExpress = require("./config/express");
 const systems = require("./controllers/systems");
 const groups = require("./controllers/groups");
 const talkgroups = require("./controllers/talkgroups");
+const users = require("./controllers/users");
 
 require("./models/user");
+require("./models/login_event");
 const multer = require('multer');
 
 var upload = multer({
@@ -173,6 +175,17 @@ app.get("/systems", isLoggedIn, systems.listSystems)
 app.get("/admin/systems", isAdmin, systems.listAllSystems)
 app.get("/admin/users/active", isAdmin, systems.listActiveUsers)
 app.get("/admin/users", isAdmin, systems.listUserSystems)
+
+// User administration. Named user-accounts rather than users because
+// /admin/users above already means "users, with the systems they own", and the
+// All Systems screen depends on it.
+app.get("/admin/user-accounts", isAdmin, users.listUsers)
+app.get("/admin/user-accounts/:userId", isAdmin, users.getUser)
+app.post("/admin/user-accounts/:userId", isAdmin, users.updateUser)
+app.delete("/admin/user-accounts/:userId", isAdmin, users.deleteUser)
+app.post("/admin/user-accounts/:userId/resend-confirmation", isAdmin, users.resendConfirmation)
+app.get("/admin/login-events", isAdmin, users.listLoginEvents)
+
 app.delete("/systems/:shortName", isLoggedIn, systems.deleteSystem)
 app.post("/systems/:shortName", [isLoggedIn, systems.ownSystem, systems.validateSystem, systems.updateSystem])
 app.post("/systems", [isLoggedIn, systems.uniqueShortName, systems.validateSystem, systems.createSystem])

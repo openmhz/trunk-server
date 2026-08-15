@@ -16,11 +16,16 @@ module.exports = function (app, passport) {
 
   passport.deserializeUser(async (id, done) => {
     const user = await User.findById(id).exec();
-    if (user) {
-      done(null,user);
-    } else {
-      done("User not found", null);
+    if (!user) {
+      return done("User not found", null);
     }
+    // Disabling an account has to take effect on the sessions it already has,
+    // not just on the next login - sessions here last 30 days. done(null, false)
+    // leaves req.user unset, so every isAuthenticated() check downstream fails.
+    if (user.disabled) {
+      return done(null, false);
+    }
+    done(null, user);
   })
 
   // use the following strategies

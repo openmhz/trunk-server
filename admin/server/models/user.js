@@ -1,9 +1,11 @@
 // Defining a User Model in mongoose
 // Code modified from https://github.com/sahat/hackathon-starter
-const bcrypt = require("bcrypt");
+//
+// Kept in step with account/server/models/user.js. The account service owns
+// accounts; admin reads them and flips a small number of flags. A field that is
+// missing here is silently dropped from query results, which is how this file
+// fell behind on callsign and city/state/country.
 const mongoose = require("mongoose");
-
-
 
 const UserSchema = new mongoose.Schema({
 	local: {
@@ -22,10 +24,20 @@ const UserSchema = new mongoose.Schema({
 		unique: true,
 		lowercase: true
 	},
+	// Stored lowercase so the unique index enforces case-insensitively.
+	// Uppercased for display only.
+	callsign: {
+		type: String,
+		unique: true,
+		lowercase: true,
+		trim: true,
+		maxlength: 7
+	},
 	firstName: String,
 	lastName: String,
-	location: String,
-	email: String,
+	city: String,
+	state: String,
+	country: String,
 	resetPasswordToken: String,
 	resetPasswordTTL: Date,
 	confirmEmail: {
@@ -38,6 +50,12 @@ const UserSchema = new mongoose.Schema({
 		type: Boolean,
 		default: false
 	},
+	disabled: {
+		type: Boolean,
+		default: false
+	},
+	disabledAt: Date,
+	disabledReason: String,
 	terms: {
 		type: Number,
 		default: 0
@@ -50,34 +68,10 @@ const UserSchema = new mongoose.Schema({
 	lastLogin: { type : Date, default: Date.now }
 })
 
-/**
- * Password hash middleware.
- */
-UserSchema.pre("save", function(next) {
-	var user = this
-	if (!user.isModified("password")) return next()
-	bcrypt.genSalt(8, (err, salt) => {
-		if (err) return next(err)
-		bcrypt.hash(user.password, salt, null, (err, hash) => {
-			if (err) return next(err)
-			user.password = hash;
-			user.local.password = hash;
-			next()
-		})
-	})
-})
-
-/*
- Defining our own custom document instance method
- */
- UserSchema.methods = {
- 	comparePassword: function(candidatePassword, cb) {
- 		bcrypt.compare(candidatePassword, this.local.password, (err, isMatch) => {
- 			if (err) return cb(err)
- 			cb(null, isMatch)
- 		})
- 	}
- }
+// No password hashing hook here on purpose. Admin never sets a password - the
+// account service does, and it is the only place that should. The hook that
+// used to live here called bcrypt with bcrypt-nodejs' four-argument signature,
+// so it would have thrown had anything ever triggered it.
 
 /**
 * Statics

@@ -33,6 +33,19 @@ Use `docker-local.sh` locally. `docker-test.sh` omits `local-compose.yml`,
 which silently drops `S3_FORCE_PATH_STYLE` and `OTEL_SDK_DISABLED` — that
 combination once broke MinIO uploads in a way that looked like data loss.
 
+After **adding a dependency or rebuilding a React bundle**, rebuilding the image
+is not enough:
+
+```bash
+docker rm -fv hamrecorder-account-1 && ./docker-local.sh up -d account
+```
+
+`local-compose.yml` mounts `/app/node_modules` and `/app/public` as anonymous
+volumes, which are created once and then reused forever — so the container keeps
+serving the first build's modules and bundle no matter how many times the image
+is rebuilt. `-v` is what drops them. Applies to `account` and `admin`;
+`frontend` uses per-file mounts and is not affected.
+
 Env lives in `test.env` / `prod.env` (both gitignored). `prod.env.example` is
 the template.
 
@@ -53,6 +66,9 @@ For that to work, four things must match across account, admin and backend:
   public in every fork.
 - Sessions roll for 30 days (inactivity, not age). Admin routes additionally
   require a login within the last 12 hours, using `session.loginAt`.
+- A `disabled` account is rejected in `deserializeUser`, so its existing
+  sessions stop working the moment the flag is set rather than whenever they
+  happen to lapse 30 days later.
 
 ### What requires a login
 
@@ -114,16 +130,49 @@ a deploy while the server looks correct.
 - Gating: the listener wall described above, plus `RequireListener` in the
   player.
 - Removed the "Link" sharing control from the player and the call info pane.
+- User administration in `admin/` — `admin/src/Users/ListUsers.js` and
+  `admin/server/controllers/users.js`. Search and filter accounts; disable,
+  enable, grant or remove admin, resend a confirmation email, delete. Every
+  destructive action confirms first, an admin cannot act on their own account,
+  and an account that still owns systems cannot be deleted.
+- Login audit trail — `LoginEvent`, one row per attempt, shown at
+  `admin/src/Users/LoginActivity.js` with a repeated-failures-by-IP summary.
+- Rate limits on `/login`, `/register`, `/api/send-reset-password` and
+  `/users/:userId/send-confirm`. See `account/server/config/rate-limits.js`.
+- Sign-out with a confirmation modal, in the player and in admin.
+
+### Notes on those
+
+`send-confirm` takes no authentication — it never has — so its limiter is keyed
+on the account being emailed rather than the caller's IP. That stops the actual
+abuse (mailing one person repeatedly, which a botnet could do from a new address
+each time) and does not punish an admin resending confirmations to many people.
+
+`skipSuccessfulRequests` is unusable on `/login`: a rejected login answers
+**200** with `success: false` in the body, so the limiter counted every failure
+as a success and never fired. Every attempt counts instead.
+
+geo-IP uses `geoip-lite`, whose database ships inside the npm package. No API
+key, and no user's IP address is sent to a third party. The cost is image size
+and roughly 100 MB resident in the account service; if that matters on the
+droplet, that is the thing to revisit.
+
+`trust proxy` on the account service is `1`, not `true`. With `true`, a client
+could put any address it liked in `X-Forwarded-For` and spoof both the rate
+limiter's key and the IP recorded in the audit trail.
+
+Login events hold an IP and an approximate location per attempt, so they are
+personal data. A TTL index deletes them after 90 days. Deleting an account
+deliberately does **not** delete its login history.
 
 ## Still to do
 
-- **Phase 5** — user administration in `admin/`. `isAdmin` and
-  `GET /admin/users` already exist; there is no UI and no write operations
-  (disable, delete, resend confirmation, toggle admin).
-- **Phase 6** — login audit trail. A `LoginEvent` per attempt (success and
-  failure, IP, geo), written from the four branches of
-  `account/server/config/passport-strategies/local.js`, surfaced in admin.
-  `trust proxy` and `X-Forwarded-For` are already configured. Add rate limiting
-  on `/login` at the same time — there is none today.
 - The dead `bcrypt-nodejs` code in `backend/models/user.js` and
   `systemSchema.js` can be deleted; nothing in the backend calls it.
+- `account/server/config/express.js` falls back to
+  `Access-Control-Allow-Origin: *` alongside `Allow-Credentials: true` for
+  unknown origins. Browsers reject that combination, so it is not a leak, but it
+  is wrong and hides real CORS misconfiguration behind a warning log.
+- The admin user screens have not been driven in a browser end to end — the API
+  is verified, the bundle contains the code, but the rendering has only been
+  checked statically.

@@ -16,11 +16,15 @@ module.exports = function (app, passport) {
 
   passport.deserializeUser(async (id, done) => {
     const user = await User.findById(id).exec();
-    if (user) {
-      done(null,user);
-    } else {
-      done("User not found", null);
+    if (!user) {
+      return done("User not found", null);
     }
+    // Matches account/server/config/passport.js - a disabled account loses its
+    // existing sessions immediately rather than when they lapse.
+    if (user.disabled) {
+      return done(null, false);
+    }
+    done(null, user);
   })
 
 

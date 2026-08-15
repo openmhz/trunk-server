@@ -5,6 +5,7 @@ import GroupModal from "./components/GroupModal";
 import CalendarModal from "./components/CalendarModal";
 import CallPlayer from "./CallPlayer";
 import Activity from "./Activity";
+import AccountMenu from "../Common/AccountMenu";
 import { useSelector, useDispatch } from 'react-redux'
 import { setFilter, setDateFilter } from "../features/callPlayer/callPlayerSlice";
 import { getCalls, addCall, getOlderCalls, getNewerCalls } from "../features/calls/callsSlice";
@@ -448,6 +449,7 @@ function Calls(props) {
             <Icon name="unmute" />
             <span className="desktop-only">Live</span>
           </Menu.Item>
+          <AccountMenu />
         </Menu.Menu>
       </Menu>
 

@@ -51,6 +51,10 @@ const UserSchema = new mongoose.Schema({
 		type: Boolean,
 		default: false
 	},
+	disabled: {
+		type: Boolean,
+		default: false
+	},
 	terms: {
 		type: Number,
 		default: 0

@@ -10,6 +10,8 @@ import ListSystems from "../System/ListSystems"
 import UpdateSystem from "../System/UpdateSystem"
 import CreateSystem from "../System/CreateSystem"
 import ActiveUsers from "../ActiveUsers/ActiveUsers"
+import ListUsers from "../Users/ListUsers"
+import LoginActivity from "../Users/LoginActivity"
 
 
 const App = (params) => {
@@ -24,6 +26,8 @@ const App = (params) => {
 					<Route path="/list-systems" element={ <Restricted><ListSystems/></Restricted>}  />
 					<Route path="/all-systems" element={ <AdminRestricted><AllSystems/></AdminRestricted>}  />
 					<Route path="/active-users" element={ <AdminRestricted><ActiveUsers/></AdminRestricted>}  />
+					<Route path="/users" element={ <AdminRestricted><ListUsers/></AdminRestricted>}  />
+					<Route path="/login-activity" element={ <AdminRestricted><LoginActivity/></AdminRestricted>}  />
 					<Route path="/" element={ <Restricted><ListSystems/></Restricted>} />
 					<Route render={() => (<div>Miss</div>)} />
 				</Routes>

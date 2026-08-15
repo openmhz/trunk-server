@@ -20,7 +20,12 @@ module.exports = function(app, passport) {
 	// Keeping it makes it easier for an attacker to build the site's profile
 	// It can be removed safely
 	app.disable("x-powered-by")
-	app.enable('trust proxy')
+	// One hop, not "trust anything". nginx is the only proxy in front of this,
+	// so req.ip is the address nginx saw. With the previous `true`, a client
+	// could put any address it liked in X-Forwarded-For and have express believe
+	// it - which would let it spoof both the rate limiter's key and the IP in
+	// the login audit trail.
+	app.set('trust proxy', 1)
 	app.use(bodyParser.json())
 	app.use(bodyParser.urlencoded({ extended: true }))
 	app.use(express.static(path.join(process.cwd(), 'public')));

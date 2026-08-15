@@ -30,11 +30,17 @@ async function resolveListener(session) {
     return { error: "Sign in to listen", reason: "unauthenticated" };
   }
 
-  const user = await User.findById(userId, "email confirmEmail admin callsign screenName");
+  const user = await User.findById(userId, "email confirmEmail admin disabled callsign screenName");
   if (!user) {
     // The session outlived the account - treat it as signed out rather than
     // leaving a ghost session that half works.
     return { error: "Sign in to listen", reason: "unauthenticated" };
+  }
+  // Checked on every request rather than only at login, so disabling an account
+  // in the admin portal takes effect immediately instead of whenever their
+  // 30-day session happens to lapse.
+  if (user.disabled) {
+    return { error: "This account has been disabled", reason: "disabled" };
   }
   if (!user.confirmEmail) {
     return { error: "Confirm your email address to listen", reason: "unconfirmed email" };

@@ -1,6 +1,11 @@
 /*
  Configuring local strategy to authenticate strategies
  Code modified from : https://github.com/madhums/node-express-mongoose-demo/blob/master/config/passport/local.js
+
+ Dead code. Admin issues no logins of its own - it reads the session the account
+ service created, and unauthenticated visitors are sent there. Nothing routes
+ through passport.authenticate("local") here, which is just as well: the
+ findOne callback below is the mongoose 6 API and throws under mongoose 7.
  */
 
 const mongoose = require("mongoose");
