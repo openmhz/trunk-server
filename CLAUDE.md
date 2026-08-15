@@ -140,6 +140,15 @@ a deploy while the server looks correct.
 - Rate limits on `/login`, `/register`, `/api/send-reset-password` and
   `/users/:userId/send-confirm`. See `account/server/config/rate-limits.js`.
 - Sign-out with a confirmation modal, in the player and in admin.
+- Sign-in on the front page itself (`frontend/src/Common/SignInModal.js`),
+  posting to the account service's existing `/login`. Registration stays on the
+  account site - that form is nine fields with terms acceptance and matching
+  server-side validation, and a second copy would drift.
+- Navigation on the account site. It had none: once on the profile page there
+  was no way back except editing the address bar.
+- Starred calls are per listener (`backend/models/starred_call.js`). They used
+  to be a counter on the call shared by everyone.
+- Removed the Trending section from the systems list.
 
 ### Notes on those
 
@@ -164,6 +173,18 @@ limiter's key and the IP recorded in the audit trail.
 Login events hold an IP and an approximate location per attempt, so they are
 personal data. A TTL index deletes them after 90 days. Deleting an account
 deliberately does **not** delete its login history.
+
+The login failure `reason` is split finely for the audit trail ("bad password"
+vs "no such account") but collapsed to one value before it reaches the client.
+Handing that distinction to the browser is exactly how account enumeration
+works, and the `message` has always been identical for both.
+
+**Groups** are a named bundle of talkgroups per system, defined in the admin
+portal, so a listener can filter by "Fire" instead of ticking talkgroups one by
+one. On a conventional ham system, where the talkgroup number carries the
+repeater frequency, a group would be something like "2 m repeaters". The Filter
+dialog shows an empty Groups section when a system has none defined - which is
+currently all of them.
 
 ## Still to do
 
