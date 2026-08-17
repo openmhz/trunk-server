@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { Input, Icon, Message, Menu } from "semantic-ui-react";
 
 import { setQueryFilter } from "../../features/callPlayer/callPlayerSlice";
-import { getCalls } from "../../features/calls/callsSlice";
 import { selectIsSupporter } from "../../features/user/userSlice";
 
 /**
@@ -35,8 +34,9 @@ export const TranscriptSearchBox = () => {
   const submit = () => {
     const next = text.trim();
     if (next === (filterQuery || "")) return;
+    // No getCalls here: Calls.js already refetches on a filterQuery change.
+    // Dispatching it as well produced two requests for one search.
     dispatch(setQueryFilter(next));
-    dispatch(getCalls({}));
   };
 
   return (
@@ -45,7 +45,7 @@ export const TranscriptSearchBox = () => {
         size="small"
         icon={
           text
-            ? <Icon name="close" link onClick={() => { setText(""); dispatch(setQueryFilter("")); dispatch(getCalls({})); }} />
+            ? <Icon name="close" link onClick={() => { setText(""); dispatch(setQueryFilter("")); }} />
             : <Icon name="search" />
         }
         placeholder={isSupporter ? "Search transcripts" : "Search transcripts (Supporters)"}
@@ -71,10 +71,7 @@ export const TranscriptSearchBanner = ({ resultCount }) => {
 
   if (!filterQuery) return null;
 
-  const clear = () => {
-    dispatch(setQueryFilter(""));
-    dispatch(getCalls({}));
-  };
+  const clear = () => dispatch(setQueryFilter(""));
 
   // A shared search URL opened by a free account: the server ignored the query
   // and returned the ordinary list, so say that rather than let them think

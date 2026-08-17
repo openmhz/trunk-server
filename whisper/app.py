@@ -129,6 +129,48 @@ def is_hallucination(text: str) -> bool:
     return normalized in HALLUCINATIONS or normalized.rstrip(".") in HALLUCINATIONS
 
 
+# Words too common to count as evidence that anything was actually said.
+STOPWORDS = {
+    "the", "a", "an", "and", "or", "of", "to", "in", "is", "it", "this", "that",
+    "we", "you", "i", "on", "at", "for", "with", "so", "up", "out", "here",
+}
+
+
+def _stem(word: str) -> str:
+    """Crude suffix strip, enough to tie "standing" to "stand"."""
+    for suffix in ("ing", "ed", "s"):
+        if len(word) > 4 and word.endswith(suffix):
+            return word[: -len(suffix)]
+    return word
+
+
+def _content_words(text: str) -> list[str]:
+    return [_stem(w) for w in re.findall(r"[a-z0-9]+", text.lower())]
+
+
+def is_prompt_echo(text: str, prompt: str) -> bool:
+    """Did the model just read the prompt back to us?
+
+    Whisper's other failure on non-speech, and the one that actually bites here:
+    given audio with nothing recognisable in it, it emits the initial_prompt
+    instead of emitting nothing. Every repeater CW ident came back as
+    "Callsigns, 73, QSL, simplex, monitoring, net control, stand by." - which is
+    this service's own prompt, not anything anyone said.
+
+    The test is whether the output contains a single content word that is not in
+    the prompt. Real speech essentially always does: a callsign, a name, a
+    subject. "Welcome to the N6NA repeater system" survives on "welcome" and
+    "n6na"; "W6VVR repeater" survives on the callsign. An over consisting only
+    of prompt vocabulary is indistinguishable from an echo, and is not worth
+    showing either way.
+    """
+    words = _content_words(text)
+    if not words:
+        return False
+    known = set(_content_words(prompt)) | STOPWORDS
+    return not any(word not in known for word in words)
+
+
 @app.get("/healthz")
 def healthz():
     return {"ok": model is not None, "model": MODEL_NAME, "warm": warm}
@@ -167,8 +209,16 @@ async def transcribe(
     kept = [s for s in segments if s["avgLogprob"] >= MIN_AVG_LOGPROB]
     text = " ".join(s["text"] for s in kept).strip()
 
+    active_prompt = prompt or DEFAULT_PROMPT
+
     if text and is_hallucination(text):
         log.info("dropped hallucination: %r (%.1fs audio)", text, duration)
+        kept, text = [], ""
+    elif text and is_prompt_echo(text, active_prompt):
+        # Almost always a CW ident: a repeater keying its callsign in morse,
+        # which carries no speech for the model to find. Decoding morse is a
+        # different problem and not one this service pretends to solve.
+        log.info("dropped prompt echo: %r (%.1fs audio)", text, duration)
         kept, text = [], ""
 
     log.info("%.1fs audio -> %dms, %d segments, %d chars",
