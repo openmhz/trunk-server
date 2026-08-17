@@ -127,6 +127,25 @@ const initialState = {
       return url;
   }
 
+/**
+ * Re-read one call from the server.
+ *
+ * Transcription finishes seconds after a call arrives, and the worker is a
+ * separate process with no handle on the socket - so a live call reaches the
+ * browser before its transcript exists. Rather than build a second push
+ * channel, the pane refetches the one call being looked at while it is still
+ * being transcribed. Traffic scales with people viewing a call, not with calls
+ * arriving, and it stops the moment the transcript lands.
+ */
+export const fetchCall = createAsyncThunk(
+  'calls/fetchCall',
+  async ({ shortName, callId }) => {
+    const url = process.env.REACT_APP_BACKEND_SERVER + "/" + shortName + "/call/" + callId;
+    const res = await fetch(url, { credentials: 'include' }).then((data) => data.json());
+    return res;
+  }
+)
+
 export const addStar = createAsyncThunk(
   'calls/addStar',
   async(callId,{getState, requestIdleCallback}) => {
@@ -267,6 +286,16 @@ export const callsSlice = createSlice({
         const lastTime = state.data.entities[last].time;
         state.newestCallTime = new Date(firstTime).getTime();
         state.oldestCallTime = new Date(lastTime).getTime();
+      }
+    },
+    [fetchCall.fulfilled]: (state, {payload}) => {
+      // Same wholesale replacement the star actions use. Guarded because a call
+      // can be removed from the list (a filter change, a reload) while its
+      // refetch is still in flight, and reviving it here would resurrect a row
+      // that no longer belongs on screen.
+      if (payload && payload.success && payload.call && state.data.entities[payload.call._id]) {
+        const existing = state.data.entities[payload.call._id];
+        state.data.entities[payload.call._id] = { ...payload.call, played: existing.played };
       }
     },
     [addStar.fulfilled]: (state, {payload}) => {

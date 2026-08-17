@@ -28,7 +28,39 @@ async function starred_ids_for(userId, items) {
     }
 }
 
-const build_call_list = (items, starredIds) => {
+/** Is this listener entitled to the enhanced features? */
+function is_supporter(listener) {
+    return !!(listener && listener.plan === 'supporter');
+}
+
+/**
+ * What a given viewer is allowed to know about a call's transcript.
+ *
+ * Everyone gets a state so the UI can tell "there is no transcript" apart from
+ * "there is one and it is not yours" - without that distinction the upsell has
+ * nowhere to live and a free account just sees an empty pane. Only a Supporter
+ * gets the text, and it is left out of the payload entirely rather than sent
+ * and hidden in the browser.
+ *
+ * 'none' is deliberately the same answer for both: never dangle an upsell for a
+ * transcript that does not exist. A call still being transcribed reads as 'none'
+ * for a free account too, because at that point nobody knows whether it will
+ * turn out to contain any speech.
+ */
+function transcript_for(item, supporter) {
+    const status = item.transcriptStatus;
+    const text = item.transcript && item.transcript.text;
+
+    if (status === 'done' && text) {
+        return supporter ? { transcriptState: 'ready', transcript: text } : { transcriptState: 'locked' };
+    }
+    if (status === 'pending' && supporter) {
+        return { transcriptState: 'pending' };
+    }
+    return { transcriptState: 'none' };
+}
+
+const build_call_list = (items, starredIds, supporter) => {
     const starred = starredIds || new Set();
     let calls = [];
     for (var i=0; i < items.length; i++) {
@@ -45,14 +77,18 @@ const build_call_list = (items, starredIds) => {
             star: starred.has(item._id.toHexString()),
             freq: item.freq,
             patches: item.patches,
-            len: Math.round(item.len)
+            len: Math.round(item.len),
+            ...transcript_for(item, supporter)
         };
         calls.push(call);
     }
     return calls;
 }
 
-async function get_calls(query, numResults, middleDate, res, userId) {
+async function get_calls(query, numResults, middleDate, res, listener) {
+
+    const userId = listener ? listener._id : null;
+    const supporter = is_supporter(listener);
 
     var calls = [];
     var fields = {
@@ -68,13 +104,27 @@ async function get_calls(query, numResults, middleDate, res, userId) {
         patches: true,
         star: true,
         len: true,
-        url: true
+        url: true,
+        // Everyone needs the status, so the pane can say "not yours" rather than
+        // showing nothing at all.
+        transcriptStatus: true,
+        // Read for everyone, returned only to Supporters - transcript_for is the
+        // single place that decides. It has to be read even for a free account
+        // because "there is a transcript you cannot see" and "there is no
+        // transcript" are different answers, and the status alone cannot tell
+        // them apart: a call can finish transcribing with no speech in it.
+        //
+        // Gating this at the projection as well looked safer and was worse. It
+        // meant two places had to agree about one rule, they disagreed, and
+        // every free account silently got 'none' where it should have seen the
+        // upsell. One chokepoint, not two.
+        'transcript.text': true
     };
 
     const sort = { length: -1 };
     try {
         const items =  await Call.find(query.filter, fields).sort(query.sort_order).limit(numResults);
-        const refined_items = build_call_list(items, await starred_ids_for(userId, items));
+        const refined_items = build_call_list(items, await starred_ids_for(userId, items), supporter);
         calls.push(...refined_items);
 
         // if we are loading a list of calls around a specific Call ID, we want to load call before and after that call, so we call it twice.
@@ -84,7 +134,7 @@ async function get_calls(query, numResults, middleDate, res, userId) {
             };
 
             const items =  await Call.find(query.filter, fields).sort(query.sort_order).limit(numResults);
-            const refined_items = build_call_list(items, await starred_ids_for(userId, items));
+            const refined_items = build_call_list(items, await starred_ids_for(userId, items), supporter);
             calls.push(...refined_items);
         }
         res.json({
@@ -98,7 +148,8 @@ async function get_calls(query, numResults, middleDate, res, userId) {
     };
 }
 
-async function build_filter(filter_type, code, start_time, direction, shortName, numResults, starred, res, userId) {
+async function build_filter(filter_type, code, start_time, direction, shortName, numResults, starred, res, listener) {
+    const userId = listener ? listener._id : null;
     var filter = {};
     var query = {};
     var start = new Date(start_time);
@@ -196,10 +247,10 @@ async function build_filter(filter_type, code, start_time, direction, shortName,
 
         if (direction=="middle") {
             query['filter'] = filter;
-            get_calls(query, numResults, start, res, userId);
+            get_calls(query, numResults, start, res, listener);
         } else {
             query['filter'] = filter;
-            get_calls(query, numResults, false, res, userId);
+            get_calls(query, numResults, false, res, listener);
         }
 
     
@@ -239,9 +290,11 @@ exports.get_card = async function (req, res) {
     }
 }
 
-// starred is per-listener, so the caller has to say. It defaults to false,
-// which is right for a call arriving over the socket: nobody has starred it yet.
-function package_call(item, starred) {
+// starred and supporter are both per-listener, so the caller has to say. Both
+// default to false, which is right for a call arriving over the socket: nobody
+// has starred it yet, and it is broadcast to every connected client at once so
+// it cannot carry anything entitlement-specific.
+function package_call(item, starred, supporter) {
     var time = new Date(item.time);
     var timeString = time.toLocaleTimeString("en-US");
     var dateString = time.toDateString();
@@ -259,7 +312,8 @@ function package_call(item, starred) {
         freq: item.freq,
         srcList: item.srcList,
         star: !!starred,
-        len: Math.round(item.len)
+        len: Math.round(item.len),
+        ...transcript_for(item, supporter)
     };
     return call;
 }
@@ -305,7 +359,7 @@ exports.remove_star = async function (req, res, next) {
         return;
     }
 
-    var call = package_call(item, false);
+    var call = package_call(item, false, is_supporter(req.listener));
     req.call = call;
     res.send(JSON.stringify({
         success: true,
@@ -341,7 +395,7 @@ exports.add_star = async function (req, res, next) {
         return;
     }
 
-    var call = package_call(item, true);
+    var call = package_call(item, true, is_supporter(req.listener));
     req.call = call;
     res.send(JSON.stringify({
         success: true,
@@ -372,7 +426,7 @@ exports.get_call = async function (req, res) {
         // has starred it - a single call opened by link should show the same
         // star state as it does in the list.
         const starredIds = await starred_ids_for(req.listener ? req.listener._id : null, [item]);
-        var call = package_call(item, starredIds.has(item._id.toHexString()));
+        var call = package_call(item, starredIds.has(item._id.toHexString()), is_supporter(req.listener));
         res.contentType('json');
         res.send(JSON.stringify({
             success: true,
@@ -400,11 +454,11 @@ exports.get_date_calls = function (req, res) {
     var start_time = parseInt(req.query["time"]);
     var short_name = req.params.shortName.toLowerCase();
     // requireListener guarantees this on the gated routes; the iphone route is
-    // ungated legacy and simply has no stars to show.
-    var userId = req.listener ? req.listener._id : null;
+    // ungated legacy and has neither stars nor transcripts to show.
+    var listener = req.listener;
     //console.log("[" + short_name + "] Next Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
 
-    build_filter(filter_type, filter_code, start_time, 'middle', short_name, defaultNumResults, starred, res, userId);
+    build_filter(filter_type, filter_code, start_time, 'middle', short_name, defaultNumResults, starred, res, listener);
 }
 
 
@@ -414,11 +468,11 @@ exports.get_latest_calls = function (req, res) {
     var starred = req.query["filter-starred"] === 'true' ? true : false;
     var short_name = req.params.shortName.toLowerCase();
     // requireListener guarantees this on the gated routes; the iphone route is
-    // ungated legacy and simply has no stars to show.
-    var userId = req.listener ? req.listener._id : null;
+    // ungated legacy and has neither stars nor transcripts to show.
+    var listener = req.listener;
     //console.log("[" + short_name + "] Latest -  Call Get Filter code: " + filter_code + " Filter Type: " + filter_type );
 
-    build_filter(filter_type, filter_code, null, 'older', short_name, 1, starred, res, userId);
+    build_filter(filter_type, filter_code, null, 'older', short_name, 1, starred, res, listener);
 }
 
 
@@ -429,11 +483,11 @@ exports.get_next_calls = function (req, res) {
     var start_time = parseInt(req.query["time"]);
     var short_name = req.params.shortName.toLowerCase();
     // requireListener guarantees this on the gated routes; the iphone route is
-    // ungated legacy and simply has no stars to show.
-    var userId = req.listener ? req.listener._id : null;
+    // ungated legacy and has neither stars nor transcripts to show.
+    var listener = req.listener;
     //console.log("[" + short_name + "] Next Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
 
-    build_filter(filter_type, filter_code, start_time, 'newer', short_name, 1, starred, res, userId);
+    build_filter(filter_type, filter_code, start_time, 'newer', short_name, 1, starred, res, listener);
 }
 
 exports.get_newer_calls = function (req, res) {
@@ -443,11 +497,11 @@ exports.get_newer_calls = function (req, res) {
     var start_time = parseInt(req.query["time"]);
     var short_name = req.params.shortName.toLowerCase();
     // requireListener guarantees this on the gated routes; the iphone route is
-    // ungated legacy and simply has no stars to show.
-    var userId = req.listener ? req.listener._id : null;
+    // ungated legacy and has neither stars nor transcripts to show.
+    var listener = req.listener;
     //console.log("[" + short_name + "] Newer Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type );
 
-    build_filter(filter_type, filter_code, start_time, 'newer', short_name, defaultNumResults, starred, res, userId);
+    build_filter(filter_type, filter_code, start_time, 'newer', short_name, defaultNumResults, starred, res, listener);
 }
 
 exports.get_older_calls = function (req, res) {
@@ -457,11 +511,11 @@ exports.get_older_calls = function (req, res) {
     var start_time = parseInt(req.query["time"]);
     var short_name = req.params.shortName.toLowerCase();
     // requireListener guarantees this on the gated routes; the iphone route is
-    // ungated legacy and simply has no stars to show.
-    var userId = req.listener ? req.listener._id : null;
+    // ungated legacy and has neither stars nor transcripts to show.
+    var listener = req.listener;
     //console.log("[" + short_name + "] Older Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
 
-    build_filter(filter_type, filter_code, start_time, 'older', short_name, defaultNumResults, starred, res, userId);
+    build_filter(filter_type, filter_code, start_time, 'older', short_name, defaultNumResults, starred, res, listener);
 }
 
 
@@ -473,11 +527,11 @@ exports.get_iphone_calls = function (req, res) {
     var start_time = parseInt(req.params.time);
     var short_name = req.params.shortName.toLowerCase();
     // requireListener guarantees this on the gated routes; the iphone route is
-    // ungated legacy and simply has no stars to show.
-    var userId = req.listener ? req.listener._id : null;
+    // ungated legacy and has neither stars nor transcripts to show.
+    var listener = req.listener;
     //console.log("[" + short_name + "] iPhone Newer Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
 
-    build_filter(filter_type, filter_code, start_time, 'older', short_name, defaultNumResults, starred, res, userId);
+    build_filter(filter_type, filter_code, start_time, 'older', short_name, defaultNumResults, starred, res, listener);
 }
 
 exports.get_calls = function (req, res) {
@@ -486,9 +540,9 @@ exports.get_calls = function (req, res) {
     var starred = req.query["filter-starred"] === 'true' ? true : false;
     var short_name = req.params.shortName.toLowerCase();
     // requireListener guarantees this on the gated routes; the iphone route is
-    // ungated legacy and simply has no stars to show.
-    var userId = req.listener ? req.listener._id : null;
+    // ungated legacy and has neither stars nor transcripts to show.
+    var listener = req.listener;
     //console.log("[" + short_name + "] Inital Calls -  Call Get Filter code: " + filter_code + " Filter Type: " + filter_type);
 
-    build_filter(filter_type, filter_code, null, 'older', short_name, defaultNumResults, starred, res, userId);
+    build_filter(filter_type, filter_code, null, 'older', short_name, defaultNumResults, starred, res, listener);
 }

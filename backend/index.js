@@ -223,7 +223,26 @@ app.use(function (err, req, res, next) {
 
 
 
-function notify_clients(call) {
+function notify_clients(rawCall) {
+  // One payload goes to every connected socket at once, so it can carry nothing
+  // that depends on who is receiving it. `rawCall` is the mongoose document
+  // straight from the upload handler, which means it also carries storage
+  // internals the REST projections deliberately omit.
+  //
+  // A transcript cannot exist yet at this point - the call was recorded seconds
+  // ago - so stripping these is not currently hiding anything. It is here so
+  // that stays true: the moment any future change made a transcript available
+  // earlier, this broadcast would hand it to every free account on the site.
+  const {
+    transcript, transcriptStatus, transcriptAttempts, transcriptClaimedAt, transcriptError,
+    objectKey, bucket, endpoint, __v,
+    ...call
+  } = rawCall;
+
+  // The player reads this the same way it reads a REST result, so it needs the
+  // same discriminator. Nothing has been transcribed yet, hence 'pending' when
+  // the call is queued and 'none' when it was too short to bother with.
+  call.transcriptState = transcriptStatus === 'pending' ? 'pending' : 'none';
   call.type = "calls";
   var sent = 0;
 
