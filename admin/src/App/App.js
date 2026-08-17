@@ -12,6 +12,7 @@ import CreateSystem from "../System/CreateSystem"
 import ActiveUsers from "../ActiveUsers/ActiveUsers"
 import ListUsers from "../Users/ListUsers"
 import LoginActivity from "../Users/LoginActivity"
+import TranscriptionHealth from "../Transcription/TranscriptionHealth"
 
 
 const App = (params) => {
@@ -28,6 +29,7 @@ const App = (params) => {
 					<Route path="/active-users" element={ <AdminRestricted><ActiveUsers/></AdminRestricted>}  />
 					<Route path="/users" element={ <AdminRestricted><ListUsers/></AdminRestricted>}  />
 					<Route path="/login-activity" element={ <AdminRestricted><LoginActivity/></AdminRestricted>}  />
+					<Route path="/transcription" element={ <AdminRestricted><TranscriptionHealth/></AdminRestricted>}  />
 					<Route path="/" element={ <Restricted><ListSystems/></Restricted>} />
 					<Route render={() => (<div>Miss</div>)} />
 				</Routes>

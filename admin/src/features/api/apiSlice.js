@@ -181,6 +181,9 @@ export const apiSlice = createApi({
         credentials: "include",
       }),
     }),
+    getTranscriptionStats: builder.query({
+      query: () => ({ url: `/admin/transcription`, credentials: "include" }),
+    }),
     getLoginEvents: builder.query({
       query: ({ q = "", onlyFailures = false, page = 1 } = {}) => ({
         url: `/admin/login-events?q=${encodeURIComponent(q)}&onlyFailures=${onlyFailures}&page=${page}`,
@@ -250,4 +253,4 @@ export const apiSlice = createApi({
 })
 
 // Export the auto-generated hook for the `getPosts` query endpoint
-export const { useGetGroupsQuery, useGetSystemsQuery, useGetAllSystemsQuery, useGetActiveUsersQuery, useGetTalkgroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useCreateSystemMutation, useUpdateSystemMutation, useDeleteSystemMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation, useGetUserAccountsQuery, useUpdateUserAccountMutation, useDeleteUserAccountMutation, useResendConfirmationMutation, useGetLoginEventsQuery } = apiSlice
+export const { useGetGroupsQuery, useGetSystemsQuery, useGetAllSystemsQuery, useGetActiveUsersQuery, useGetTalkgroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useCreateSystemMutation, useUpdateSystemMutation, useDeleteSystemMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation, useGetUserAccountsQuery, useUpdateUserAccountMutation, useDeleteUserAccountMutation, useResendConfirmationMutation, useGetLoginEventsQuery, useGetTranscriptionStatsQuery } = apiSlice

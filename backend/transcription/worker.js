@@ -32,6 +32,8 @@ const MAX_AGE_MS = parseInt(process.env['TRANSCRIBE_MAX_AGE_MS'] ?? String(2 * 6
 // How long to stop claiming for when whisper is unreachable, so an outage does
 // not chew through every call's attempt budget.
 const BREAKER_MS = parseInt(process.env['TRANSCRIBE_BREAKER_MS'] ?? '30000', 10);
+// How often to retire calls that aged past the claim cutoff.
+const SWEEP_INTERVAL_MS = parseInt(process.env['TRANSCRIBE_SWEEP_MS'] ?? String(30 * 60 * 1000), 10);
 
 const client = new S3Client({
   credentials: fromIni({ profile: s3_profile }),
@@ -170,12 +172,54 @@ async function handle(Call, call) {
       (result.text ? `${result.computeMs}ms, ${result.text.length} chars` : `${result.computeMs}ms, no speech`));
 }
 
+/**
+ * Retire calls that will never be claimed.
+ *
+ * The claim query ignores anything older than MAX_AGE_MS, so after an outage
+ * those rows sit at 'pending' forever - not queued, not failed, just wrong.
+ * That matters mostly because it makes the pending count meaningless as a
+ * health signal: you cannot tell a real backlog from old debris.
+ */
+async function expireStale(Call) {
+  try {
+    const result = await Call.updateMany(
+      {
+        transcriptStatus: 'pending',
+        time: { $lt: new Date(Date.now() - MAX_AGE_MS) },
+      },
+      {
+        $set: {
+          transcriptStatus: 'expired',
+          transcriptClaimedAt: null,
+          transcriptError: 'not transcribed before the age cutoff',
+        },
+      }
+    );
+    if (result.modifiedCount) {
+      log(`expired ${result.modifiedCount} pending calls past the age cutoff`);
+    }
+    return result.modifiedCount;
+  } catch (err) {
+    log('could not expire stale calls:', err.message);
+    return 0;
+  }
+}
+
 async function run(Call) {
   log(`started - whisper at ${WHISPER_URL}, poll ${POLL_INTERVAL_MS}ms, ` +
       `max ${MAX_ATTEMPTS} attempts, claim ttl ${CLAIM_TTL_MS}ms`);
 
+  // Swept on a timer rather than on a schedule library: the loop is already
+  // running, and this only needs to happen occasionally.
+  let nextSweep = Date.now();
+
   while (!stopping) {
     try {
+      if (Date.now() >= nextSweep) {
+        nextSweep = Date.now() + SWEEP_INTERVAL_MS;
+        await expireStale(Call);
+      }
+
       if (Date.now() < breakerUntil) {
         await sleep(Math.min(POLL_INTERVAL_MS, breakerUntil - Date.now()));
         continue;
@@ -207,4 +251,4 @@ function stop() {
   stopping = true;
 }
 
-module.exports = { run, stop, claim };
+module.exports = { run, stop, claim, expireStale };

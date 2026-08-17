@@ -9,9 +9,11 @@ const systems = require("./controllers/systems");
 const groups = require("./controllers/groups");
 const talkgroups = require("./controllers/talkgroups");
 const users = require("./controllers/users");
+const transcription = require("./controllers/transcription");
 
 require("./models/user");
 require("./models/login_event");
+require("./models/call");
 const multer = require('multer');
 
 var upload = multer({
@@ -185,6 +187,7 @@ app.post("/admin/user-accounts/:userId", isAdmin, users.updateUser)
 app.delete("/admin/user-accounts/:userId", isAdmin, users.deleteUser)
 app.post("/admin/user-accounts/:userId/resend-confirmation", isAdmin, users.resendConfirmation)
 app.get("/admin/login-events", isAdmin, users.listLoginEvents)
+app.get("/admin/transcription", isAdmin, transcription.stats)
 
 app.delete("/systems/:shortName", isLoggedIn, systems.deleteSystem)
 app.post("/systems/:shortName", [isLoggedIn, systems.ownSystem, systems.validateSystem, systems.updateSystem])
