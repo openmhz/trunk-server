@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import MediaPlayer from "./components/MediaPlayer";
 import SupportModal from "../Common/SupportModal";
 import CallInfo from "./components/CallInfo";
+import TranscriptPane from "./components/TranscriptPane";
 import ListCalls from "./components/ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
 import { useGetTalkgroupsQuery } from '../features/api/apiSlice'
@@ -217,6 +218,15 @@ function CallPlayer(props) {
           </Sticky>
         </Rail>
       </Container>
+
+      {/* The transcript goes in the empty column between the call list and the
+          info rail. It started inside the rail, which is 319px wide - fine for
+          a one-line over, unreadable for the 800-character ones a net produces.
+          Placement is entirely in CallPlayer.css; below 1400px there is no gap
+          to sit in, so it drops into normal flow underneath the list. */}
+      <div id="transcript-column">
+        <TranscriptPane call={currentCall} />
+      </div>
 
       <Menu fixed="bottom" inverted vertical fluid>
         <div className="item-container">
