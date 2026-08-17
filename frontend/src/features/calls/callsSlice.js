@@ -78,7 +78,7 @@ const initialState = {
       var params = {};
       var url = "";
   
-      const {shortName,filterType,filterGroupId, filterTalkgroups, filterStarred, filterDate, filterCallId} = getState().callPlayer; 
+      const {shortName,filterType,filterGroupId, filterTalkgroups, filterStarred, filterDate, filterCallId, filterQuery} = getState().callPlayer;
   
       if ((typeof direction === 'string') && (typeof date === 'number')) {
           url = url + '/' + direction;
@@ -93,6 +93,9 @@ const initialState = {
       
       if (filterStarred) {
         params["filter-starred"] = true;
+      }
+      if (filterQuery) {
+        params["q"] = filterQuery;
       }
       switch(filterType) {
         case 1:

@@ -6,6 +6,7 @@ import CalendarModal from "./components/CalendarModal";
 import CallPlayer from "./CallPlayer";
 import Activity from "./Activity";
 import AccountMenu from "../Common/AccountMenu";
+import { TranscriptSearchBox } from "./components/TranscriptSearch";
 import { useSelector, useDispatch } from 'react-redux'
 import { setFilter, setDateFilter } from "../features/callPlayer/callPlayerSlice";
 import { getCalls, addCall, getOlderCalls, getNewerCalls } from "../features/calls/callsSlice";
@@ -63,6 +64,7 @@ function Calls(props) {
   const filterTalkgroups = useSelector((state) => state.callPlayer.filterTalkgroups);
   const filterStarred = useSelector((state) => state.callPlayer.filterStarred);
   const filterDate = useSelector((state) => state.callPlayer.filterDate);
+  const filterQuery = useSelector((state) => state.callPlayer.filterQuery);
   //const live = useSelector((state) => state.callPlayer.live);
 
   const pathname = useLocation().pathname;
@@ -125,6 +127,7 @@ function Calls(props) {
         filter.code = ""
     }
     filter.filterStarred = filterStarred
+    filter.filterQuery = filterQuery
     return filter;
   }
 
@@ -154,7 +157,14 @@ function Calls(props) {
       filterCode: filter.code,
       filterType: filter.type,
       filterName: process.env.REACT_APP_SITE_NAME,
-      filterStarred: filter.starred,
+      // Was filter.starred, which getFilterDescription never sets - it returns
+      // the key as filterStarred. So this always sent undefined, and the server
+      // pushed live calls even when the starred filter was on.
+      filterStarred: filter.filterStarred,
+      // Only whether a search is running. A call recorded seconds ago has not
+      // been transcribed and cannot match, so the server holds it back rather
+      // than dropping an unrelated call into the middle of the results.
+      filterQuery: !!filter.filterQuery,
       shortName: shortName
     });
   }
@@ -198,6 +208,14 @@ function Calls(props) {
         search = search + '&';
       }
       search = search + `starred=true`;
+    }
+
+    // In the URI so a set of search results can be linked or reloaded.
+    if (filterQuery) {
+      if (search.length !== 1) {
+        search = search + '&';
+      }
+      search = search + `q=${encodeURIComponent(filterQuery)}`;
     }
     navigate(pathname + search, { replace: true });
 
@@ -270,6 +288,7 @@ function Calls(props) {
       filterTalkgroups: [],
       filterGroupId: false,
       filterStarred: false,
+      filterQuery: "",
       filterCallId: false,
       shortName: shortName
     };
@@ -278,6 +297,12 @@ function Calls(props) {
     if (uri.hasOwnProperty('starred')) {
       const starred = uri['starred'];
       filter.filterStarred = starred === 'true' ? true : false;
+      if (!urlOptions) setUrlOptions(true);
+    }
+
+    // is there a transcript search?
+    if (uri.hasOwnProperty('q')) {
+      filter.filterQuery = decodeURIComponent(uri['q'] || "");
       if (!urlOptions) setUrlOptions(true);
     }
 
@@ -364,13 +389,13 @@ function Calls(props) {
     if (live && isConnected) {
       startSocket();
     }
-  }, [shortName, filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred, isConnected])
+  }, [shortName, filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred, filterQuery, isConnected])
 
 
   // Update the Browser URI when any relevant values change
   useEffect(() => {
     updateUri();
-  }, [filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred, selectCallId, initialCallId])
+  }, [filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred, filterQuery, selectCallId, initialCallId])
 
   useEffect(() => {
     if (!urlOptions && groupsData && (groupsData.length > 0)) {
@@ -427,6 +452,7 @@ function Calls(props) {
           <span className="desktop-only">Filter</span>
           <Label horizontal={true} color="grey" className="desktop-only">{filterLabel}</Label>
         </Menu.Item>
+        <TranscriptSearchBox />
         <Container className="desktop-only" textAlign='center' style={{ fontSize: '1.5rem', paddingLeft: '1em', paddingTop: '.5em' }}>
           {system && system.name}
         </Container>

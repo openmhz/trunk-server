@@ -35,6 +35,31 @@ position: unset;
           Transcript
 *******************************/
 
+/* The search box in the top bar. The bar is already busy - sidebar, Filter,
+   system name, Activity/Archive/Live/account - so this stays narrow and gives
+   up its space first as the window shrinks. Below tablet width it is hidden
+   entirely; there is no room, and the filter modal is the fallback. */
+.transcript-search-item {
+  padding-left: 0.5em !important;
+  padding-right: 0.5em !important;
+}
+
+.transcript-search-item .ui.input {
+  width: 15em;
+}
+
+@media only screen and (max-width: 1200px) {
+  .transcript-search-item .ui.input {
+    width: 10em;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  .transcript-search-item {
+    display: none !important;
+  }
+}
+
 /* Default: in normal flow underneath the call list. Bottom margin clears the
    fixed player bar. */
 #transcript-column {

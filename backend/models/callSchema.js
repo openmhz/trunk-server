@@ -83,4 +83,14 @@ callSchema.index(
   { partialFilterExpression: { transcriptStatus: 'pending' } }
 );
 
+// Transcript search. A text index rather than a regex: it is indexed, it
+// tokenises and stems, and it supports quoted phrases - where a regex over the
+// whole collection has no index at all and turns user input into a ReDoS
+// surface. Mongo allows only one text index per collection, so this is it.
+//
+// Only reaches calls that still exist, which is the point: transcripts are
+// deleted with their audio at 30 days, so search covers the archive and not
+// one day longer.
+callSchema.index({ 'transcript.text': 'text' });
+
 module.exports = callSchema;

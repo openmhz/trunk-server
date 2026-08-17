@@ -13,6 +13,8 @@ const initialState = {
   filterGroupId: false,
   filterDate: false,
   filterStarred: false,
+  // Transcript search. Empty string means no search is running.
+  filterQuery: "",
   filterCallId: false,
   currentCallId: false,
   buildingPlaylist: false,
@@ -75,6 +77,7 @@ export const callPlayerSlice = createSlice({
       var filter={};
       state.live = !action.payload.live ? state.live : action.payload.live;
       state.filterStarred = !action.payload.filterStarred ? false : action.payload.filterStarred;
+      state.filterQuery = !action.payload.filterQuery ? "" : action.payload.filterQuery;
       state.filterType = !action.payload.filterType ? 0 : action.payload.filterType;
       state.filterTalkgroups = !action.payload.filterTalkgroups ? [] : action.payload.filterTalkgroups;
       state.filterGroupId = !action.payload.filterGroupId ? false : action.payload.filterGroupId;
@@ -100,6 +103,9 @@ export const callPlayerSlice = createSlice({
     setStarredFilter: (state, action) => {
       state.filterStarred = action.payload;
     },
+    setQueryFilter: (state, action) => {
+      state.filterQuery = action.payload || "";
+    },
     setAllFilter: (state) => {
       state.filterType = 0;
       state.filterTalkgroups = [];
@@ -120,7 +126,7 @@ export const callPlayerSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setCurrentCallId, setCallTime, setFilter, setLive, setCenterCall, setBackgroundAutoplay, setBuildingPlaylist, setPlaylist, removeFromPlaylist, addToPlaylist, setShortName, setDateFilter, setStarredFilter, setAllFilter, setGroupFilter, setTalkgroupFilter } = callPlayerSlice.actions
+export const { setCurrentCallId, setCallTime, setFilter, setLive, setCenterCall, setBackgroundAutoplay, setBuildingPlaylist, setPlaylist, removeFromPlaylist, addToPlaylist, setShortName, setDateFilter, setStarredFilter, setAllFilter, setGroupFilter, setTalkgroupFilter, setQueryFilter } = callPlayerSlice.actions
 
 export default callPlayerSlice.reducer
 

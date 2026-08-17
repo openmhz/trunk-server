@@ -4,6 +4,7 @@ import MediaPlayer from "./components/MediaPlayer";
 import SupportModal from "../Common/SupportModal";
 import CallInfo from "./components/CallInfo";
 import TranscriptPane from "./components/TranscriptPane";
+import { TranscriptSearchBanner } from "./components/TranscriptSearch";
 import ListCalls from "./components/ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
 import { useGetTalkgroupsQuery } from '../features/api/apiSlice'
@@ -208,6 +209,9 @@ function CallPlayer(props) {
         <Sidebar.Pushable>
           <Sidebar.Pusher style={{ minHeight: '100vh' }} >
             <div ref={loadNewerRef} />
+            {/* Without this a filtered list is indistinguishable from a quiet
+                repeater - you cannot tell "no matches" from "nothing happening". */}
+            <TranscriptSearchBanner resultCount={callsData ? callsData.ids.length : 0} />
             <ListCalls callsData={callsData} activeCallId={currentCallId} talkgroups={talkgroupsData ? talkgroupsData.talkgroups : false} playCall={playCall} />
             <div ref={loadOlderRef} style={{ height: 50 }} />
           </Sidebar.Pusher>

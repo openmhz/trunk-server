@@ -255,7 +255,12 @@ function notify_clients(rawCall) {
           // call, and a call that has only just been recorded cannot have been
           // starred by anyone. So a client watching only its starred calls gets
           // no live traffic - there is nothing new that could match.
-          if (!client.filterStarred) {
+          //
+          // The same holds for a transcript search: this call was recorded
+          // seconds ago and has not been transcribed yet, so it cannot match
+          // any search term. Pushing it would drop an unrelated call into the
+          // middle of someone's results.
+          if (!client.filterStarred && !client.filterQuery) {
             if (client.filterCode == "") {
               sent++;
               client.socket.emit("new message", JSON.stringify(call));
@@ -342,6 +347,9 @@ io.sockets.on('connection', function (client) {
       clients[client.id].filterCode = String(data.filterCode);
       clients[client.id].filterName = data.filterName;
       clients[client.id].filterStarred = data.filterStarred;
+      // Only whether a search is running, never the term itself - the server
+      // has no use for it here and it would sit in memory per socket.
+      clients[client.id].filterQuery = !!data.filterQuery;
       clients[client.id].filterType = String(data.filterType);
       clients[client.id].talkgroupNums = [];
       clients[client.id].timestamp = new Date();

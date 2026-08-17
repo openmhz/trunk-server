@@ -148,11 +148,25 @@ async function get_calls(query, numResults, middleDate, res, listener) {
     };
 }
 
-async function build_filter(filter_type, code, start_time, direction, shortName, numResults, starred, res, listener) {
+async function build_filter(filter_type, code, start_time, direction, shortName, numResults, starred, res, listener, searchText) {
     const userId = listener ? listener._id : null;
     var filter = {};
     var query = {};
     var start = new Date(start_time);
+
+    // Transcript search, Supporters only.
+    //
+    // The gate is not cosmetic. Search over text you are not allowed to read
+    // leaks that text: ask whether any call contains a word, and the answer
+    // tells you. So for a free account the query is dropped rather than
+    // applied - they get the ordinary call list, and the player tells them why.
+    //
+    // $text handles the tokenising, stemming, case folding and quoted phrases.
+    // The string goes through untouched: mongo treats it as a search
+    // expression, not as a pattern to compile, so there is nothing to escape.
+    if (searchText && is_supporter(listener)) {
+        filter.$text = { $search: searchText };
+    }
 
     // "Show only starred calls" means only the ones *this* listener starred.
     // Restricting by id up front keeps it a single indexed query; signed out
@@ -456,9 +470,10 @@ exports.get_date_calls = function (req, res) {
     // requireListener guarantees this on the gated routes; the iphone route is
     // ungated legacy and has neither stars nor transcripts to show.
     var listener = req.listener;
+    var searchText = (req.query["q"] || "").toString().trim().slice(0, 200);
     //console.log("[" + short_name + "] Next Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
 
-    build_filter(filter_type, filter_code, start_time, 'middle', short_name, defaultNumResults, starred, res, listener);
+    build_filter(filter_type, filter_code, start_time, 'middle', short_name, defaultNumResults, starred, res, listener, searchText);
 }
 
 
@@ -470,9 +485,10 @@ exports.get_latest_calls = function (req, res) {
     // requireListener guarantees this on the gated routes; the iphone route is
     // ungated legacy and has neither stars nor transcripts to show.
     var listener = req.listener;
+    var searchText = (req.query["q"] || "").toString().trim().slice(0, 200);
     //console.log("[" + short_name + "] Latest -  Call Get Filter code: " + filter_code + " Filter Type: " + filter_type );
 
-    build_filter(filter_type, filter_code, null, 'older', short_name, 1, starred, res, listener);
+    build_filter(filter_type, filter_code, null, 'older', short_name, 1, starred, res, listener, searchText);
 }
 
 
@@ -485,9 +501,10 @@ exports.get_next_calls = function (req, res) {
     // requireListener guarantees this on the gated routes; the iphone route is
     // ungated legacy and has neither stars nor transcripts to show.
     var listener = req.listener;
+    var searchText = (req.query["q"] || "").toString().trim().slice(0, 200);
     //console.log("[" + short_name + "] Next Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
 
-    build_filter(filter_type, filter_code, start_time, 'newer', short_name, 1, starred, res, listener);
+    build_filter(filter_type, filter_code, start_time, 'newer', short_name, 1, starred, res, listener, searchText);
 }
 
 exports.get_newer_calls = function (req, res) {
@@ -499,9 +516,10 @@ exports.get_newer_calls = function (req, res) {
     // requireListener guarantees this on the gated routes; the iphone route is
     // ungated legacy and has neither stars nor transcripts to show.
     var listener = req.listener;
+    var searchText = (req.query["q"] || "").toString().trim().slice(0, 200);
     //console.log("[" + short_name + "] Newer Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type );
 
-    build_filter(filter_type, filter_code, start_time, 'newer', short_name, defaultNumResults, starred, res, listener);
+    build_filter(filter_type, filter_code, start_time, 'newer', short_name, defaultNumResults, starred, res, listener, searchText);
 }
 
 exports.get_older_calls = function (req, res) {
@@ -513,9 +531,10 @@ exports.get_older_calls = function (req, res) {
     // requireListener guarantees this on the gated routes; the iphone route is
     // ungated legacy and has neither stars nor transcripts to show.
     var listener = req.listener;
+    var searchText = (req.query["q"] || "").toString().trim().slice(0, 200);
     //console.log("[" + short_name + "] Older Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
 
-    build_filter(filter_type, filter_code, start_time, 'older', short_name, defaultNumResults, starred, res, listener);
+    build_filter(filter_type, filter_code, start_time, 'older', short_name, defaultNumResults, starred, res, listener, searchText);
 }
 
 
@@ -529,9 +548,10 @@ exports.get_iphone_calls = function (req, res) {
     // requireListener guarantees this on the gated routes; the iphone route is
     // ungated legacy and has neither stars nor transcripts to show.
     var listener = req.listener;
+    var searchText = (req.query["q"] || "").toString().trim().slice(0, 200);
     //console.log("[" + short_name + "] iPhone Newer Calls - time: " + start_time + " Filter code: " + filter_code + " Filter Type: " + filter_type);
 
-    build_filter(filter_type, filter_code, start_time, 'older', short_name, defaultNumResults, starred, res, listener);
+    build_filter(filter_type, filter_code, start_time, 'older', short_name, defaultNumResults, starred, res, listener, searchText);
 }
 
 exports.get_calls = function (req, res) {
@@ -542,7 +562,8 @@ exports.get_calls = function (req, res) {
     // requireListener guarantees this on the gated routes; the iphone route is
     // ungated legacy and has neither stars nor transcripts to show.
     var listener = req.listener;
+    var searchText = (req.query["q"] || "").toString().trim().slice(0, 200);
     //console.log("[" + short_name + "] Inital Calls -  Call Get Filter code: " + filter_code + " Filter Type: " + filter_type);
 
-    build_filter(filter_type, filter_code, null, 'older', short_name, defaultNumResults, starred, res, listener);
+    build_filter(filter_type, filter_code, null, 'older', short_name, defaultNumResults, starred, res, listener, searchText);
 }
