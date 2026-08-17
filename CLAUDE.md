@@ -192,11 +192,32 @@ a deploy while the server looks correct.
   system: the `-1[0]` source list, the duplicated frequency statistic, the
   permanent "No Patches" row, and a second Download control.
 
-## In progress: transcription
+## Transcription
 
-The next feature is machine transcription of call audio, as the first thing
-worth paying for. The full plan lives outside the repo at
-`~/.claude/plans/valiant-shimmying-wilkes.md`. The shape of it:
+Machine transcription of call audio, the first Supporter feature. Shipped; the
+plan it was built from is at `~/.claude/plans/valiant-shimmying-wilkes.md`.
+
+Measured on real traffic: ~560 calls and ~245 minutes of audio a day at **0.34x
+realtime**, about 9 s of compute per call. Roughly a quarter of one core at
+peak. Watch it at **admin → Transcription**, which leads with the two states
+that actually mean broken (whisper unreachable, calls aged past the claim
+cutoff) rather than leaving numbers to be interpreted.
+
+Things that were learned the hard way, all of them by measuring:
+
+- **`os.cpu_count()` reports the host's cores, not the cgroup limit.** A
+  container capped at 1.5 CPUs span up five threads; combined with a decoder
+  repetition loop, one 6.5 s clip took 70 s and produced nothing. Read
+  `/sys/fs/cgroup/cpu.max`.
+- **Gating the transcript at the mongo projection as well as in
+  `transcript_for` was worse, not safer.** The server could then not tell
+  whether a transcript existed, so every free account got `none` where it should
+  have seen `locked` and the upsell never appeared. One chokepoint, not two.
+- **Attempts must not be spent on outages.** A whisper restart would otherwise
+  exhaust a call's three attempts and fail it permanently for something that had
+  nothing to do with it.
+
+The shape of it:
 
 - **Self-hosted Whisper** (`faster-whisper`, `small.en`, int8) in its own
   container on the `node` network, with no published port and no vhost — it has
