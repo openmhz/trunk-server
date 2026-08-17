@@ -21,23 +21,18 @@ as the basis for later per-user features (favourites, transcription, AI).
 Branch is `local-dev`. `origin` is the fork, `upstream` is openmhz.
 
 > **Known-good checkpoint: tag `pre-transcription` (`9b2b71e`).** Everything
-> described below works and is deployed as of that tag: account gating, user
-> administration, the login audit trail, per-user starred calls, and
-> lockfile-pinned images. Transcription work starts after it, so
+> below except transcription works and is deployed as of that tag: account
+> gating, user administration, the login audit trail, per-user starred calls,
+> and lockfile-pinned images. All the transcription work sits after it, so
 > `git diff pre-transcription` is the whole of that feature and
 > `git reset --hard pre-transcription` is the way back.
 >
-> **`local-dev` has never been pushed.** At the time of the tag, 55 commits
-> existed only on this machine — `origin/local-dev` does not exist and
-> `origin/master` is 55 behind. There is no GitHub credential configured in WSL
-> or Windows (no `gh`, no SSH key, no credential helper), so the push needs
-> authenticating first:
->
-> ```bash
-> gh auth login          # or configure a credential helper / SSH key
-> git push -u origin local-dev
-> git push origin pre-transcription
-> ```
+> `local-dev` tracks `origin/local-dev` and both the branch and the tag are
+> pushed. WSL git authenticates through the Windows Git Credential Manager
+> (`git config --global credential.helper` points at
+> `/mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe`), which
+> already holds a GitHub credential — so pushes are silent and no browser
+> appears. `origin/master` is still far behind; nothing merges there.
 
 ## Running it
 
@@ -191,6 +186,8 @@ a deploy while the server looks correct.
 - Trimmed the call info pane of things that only mean something on a trunked
   system: the `-1[0]` source list, the duplicated frequency statistic, the
   permanent "No Patches" row, and a second Download control.
+- Machine transcription of every call, shown to Supporters, and search over
+  those transcripts. See below.
 
 ## Transcription
 
@@ -209,6 +206,16 @@ Things that were learned the hard way, all of them by measuring:
   container capped at 1.5 CPUs span up five threads; combined with a decoder
   repetition loop, one 6.5 s clip took 70 s and produced nothing. Read
   `/sys/fs/cgroup/cpu.max`.
+- **Whisper reads the prompt back when there is no speech.** Every repeater CW
+  ident transcribed as `"Callsigns, 73, QSL, simplex, monitoring, net control,
+  stand by."` — the service's own `initial_prompt`, since morse is not speech.
+  86 of 1255 transcripts. `is_prompt_echo` drops any output whose every content
+  word appears in the prompt. The bar is deliberately that low: real speech
+  essentially always contains a callsign or a name, and two of the most repeated
+  transcripts here are genuine voice idents that a cruder rule would eat
+  (`"Welcome to the N6NA repeater system"`, `"W6VVR repeater"`). **Change the
+  prompt and you change what this filter catches** — re-check both against real
+  transcripts.
 - **Gating the transcript at the mongo projection as well as in
   `transcript_for` was worse, not safer.** The server could then not tell
   whether a transcript existed, so every free account got `none` where it should
@@ -216,6 +223,10 @@ Things that were learned the hard way, all of them by measuring:
 - **Attempts must not be spent on outages.** A whisper restart would otherwise
   exhaust a call's three attempts and fail it permanently for something that had
   nothing to do with it.
+- **Controls that start from their defaults instead of from applied state lie.**
+  The Filter dialog opened with its checkbox unchecked whatever the real filter
+  was, so pressing Done turned the starred filter off. The star column had the
+  identical bug. Load current state when a control mounts.
 
 The shape of it:
 
@@ -232,8 +243,25 @@ The shape of it:
 - **Transcription runs for every call; the gate is on reading**, because calls
   are shared between listeners. Free accounts get a `transcriptState` of
   `'locked'` and no text in the payload at all.
+- **Search is a filter on the call list**, not a separate results view, so
+  playback, the waveform, starring and paging keep working with no new code. A
+  mongo text index on `transcript.text`; the term rides in the URI beside the
+  other filters. Entry points are the box in the player's top bar and the Filter
+  dialog — the top bar one is hidden below 768px, which is why the dialog also
+  has it.
 
-### Notes on those
+  Search is Supporters-only for the same reason the text is: **searching text
+  you cannot read leaks it a word at a time.** For a free account the query is
+  dropped rather than applied, so the response is byte-identical whatever they
+  search for and nothing can be extracted by probing. Verify that property by
+  diffing two responses, not by comparing result counts.
+
+  Live calls are held back while a search runs, as under the starred filter — a
+  call recorded seconds ago has not been transcribed and cannot match.
+
+## Notes on the account, admin and rate-limiting work
+
+(These belong to "Work done in this fork" above, not to transcription.)
 
 `send-confirm` takes no authentication — it never has — so its limiter is keyed
 on the account being emailed rather than the caller's IP. That stops the actual
@@ -271,12 +299,26 @@ currently all of them.
 
 ## Still to do
 
+- **Stripe and donations.** Supporter status is admin-granted only. Billing has
+  to handle two routes to the same status — a recurring subscription and a
+  one-off donation — which is where `planExpiresAt` gets decided; there is
+  deliberately no such field yet.
+- `"Bop."` and similar one-word artifacts still get through on courtesy tones
+  (4 occurrences). Left alone on purpose: filtering short single words risks
+  eating real brief overs, and over-filtering a paid feature is worse than a
+  rare oddity.
 - The dead `bcrypt-nodejs` code in `backend/models/user.js` and
   `systemSchema.js` can be deleted; nothing in the backend calls it.
 - `account/server/config/express.js` falls back to
   `Access-Control-Allow-Origin: *` alongside `Allow-Credentials: true` for
   unknown origins. Browsers reject that combination, so it is not a leak, but it
   is wrong and hides real CORS misconfiguration behind a warning log.
-- The admin user screens have not been driven in a browser end to end — the API
-  is verified, the bundle contains the code, but the rendering has only been
-  checked statically.
+- `.env.test` is tracked and holds a Stripe test secret key, inherited from
+  upstream. Raised and judged a non-blocker; nothing reads it.
+- The admin screens have not been driven in a browser end to end — the APIs are
+  verified and the bundles contain the code, but rendering has only been checked
+  statically. The in-app browser cannot sign in here (it blocks the cross-origin
+  auth call), so this needs a real browser.
+- A `{shortName: 1, time: -1}` index on `calls` would be a large read-path win —
+  every call list query is a full scan today. Left alone because it changes
+  existing query plans and deserves its own verification.
