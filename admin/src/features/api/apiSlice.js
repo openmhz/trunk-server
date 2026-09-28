@@ -57,8 +57,12 @@ export const apiSlice = createApi({
           const { data: updatedGroup } = await queryFulfilled
           dispatch(
             apiSlice.util.updateQueryData('getGroups', updatedGroup.shortName, (groups) => {
-              const groupIndex = groups.findIndex((obj => obj.groupId === updatedGroup.groupId));
-              groups[groupIndex] = updatedGroup;
+              const groupIndex = groups.findIndex((obj => obj._id === updatedGroup._id));
+              if (groupIndex >= 0) {
+                groups[groupIndex] = updatedGroup;
+              } else {
+                groups.push(updatedGroup);
+              }
             })
           )
         } catch { }
