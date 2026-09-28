@@ -68,42 +68,48 @@ const GroupModal = (props) => {
     }
   },[talkgroupsData, props.editGroupId]);
 
-  const removeTalkgroup =  (event, index) => {
-    const item = {
-      num: group.items[index].num,
-      description: group.items[index].description
-    };
+  const removeTalkgroup = (event, index) => {
+    const item = group.items[index];
+    if (!item) return;
 
-    let talkgroups = talkgroupsData.slice(0); // copy
+    // Remove the item from the Group
+    setGroup(prev => ({
+      ...prev,
+      items: prev.items.filter(tg => tg.num !== item.num)
+    }));
 
-    for (var i = 0, len = talkgroups.length; i < len; i++) {
-      if (item.num < talkgroups[i].num) {
-        talkgroups.splice(i, 0, item);
-        break;
-      }
-    }
-    setGroup( {
-      items: group.items
-        .slice(0, index)
-        .concat(group.items.slice(index + 1))
+    // Put the item back into the current list (not the full talkgroup list),
+    // keeping it sorted and never duplicating an entry
+    setTalkgroupList(prev => {
+      if (prev.some(tg => tg.num === item.num)) return prev;
+      const insertAt = prev.findIndex(tg => item.num < tg.num);
+      const restored = { num: item.num, description: item.description };
+      return insertAt === -1
+        ? [...prev, restored]
+        : [...prev.slice(0, insertAt), restored, ...prev.slice(insertAt)];
     });
-    setTalkgroupList(talkgroups);
   }
 
 
   const addTalkgroup = (event, index) => {
+    const talkgroup = talkgroupList[index];
+    if (!talkgroup) return;
 
-  // Build a talkgroup item for the group based on the Index of the item from the list
+    // Build a talkgroup item for the group based on the Index of the item from the list
     const item = {
-      num: talkgroupList[index].num,
-      description: talkgroupList[index].description
+      num: talkgroup.num,
+      description: talkgroup.description
     };
 
-    // Add item to the Group
-    setGroup({ items: group.items.concat(item) })
+    // Add item to the Group (functional updates so quick successive clicks aren't lost)
+    setGroup(prev => (
+      prev.items.some(tg => tg.num === item.num)
+        ? prev
+        : { ...prev, items: prev.items.concat(item) }
+    ));
 
     // remove the item from the list
-    setTalkgroupList(talkgroupList.slice(0, index).concat(talkgroupList.slice(index + 1)));
+    setTalkgroupList(prev => prev.filter(tg => tg.num !== item.num));
   }
 
   const handleClose = () => {
