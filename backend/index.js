@@ -1,4 +1,3 @@
-const tracing = require("./agents/otel-tracing");
 var express = require("express");
 var configureExpress = require("./config/express");
 
@@ -24,6 +23,12 @@ var app = express();
 // -------------------------------------------
 
 const server = require('http').createServer(app);
+
+// Must outlast nginx's upstream keepalive_timeout (60s), so nginx is always the
+// side that closes an idle connection. Otherwise it can send a request on a
+// connection Node has just closed, and nginx won't retry a POST.
+server.keepAliveTimeout = 65000;
+server.headersTimeout = 70000;
 
 
 const io = require('socket.io')(server, {
@@ -201,6 +206,7 @@ app.use(function (err, req, res, next) {
 
 function notify_clients(call) {
   call.type = "calls";
+  const message = JSON.stringify(call);
   var sent = 0;
 
   for (var key in clients) {
@@ -211,7 +217,7 @@ function notify_clients(call) {
           // if client 
           if ((client.firehose == true) || (client.filterType == "all")) {
             sent++;
-            client.socket.emit("new message", JSON.stringify(call));
+            client.socket.emit("new message", message);
           } else if (client.filterType == "unit") {
             var codeArray = client.filterCode.split(',');
             var success = false;
@@ -219,7 +225,7 @@ function notify_clients(call) {
               for (var k = 0; k < call.srcList.length; k++) {
                 if (codeArray[j] == call.srcList[k]) {
                   sent++;
-                  client.socket.emit("new message", JSON.stringify(call));
+                  client.socket.emit("new message", message);
                   success = true;
                   break;
                 }
@@ -232,7 +238,7 @@ function notify_clients(call) {
             var codeArray = client.talkgroupNums;
             for (var j = 0; j < codeArray.length; ++j) {
               if (codeArray[j] == call.talkgroupNum) {
-                client.socket.emit("new message", JSON.stringify(call));
+                client.socket.emit("new message", message);
                 sent++
                 break;
               }

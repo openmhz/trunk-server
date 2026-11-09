@@ -1,4 +1,17 @@
 
+# Only send "Connection: upgrade" for real WebSocket requests, so ordinary
+# requests can reuse the upstream keepalive pool.
+map $http_upgrade $backend_connection {
+	default upgrade;
+	''      '';
+}
+
+upstream backend_api {
+	server backend:3005;
+	keepalive 64;
+	keepalive_timeout 60s;
+}
+
 server {
 	listen 80;
 
@@ -89,11 +102,11 @@ server {
     }
 
 	location / {
-		proxy_pass http://backend:3005;
+		proxy_pass http://backend_api;
 		include /etc/nginx/proxy.conf;
 		proxy_http_version 1.1;
 		proxy_set_header Upgrade $http_upgrade;
-		proxy_set_header Connection "upgrade";
+		proxy_set_header Connection $backend_connection;
 		proxy_set_header Host $host;
 		proxy_cache_bypass $http_upgrade;
 		access_log /dev/stdout main;

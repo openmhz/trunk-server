@@ -2,7 +2,6 @@
 const { ObjectId } = require('mongodb');
 const Call = require("../models/call");
 const Group = require("../models/group");
-const opentelemetry = require('@opentelemetry/api');
 var defaultNumResults = 50;
 
 var channels = {};
@@ -17,11 +16,12 @@ const build_call_list = (items) => {
             url: item.url,
             filename: item.path + item.name,
             time: item.time,
-            srcList: item.srcList,
-            star: item.star,
+            // Lean results skip schema defaults, so older documents can lack these.
+            srcList: item.srcList ?? [],
+            star: item.star ?? 0,
             emergency: item.emergency,
             freq: item.freq,
-            patches: item.patches,
+            patches: item.patches ?? [],
             len: Math.round(item.len)
         };
         calls.push(call);
@@ -49,7 +49,7 @@ async function get_calls(query, numResults, middleDate, res) {
 
     const sort = { length: -1 };
     try {
-        const items =  await Call.find(query.filter, fields).sort(query.sort_order).limit(numResults);
+        const items =  await Call.find(query.filter, fields).sort(query.sort_order).limit(numResults).lean();
         const refined_items = build_call_list(items);
         calls.push(...refined_items);
 
@@ -59,7 +59,7 @@ async function get_calls(query, numResults, middleDate, res) {
                 $gt: middleDate
             };
 
-            const items =  await Call.find(query.filter, fields).sort(query.sort_order).limit(numResults);
+            const items =  await Call.find(query.filter, fields).sort(query.sort_order).limit(numResults).lean();
             const refined_items = build_call_list(items);
             calls.push(...refined_items);
         }
