@@ -162,11 +162,6 @@ exports.upload = async function (req, res, next) {
       });
 
       if (!talkgroupExists) {
-        try {
-          fs.unlinkSync(req.file.path);
-        } catch (err) {
-          console.error(`[${call.shortName}] error deleting: ${req.file.path}`);
-        }
         res.status(500).send("Talkgroup does not exist, skipping.\n");
         return;
       }
@@ -233,16 +228,19 @@ exports.upload = async function (req, res, next) {
       next();
     }
 
-    try {
-      fs.unlinkSync(req.file.path);
-    } catch (err) {
-      console.warn("There was an Error deleting: " + req.file.path);
-    }
-    cleanupTime = Date.now();
     //console.log(`[${call.shortName}] \t Verify System: ${validateSystemTime - start_time}  \t Read file: ${readFileTime - validateSystemTime} \t Upload: ${ uploadFileTime - validateSystemTime} \t Save: ${saveCallTime - uploadFileTime} \tStats: ${statsTime - saveCallTime}\tCleanup: ${cleanupTime - statsTime} \t\t Total: ${cleanupTime - start_time}`);
   } catch (error) {
     console.error("Error processing call upload: " + error);
   } finally {
+    // multer has already written the temp file, so remove it on every exit path.
+    if (req.file) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (err) {
+        console.warn("There was an Error deleting: " + req.file.path);
+      }
+    }
+    cleanupTime = Date.now();
     const totalTime = Date.now() - start_time;
     if (totalTime > 10000) {
       console.warn(`[${req.params.shortName}] Slow Upload - Size: ${call.len} Verify System: ${validateSystemTime - start_time}  Read file: ${readFileTime - validateSystemTime} Upload: ${ uploadFileTime - validateSystemTime} Save: ${saveCallTime - uploadFileTime} Stats: ${statsTime - saveCallTime} Cleanup: ${cleanupTime - statsTime} Total: ${totalTime}`);
