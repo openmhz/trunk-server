@@ -24,7 +24,6 @@ function SupportModal(props) {
           <p>If OpenMHz brings you joy, think about becoming a supporter! It will cover hosting costs and help keep me focused on development.</p>
 
           <Divider horizontal>Donate</Divider>
-          <a href="https://github.com/sponsors/robotastic"><Button ><Icon name="github"/>GitHub Sponsors</Button></a>
           
           <a href="https://patreon.com/OpenMHz"><Button ><Icon name="patreon"/>Patreon </Button></a>
 

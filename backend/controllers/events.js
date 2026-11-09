@@ -25,6 +25,8 @@ var s3_profile = process.env['S3_PROFILE'] != null ? process.env['S3_PROFILE'] :
 
 const client = new S3Client({
     credentials: fromIni({ profile: s3_profile }),
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
     endpoint: s3_endpoint,
     region: s3_region,
     maxAttempts: 2

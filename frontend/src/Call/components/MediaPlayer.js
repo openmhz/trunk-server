@@ -136,10 +136,14 @@ const MediaPlayer = (props) => {
 
   let playEnabled = { "disabled": true }
   let sourceId = "-";
+  let sourceTag = "";
 
   if (call) {
     if (call.srcList.length > sourceIndex) {
       sourceId = call.srcList[sourceIndex].src;
+      if (call.srcList[sourceIndex].tag !== undefined && call.srcList[sourceIndex].tag !== null && call.srcList[sourceIndex].tag !== "") {
+        sourceTag = call.srcList[sourceIndex].tag;
+      }
     }
     playEnabled = {};
   }
@@ -200,8 +204,8 @@ const MediaPlayer = (props) => {
             {playTime}
             Sec
           </Label>
-          <Label color="black" className="desktop-only">
-            {sourceId}
+          <Label color="black" className="desktop-only tag-label">
+            {sourceTag!== "" ? sourceTag : sourceId}
           </Label>
         </LabelGroup>
 

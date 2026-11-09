@@ -159,7 +159,7 @@ function PlaylistBuilder(props) {
           <Modal.Description>
             <Message icon>
               <Icon name='warning sign' />
-              <Message.Content>The Events feature is a work in progress! Things may break, change, or get deleted. Contact me with ideas or problems: luke@robotastic.com</Message.Content>
+              <Message.Content>The Events feature is a work in progress! Things may break, change, or get deleted. Contact me with ideas or problems: support@openmhz.com</Message.Content>
             </Message>
             <Header>Event</Header>
             <Form>

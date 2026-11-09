@@ -33,7 +33,7 @@ function Register(props) {
           <Message.Content>
             <Message.Header>Welcome!</Message.Header>
             <p>Creating an account on OpenMHz is the first step in sharing radio system recordings using Trunk Recorder.</p>
-            <p>After creating an account, head over <a href="https://github.com/robotastic/trunk-recorder">here</a> to learn more about Trunk Recorder</p>
+            <p>After creating an account, head over <a href="https://github.com/TrunkRecorder/trunk-recorder">here</a> to learn more about Trunk Recorder</p>
             <p> - Luke</p>
           </Message.Content>
         </Message>

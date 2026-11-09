@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 
-var srcSchema = mongoose.Schema({ pos: Number, src: String });
+var srcSchema = mongoose.Schema({ pos: Number, src: String, tag: String });
 
 const callSchema = mongoose.Schema({
   talkgroupNum: Number,

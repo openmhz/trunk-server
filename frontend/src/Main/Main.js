@@ -650,7 +650,7 @@ const Main = (props) => {
                 Join us! Record a local radio system and share it with the world. If you have a spare computer, it is easy to get started. With a $25 SDR or two, you can capture an entire system.
                 It does take a little bit of work to get things setup, but we are here to help and answer questions.
               </p>
-              <a href="https://github.com/robotastic/trunk-recorder/blob/master/README.md">
+              <a href="https://github.com/TrunkRecorder/trunk-recorder/blob/master/README.md">
                 <Button size='large'>
                   Learn More
                 </Button>

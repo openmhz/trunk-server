@@ -102,7 +102,7 @@ const Login = (props) => {
             <Header size="large">Let's get this started!</Header>
             <Header size="small">
               {process.env.REACT_APP_SITE_NAME} makes it easy to share recordings from{" "}
-              <a href="https://github.com/robotastic/trunk-recorder">
+              <a href="https://github.com/TrunkRecorder/trunk-recorder">
                 Trunk Recorder
               </a>.</Header>
             <p>

@@ -25,7 +25,7 @@ const ListEventCalls = (props) => {
 
     return (
 
-        <Table id="calls" unstackable  >
+        <Table id="calls" unstackable style={{paddingBottom: '75px'}} >
           <Table.Header >
             <Table.Row>
             <Table.HeaderCell> </Table.HeaderCell>

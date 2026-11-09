@@ -21,10 +21,15 @@
   
   .label-item {
     padding: 9px 2px 5px 2px;
-    width: 130px;
+    width: 150px;
     color: white;
     font-weight: bold;
     text-align: center;
+  }
+  .tag-label {
+    max-width: 75px;
+    overflow: clip;
+    text-wrap-mode: nowrap;
   }
   .mediaplayer {
     flex-grow: 1;

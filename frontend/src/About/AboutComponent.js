@@ -17,7 +17,7 @@ const AboutComponent = () => {
       <Container text>
         <Divider horizontal style={{ paddingTop: "4em", paddingBottom: "2em" }}><Header as="h1">About</Header></Divider>
 
-        <p>I wrote <a href="https://github.com/robotastic/trunk-recorder">Trunk Recorder</a> because I was curious
+        <p>I wrote <a href="https://github.com/TrunkRecorder/trunk-recorder">Trunk Recorder</a> because I was curious
           about what my local fire station was up to and I put together the original version of OpenMHz because I
           figured other people might want to listen to the recordings too.</p>
         <p>The latest version of this site makes it easy for other people running Trunk Recorder to share their recordings.
@@ -30,13 +30,7 @@ const AboutComponent = () => {
         <Divider horizontal style={{ paddingTop: "4em", paddingBottom: "2em" }}><Header as="h2">100% Open Source</Header></Divider>
         <p>Have changes you would like to suggest? Want to run your own server for your community? All of the code for OpenMHz is available as open source:</p>
         <p><a href="https://github.com/openmhz/trunk-server"><Icon name='github' />Trunk Server</a></p>
-        <Divider horizontal style={{ paddingTop: "4em", paddingBottom: "2em" }}><Header as="h2">Support</Header></Divider>
-        <p>If OpenMHz brings you joy, think about becoming a supporter! It will cover hosting costs and help keep me focused on development.</p>
-
-        <p><a href="https://github.com/sponsors/robotastic"><Button color='green'>
-          <Icon name='heart' />
-          Support
-        </Button></a></p>
+        
 
         <Divider horizontal style={{ paddingTop: "4em", paddingBottom: "2em" }}><Header as="h2">FAQ</Header></Divider>
         <List>
@@ -45,7 +39,7 @@ const AboutComponent = () => {
             <ListContent>
               <ListHeader as="h2">Where do the different feeds come from</ListHeader>
               <ListDescription>
-                It is a team effort! There are contributors from around country and even internationally, that are running <a href="https://github.com/robotastic/trunk-recorder">Trunk Recorder</a> to capture local radio systems and sending the transmissions to OpenMHz.
+                It is a team effort! There are contributors from around country and even internationally, that are running <a href="https://github.com/TrunkRecorder/trunk-recorder">Trunk Recorder</a> to capture local radio systems and sending the transmissions to OpenMHz.
               </ListDescription>
             </ListContent>
           </ListItem>
@@ -98,7 +92,7 @@ const AboutComponent = () => {
               <ListHeader as="h2">I have other questions</ListHeader>
               <ListDescription>
                 <p>
-                  Check out the <Link to="/terms">Terms of Service</Link>, there might be an answer there or send me an email at <a href="mailto:luke@robotastic.com?Subject=OpenMHz" target="_top">luke@robotastic.com</a>
+                  Check out the <Link to="/terms">Terms of Service</Link>, there might be an answer there or send me an email at <a href="mailto:support@openmhz.com?Subject=OpenMHz" target="_top">support@openmhz.com</a>
                 </p>
               </ListDescription>
             </ListContent>

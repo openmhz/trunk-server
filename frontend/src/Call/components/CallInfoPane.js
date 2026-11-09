@@ -26,6 +26,7 @@ function CallInfoPane(props) {
   let patchString = "";
   let header = "Call Info"
   let title = ""
+  let callEmergnecy = (<> </>);
   const currentCall = props.call ? props.call : false;
   const { callLink, callDownload, callTweet } = useCallLink(props.call)
   const { data: allSystems, isSuccess } = useGetSystemsQuery();
@@ -50,12 +51,16 @@ function CallInfoPane(props) {
       const freq = currentCall.freq / 1000000;
       callFreq = Math.round(freq * 1000) / 1000;
     }
-    srcList = currentCall.srcList.map((source, index) => <List.Item key={index}>{source.src}[{source.pos}]</List.Item>);
+    srcList = currentCall.srcList.map((source, index) => <List.Item key={index}>{source.src}[{source.pos}] {source.tag ? "(" + source.tag + ")" : ""}</List.Item>);
     callLength = currentCall.len;
     talkgroupNum = currentCall.talkgroupNum;
     patches = currentCall.patches;
+
+    if (currentCall.emergency) {
+      callEmergnecy = (<div><Icon name="warning sign" color="red" /> Emergency </div>)
+    }
     
-    if(patches.length > 1) {
+    if(patches && (patches.length > 1)) {
       patchString = patches.join(", ");
     }
     else{
@@ -100,6 +105,7 @@ function CallInfoPane(props) {
   return (
     <>
       <Header as='h1'>{header}</Header>
+      {callEmergnecy}
       <List bulleted horizontal link>
         {srcList}
       </List>

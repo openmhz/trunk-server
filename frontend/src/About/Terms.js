@@ -55,7 +55,7 @@ You agree not to sell, resell, or offer for any commercial purposes, any portion
 
 <Header as='h2'>5. API Access</Header>
 
-The OpenMHz API is designed solely to support the OpenMHz website frontend and iOS app. You may not use the API for any other purpose without explicit permission from OpenMHz. The infrastructure for OpenMHz has not been well designed, and unauthorized use may result in the whole thing crashing. Additionally, some API calls may place a significant load on the server, and preplanning is required to avoid this. We will allow for API access on a case-by-case basis. Please contact us at: luke@robotastic.com
+The OpenMHz API is designed solely to support the OpenMHz website frontend and iOS app. You may not use the API for any other purpose without explicit permission from OpenMHz. The infrastructure for OpenMHz has not been well designed, and unauthorized use may result in the whole thing crashing. Additionally, some API calls may place a significant load on the server, and preplanning is required to avoid this. We will allow for API access on a case-by-case basis. Please contact us at: support@openmhz.com
 
 <Header as='h2'>6. Legal Compliance</Header>
 
@@ -91,7 +91,7 @@ The Services are provided as a labor of love by a single individual. I have a li
 
 <Header as='h2'>14. Contact Me</Header>
 
-If you have any questions or concerns about these Terms, please contact me at luke@robotastic.com.
+If you have any questions or concerns about these Terms, please contact me at support@openmhz.com.
 
 By using OpenMHz, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service. Thank you for using our Services!
 

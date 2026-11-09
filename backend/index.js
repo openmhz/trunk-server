@@ -1,4 +1,3 @@
-const tracing = require("./agents/otel-tracing");
 var express = require("express");
 var configureExpress = require("./config/express");
 
@@ -25,6 +24,12 @@ var app = express();
 
 const server = require('http').createServer(app);
 
+// Must outlast nginx's upstream keepalive_timeout (60s), so nginx is always the
+// side that closes an idle connection. Otherwise it can send a request on a
+// connection Node has just closed, and nginx won't retry a POST.
+server.keepAliveTimeout = 65000;
+server.headersTimeout = 70000;
+
 
 const io = require('socket.io')(server, {
   cors: {
@@ -47,6 +52,7 @@ const mongo_host = typeof process.env['MONGO_HOST'] !== 'undefined' ? process.en
 const mongo_port = typeof process.env['MONGO_PORT'] !== 'undefined' ? process.env['MONGO_PORT'] : 27017;
 const mongo_user = process.env['MONGO_USER'];
 const mongo_password = process.env['MONGO_PASSWORD'];
+const firehose_key = process.env['FIREHOSE_KEY'] !== 'undefined' ? process.env['FIREHOSE_KEY'] : null;
 
 let mongoUrl;
 
@@ -59,20 +65,20 @@ if ((typeof mongo_user !== 'undefined') && (typeof mongo_password !== 'undefined
 
 
 const connect = async () => {
-    // Demonstrate the readyState and on event emitters
-    console.log(mongoose.connection.readyState); //logs 0
-    mongoose.connection.on('connecting', () => {
-      console.log('Mongoose is connecting')
-    });
-    mongoose.connection.on('connected', () => {
-      console.log('Mongoose is connected');
-    });
-    mongoose.connection.on('disconnecting', () => {
-      console.log('Mongoose is disconnecting');
-    });
-  
-    await mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true, maxPoolSize: 50 });
-    console.log("All Done");
+  // Demonstrate the readyState and on event emitters
+  console.log(mongoose.connection.readyState); //logs 0
+  mongoose.connection.on('connecting', () => {
+    console.log('Mongoose is connecting')
+  });
+  mongoose.connection.on('connected', () => {
+    console.log('Mongoose is connected');
+  });
+  mongoose.connection.on('disconnecting', () => {
+    console.log('Mongoose is disconnecting');
+  });
+
+  await mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true, maxPoolSize: 50 });
+  console.log("All Done");
 }
 connect();
 
@@ -106,7 +112,6 @@ function addSystemClients(req, res, next) {
 }
 
 function addTotalClients(req, res, next) {
-
   req.totalClients = Object.keys(clients).length;
   next();
 }
@@ -123,7 +128,7 @@ app.get('/:shortName/calls/newer', calls.get_newer_calls);
 app.get('/:shortName/calls/older', calls.get_older_calls);
 app.get('/:shortName/calls/date', calls.get_date_calls);
 app.get('/:shortName/calls/:time/older', calls.get_iphone_calls);
-app.get('/:shortName/calls', calls.get_calls); 
+app.get('/:shortName/calls', calls.get_calls);
 
 
 /*------    UPLOADS   ---------- upload.single('call'),  uploads.upload,*/
@@ -151,6 +156,9 @@ app.get('/events/:id', events.getEvent);
 /*------    STATS   ----------*/
 app.get('/:shortName/stats', stats.get_stats);
 app.get('/stats', addTotalClients, sys_stats.siteStats)
+
+/*------    SYSTEM STATUS   ----------*/
+app.get('/status/:shortName', systems.get_system_status);
 
 
 function get_clients(req, res) {
@@ -190,62 +198,53 @@ function get_clients(req, res) {
 app.get('/clients', get_clients);
 app.get('/:shortName/clients', get_clients);
 app.use(function (err, req, res, next) {
-  console.error("Caught an error");
-  console.error(err.stack);
-  /*
-  res.status(err.status || 500);
-  res.contentType('json');
-  res.send(JSON.stringify({
-      message: err.message,
-      error: err
-  }));*/
+
+  console.log("Error: " + err);
 });
 
 
 
 function notify_clients(call) {
   call.type = "calls";
+  const message = JSON.stringify(call);
   var sent = 0;
 
   for (var key in clients) {
     if (clients.hasOwnProperty(key)) {
       var client = clients[key];
       if (client.active) {
-        if (client.shortName == call.shortName.toLowerCase()) {
-          // if client is not filtering for stars, or if the client is filtering and the call has stars
-          if (!client.filterStarred || call.star) {
-            if (client.filterCode == "") {
-              sent++;
-              client.socket.emit("new message", JSON.stringify(call));
-            } else if (client.filterType == "unit") {
-              var codeArray = client.filterCode.split(',');
-              var success = false;
-              for (var j = 0; j < codeArray.length; ++j) {
-                for (var k = 0; k < call.srcList.length; k++) {
-                  if (codeArray[j] == call.srcList[k]) {
-                    sent++;
-                    client.socket.emit("new message", JSON.stringify(call));
-                    success = true;
-                    break;
-                  }
-                }
-                if (success) {
+        if ((client.firehose == true) || (client.shortName == call.shortName.toLowerCase())) {
+          // if client 
+          if ((client.firehose == true) || (client.filterType == "all")) {
+            sent++;
+            client.socket.emit("new message", message);
+          } else if (client.filterType == "unit") {
+            var codeArray = client.filterCode.split(',');
+            var success = false;
+            for (var j = 0; j < codeArray.length; ++j) {
+              for (var k = 0; k < call.srcList.length; k++) {
+                if (codeArray[j] == call.srcList[k]) {
+                  sent++;
+                  client.socket.emit("new message", message);
+                  success = true;
                   break;
                 }
               }
-
-
-            } else {
-              var codeArray = client.talkgroupNums;
-              for (var j = 0; j < codeArray.length; ++j) {
-                if (codeArray[j] == call.talkgroupNum) {
-                  client.socket.emit("new message", JSON.stringify(call));
-                  sent++
-                  break;
-                }
+              if (success) {
+                break;
+              }
+            }
+          } else {
+            var codeArray = client.talkgroupNums;
+            for (var j = 0; j < codeArray.length; ++j) {
+              if (codeArray[j] == call.talkgroupNum) {
+                client.socket.emit("new message", message);
+                sent++
+                break;
               }
             }
           }
+
         }
       }
     }
@@ -256,11 +255,30 @@ function notify_clients(call) {
   }
 }
 
+function parseHeader(header) {
+  for (const directive of header.split(",")[0].split(";")) {
+    if (directive.startsWith("for=")) {
+      return directive.substring(4);
+    }
+  }
+}
+
+
 io.sockets.on('connection', function (client) {
+  const header_ipAddress = parseHeader(client.handshake.headers["forwarded"] || "");
+  const cf_ipAddress = client.handshake.headers["cf-connecting-ip"];
+  const x_ipAddress = client.handshake.headers["x-forwarded-for"]?.split(",")[0];
+  const ipAddress = cf_ipAddress || x_ipAddress || header_ipAddress; 
   clients[client.id] = { socket: client, active: false };
   clients[client.id].timestamp = new Date();
   client.on('start', async function (data) {
-    if ((typeof clients[client.id] !== "undefined") && data.shortName) {
+    if (typeof clients[client.id] !== "undefined") {
+      if ((data.filterType != "firehose") && (!data.shortName || (typeof data.shortName != "string"))) {  // If it is not firehose, then it must have a shortName
+        console.error("Error - Socket - Invalid ShortName: " + data.shortName + " ClientID: " + client.id + " IP: " + ipAddress);
+        delete clients[client.id];
+        return;
+      }
+
       clients[client.id].active = true;
       clients[client.id].shortName = data.shortName.toLowerCase();
       clients[client.id].filterCode = String(data.filterCode);
@@ -269,16 +287,35 @@ io.sockets.on('connection', function (client) {
       clients[client.id].filterType = String(data.filterType);
       clients[client.id].talkgroupNums = [];
       clients[client.id].timestamp = new Date();
+      clients[client.id].firehose = false;
+      clients[client.id].ipAddress = ipAddress;
 
+      // Validate the filterCode and filterType
       if (typeof clients[client.id].filterCode != "string") {
-        console.error("Error - Socket - Invalid filterCode: " + data.filterCode + " ShortName: " + data.shortName.toLowerCase());
+        console.error("Error - Socket - Invalid filterCode: " + data.filterCode + " ShortName: " + data.shortName.toLowerCase() + " ClientID: " + client.id + " IP: " + ipAddress);
         delete clients[client.id];
         return;
       }
 
-      if ((data.filterType == "group") && (typeof data.filterCode == "string") && (data.filterCode.indexOf(',') == -1)) {
-        if (!ObjectId.isValid(data.filterCode)) {
-          console.error("Error - Socket - Invalid Group ID: " + data.filterCode);
+      if (typeof clients[client.id].filterType != "string") {
+        console.error("Error - Socket - Invalid filterType: " + data.filterType + " ShortName: " + data.shortName.toLowerCase() + " ClientID: " + client.id + " IP: " + ipAddress);
+        delete clients[client.id];
+        return;
+      }
+
+      // Check if the filterType is firehose and the filterCode is the firehose key
+      if (data.filterType == "firehose") {
+        if (firehose_key && (typeof data.filterCode == "string") && (data.filterCode == firehose_key)) {
+          console.log("Enabling Firehose mode for Client: " + client.id + " IP: " + ipAddress);
+          clients[client.id].firehose = true;
+        } else {
+          console.error("Error - Socket - Invalid Firehose Key: " + data.filterCode + " ClientID: " + client.id + " Filter Name: " + client.filterName + " IP: " + ipAddress);
+          delete clients[client.id];
+          return;
+        }
+      } else if ((data.filterType == "group")) {       // Handle filterType == "group"
+        if ((typeof data.filterCode != "string") || (data.filterCode.indexOf(',') != -1) || !ObjectId.isValid(data.filterCode)) {
+          console.error("Error - Socket - Invalid Group ID: " + data.filterCode + " ShortName: " + data.shortName.toLowerCase() + " ClientID: " + client.id + " IP: " + ipAddress);
           delete clients[client.id];
           return;
         }
@@ -286,29 +323,32 @@ io.sockets.on('connection', function (client) {
         const group = await Group.findOne({ 'shortName': data.shortName.toLowerCase(), '_id': ObjectId.createFromHexString(data.filterCode) });
 
         if (typeof clients[client.id] === "undefined") {
-          console.error("How can it be undefined here!!");
-          console.error(client.id);
+          console.error("Error - Socket - Client not found ShortName: " + data.shortName + " ClientID: " + client.id + " IP: " + ipAddress);
           return;
         }
         if (group) {
           clients[client.id].talkgroupNums = group.talkgroups;
         } else {
-          console.error("Error - Socket: Invalid group " + data.filterCode + " Shortname: " + data.shortName + " ClientID: " + client.id);
+          console.error("Error - Socket - Invalid group " + data.filterCode + " Shortname: " + data.shortName + " ClientID: " + client.id + " IP: " + ipAddress);
           delete clients[client.id];
           return;
         }
-
+        // Handle filterType == "talkgroup"
       } else if ((data.filterType == "talkgroup") && Array.isArray(data.filterCode)) {
         clients[client.id].talkgroupNums = data.filterCode;
+      } else if ((data.filterType == "all") && (data.filterCode == "")) {
+        // Handle filterType == "all"
+        clients[client.id].talkgroupNums = [];
       } else {
-        // This is for ALL filters
-        //console.error("Invalid Socket Filter - Type: " + data.filterType + " Code: " + data.filterCode);
+        console.error("Error - Socket - Invalid Filter Type: " + data.filterType + " Filter Code: " + data.filterCode + " Filter Name: " + data.filterName + " ShortName: " + data.shortName.toLowerCase() + " ClientID: " + client.id + " IP: " + ipAddress);
+        delete clients[client.id];
+        return;
       }
-      //console.log("[" + data.shortName.toLowerCase() + "] WebSocket Updating - Client: " + client.id + " code set to: " + data.filterCode + " type set to: " + data.filterType + " TGS: " + clients[client.id].talkgroupNums);
     } else {
-      console.error("Error - Socket.io [Start] either client not found or no Short Name");
+      console.error("Error - Socket.io [Start] either client not found, shortName:" + data.shortName + " ClientID: " + client.id + " IP: " + ipAddress);
     }
   });
+
   client.on('stop', function (data) {
     if (clients[client.id]) {
       clients[client.id].active = false;
@@ -324,15 +364,15 @@ io.sockets.on('connection', function (client) {
 stats.init_stats();
 // This will run at 3am each day.
 // IF you don't set the minute to 0, it will run every minute while it is still 3, so at 3:01, 3:02... etc
-schedule.scheduleJob('0 3 * * *', function() {
+schedule.scheduleJob('0 3 * * *', function () {
   db.cleanOldCalls();
 });
 
-schedule.scheduleJob('15 3 * * *', function() {
+schedule.scheduleJob('15 3 * * *', function () {
   db.cleanOldEvents();
 });
 
-schedule.scheduleJob('30 3 * * *', function() {
+schedule.scheduleJob('30 3 * * *', function () {
   db.cleanOldPodcasts();
 });
 

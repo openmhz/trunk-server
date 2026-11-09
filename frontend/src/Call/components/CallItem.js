@@ -105,6 +105,14 @@ const CallItem = (props) => {
       key: "blue",
       inverted: "true"
     }
+  } else if (call.emergency) {
+    rowSelected = {
+      positive: true,
+      error: true,
+      color: "red",
+      key: "red",
+      inverted: "true"
+    }
   }
   let talkgroup;
   if ((typeof talkgroups== 'undefined') || (typeof talkgroups.talkgroups[call.talkgroupNum] == 'undefined')) {
