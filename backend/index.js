@@ -261,7 +261,7 @@ function parseHeader(header) {
 io.sockets.on('connection', function (client) {
   const header_ipAddress = parseHeader(client.handshake.headers["forwarded"] || "");
   const cf_ipAddress = client.handshake.headers["cf-connecting-ip"];
-  const x_ipAddress = client.handshake.headers["x-forwarded-for"].split(",")[0];
+  const x_ipAddress = client.handshake.headers["x-forwarded-for"]?.split(",")[0];
   const ipAddress = cf_ipAddress || x_ipAddress || header_ipAddress; 
   clients[client.id] = { socket: client, active: false };
   clients[client.id].timestamp = new Date();
