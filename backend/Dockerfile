@@ -14,8 +14,9 @@ ENV HOME=/home/app
 
 
 RUN mkdir -p /home/app
-COPY package.json /tmp
-RUN cd /tmp && npm --unsafe-perm install -g node-gyp && npm --unsafe-perm install
+# npm ci installs exactly what package-lock.json lists, so rebuilds don't pick up newer versions.
+COPY package.json package-lock.json /tmp/
+RUN cd /tmp && npm --unsafe-perm install -g node-gyp && npm --unsafe-perm ci
 RUN mkdir -p /home/app/upload && cp -a /tmp/node_modules /home/app
 
 WORKDIR $HOME/

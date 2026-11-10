@@ -118,7 +118,7 @@ exports.upload = async function (req, res, next) {
       return;
     }
 
-    patches = [];
+    const patches = [];
 
     let req_patches;
     req_patches = req.body.patch_list;
