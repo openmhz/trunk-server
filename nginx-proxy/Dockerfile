@@ -2,7 +2,9 @@
 #
 # docker build -t nginx-proxy .
 
-FROM nginx
+# Pinned so cached builds can't silently reuse an older base image.
+# 1.31.9 fixes the Nov 2026 advisories (CVE-2026-123007, -123633, -118899, ...).
+FROM nginx:1.31.9
 ARG STAGE
 
 MAINTAINER Luke Berndt <lukekb@gmail.com>
