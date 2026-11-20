@@ -90,29 +90,15 @@ var upload = multer({
   dest: config.uploadDirectory
 });
 
-var clients = [];
+const clients = require("./client_registry");
 
 function addSystemClients(req, res, next) {
-  var systemClients = {};
-  for (var key in clients) {
-    if (clients.hasOwnProperty(key)) {
-      const client = clients[key];
-      const shortName = client.shortName;
-      if (client.active) {
-        if (systemClients.hasOwnProperty(shortName)) {
-          systemClients[shortName]++;
-        } else {
-          systemClients[shortName] = 1;
-        }
-      }
-    }
-  }
-  req.systemClients = systemClients;
+  req.systemClients = clients.systemCounts();
   next();
 }
 
 function addTotalClients(req, res, next) {
-  req.totalClients = Object.keys(clients).length;
+  req.totalClients = clients.size();
   next();
 }
 
@@ -169,23 +155,21 @@ function get_clients(req, res) {
   }
   var total = 0;
   var response = [];
-  for (var key in clients) {
-    if (clients.hasOwnProperty(key)) {
-      total++;
-      if (!short_name || (clients[key].shortName == short_name)) {
-        var age = (Date.now() - clients[key].timestamp) / 1000;
-        var obj = {
-          shortName: clients[key].shortName,
-          filterCode: clients[key].filterCode,
-          filterName: clients[key].filterName,
-          filterType: clients[key].filterType,
-          filterStarred: clients[key].filterStarred,
-          active: clients[key].active,
-          talkgroupNums: clients[key].talkgroupNums,
-          timestamp: age
-        }
-        response.push(obj);
+  for (const client of clients.values()) {
+    total++;
+    if (!short_name || (client.shortName == short_name)) {
+      var age = (Date.now() - client.timestamp) / 1000;
+      var obj = {
+        shortName: client.shortName,
+        filterCode: client.filterCode,
+        filterName: client.filterName,
+        filterType: client.filterType,
+        filterStarred: client.filterStarred,
+        active: client.active,
+        talkgroupNums: client.talkgroupNums,
+        timestamp: age
       }
+      response.push(obj);
     }
   }
   response.push({ "total": total });
@@ -207,48 +191,7 @@ app.use(function (err, req, res, next) {
 function notify_clients(call) {
   call.type = "calls";
   const message = JSON.stringify(call);
-  var sent = 0;
-
-  for (var key in clients) {
-    if (clients.hasOwnProperty(key)) {
-      var client = clients[key];
-      if (client.active) {
-        if ((client.firehose == true) || (client.shortName == call.shortName.toLowerCase())) {
-          // if client 
-          if ((client.firehose == true) || (client.filterType == "all")) {
-            sent++;
-            client.socket.emit("new message", message);
-          } else if (client.filterType == "unit") {
-            var codeArray = client.filterCode.split(',');
-            var success = false;
-            for (var j = 0; j < codeArray.length; ++j) {
-              for (var k = 0; k < call.srcList.length; k++) {
-                if (codeArray[j] == call.srcList[k]) {
-                  sent++;
-                  client.socket.emit("new message", message);
-                  success = true;
-                  break;
-                }
-              }
-              if (success) {
-                break;
-              }
-            }
-          } else {
-            var codeArray = client.talkgroupNums;
-            for (var j = 0; j < codeArray.length; ++j) {
-              if (codeArray[j] == call.talkgroupNum) {
-                client.socket.emit("new message", message);
-                sent++
-                break;
-              }
-            }
-          }
-
-        }
-      }
-    }
-  }
+  const sent = clients.notify(call, message);
 
   if (sent > 0) {
     //console.log("[" + call.shortName.toLowerCase() + "] Sent call to " + sent + " clients");
@@ -269,37 +212,39 @@ io.sockets.on('connection', function (client) {
   const cf_ipAddress = client.handshake.headers["cf-connecting-ip"];
   const x_ipAddress = client.handshake.headers["x-forwarded-for"]?.split(",")[0];
   const ipAddress = cf_ipAddress || x_ipAddress || header_ipAddress; 
-  clients[client.id] = { socket: client, active: false };
-  clients[client.id].timestamp = new Date();
+  clients.add(client.id, client);
   client.on('start', async function (data) {
-    if (typeof clients[client.id] !== "undefined") {
+    const entry = clients.get(client.id);
+    if (entry) {
+      // Stop delivering under any previous filter; re-indexed once this one validates.
+      clients.unindex(entry);
       if ((data.filterType != "firehose") && (!data.shortName || (typeof data.shortName != "string"))) {  // If it is not firehose, then it must have a shortName
         console.error("Error - Socket - Invalid ShortName: " + data.shortName + " ClientID: " + client.id + " IP: " + ipAddress);
-        delete clients[client.id];
+        clients.remove(client.id);
         return;
       }
 
-      clients[client.id].active = true;
-      clients[client.id].shortName = data.shortName.toLowerCase();
-      clients[client.id].filterCode = String(data.filterCode);
-      clients[client.id].filterName = data.filterName;
-      clients[client.id].filterStarred = data.filterStarred;
-      clients[client.id].filterType = String(data.filterType);
-      clients[client.id].talkgroupNums = [];
-      clients[client.id].timestamp = new Date();
-      clients[client.id].firehose = false;
-      clients[client.id].ipAddress = ipAddress;
+      entry.active = true;
+      entry.shortName = data.shortName.toLowerCase();
+      entry.filterCode = String(data.filterCode);
+      entry.filterName = data.filterName;
+      entry.filterStarred = data.filterStarred;
+      entry.filterType = String(data.filterType);
+      entry.talkgroupNums = [];
+      entry.timestamp = new Date();
+      entry.firehose = false;
+      entry.ipAddress = ipAddress;
 
       // Validate the filterCode and filterType
-      if (typeof clients[client.id].filterCode != "string") {
+      if (typeof entry.filterCode != "string") {
         console.error("Error - Socket - Invalid filterCode: " + data.filterCode + " ShortName: " + data.shortName.toLowerCase() + " ClientID: " + client.id + " IP: " + ipAddress);
-        delete clients[client.id];
+        clients.remove(client.id);
         return;
       }
 
-      if (typeof clients[client.id].filterType != "string") {
+      if (typeof entry.filterType != "string") {
         console.error("Error - Socket - Invalid filterType: " + data.filterType + " ShortName: " + data.shortName.toLowerCase() + " ClientID: " + client.id + " IP: " + ipAddress);
-        delete clients[client.id];
+        clients.remove(client.id);
         return;
       }
 
@@ -307,57 +252,61 @@ io.sockets.on('connection', function (client) {
       if (data.filterType == "firehose") {
         if (firehose_key && (typeof data.filterCode == "string") && (data.filterCode == firehose_key)) {
           console.log("Enabling Firehose mode for Client: " + client.id + " IP: " + ipAddress);
-          clients[client.id].firehose = true;
+          entry.firehose = true;
         } else {
           console.error("Error - Socket - Invalid Firehose Key: " + data.filterCode + " ClientID: " + client.id + " Filter Name: " + client.filterName + " IP: " + ipAddress);
-          delete clients[client.id];
+          clients.remove(client.id);
           return;
         }
       } else if ((data.filterType == "group")) {       // Handle filterType == "group"
         if ((typeof data.filterCode != "string") || (data.filterCode.indexOf(',') != -1) || !ObjectId.isValid(data.filterCode)) {
           console.error("Error - Socket - Invalid Group ID: " + data.filterCode + " ShortName: " + data.shortName.toLowerCase() + " ClientID: " + client.id + " IP: " + ipAddress);
-          delete clients[client.id];
+          clients.remove(client.id);
           return;
         }
 
         const group = await Group.findOne({ 'shortName': data.shortName.toLowerCase(), '_id': ObjectId.createFromHexString(data.filterCode) });
 
-        if (typeof clients[client.id] === "undefined") {
+        if (!clients.get(client.id)) {
           console.error("Error - Socket - Client not found ShortName: " + data.shortName + " ClientID: " + client.id + " IP: " + ipAddress);
           return;
         }
         if (group) {
-          clients[client.id].talkgroupNums = group.talkgroups;
+          entry.talkgroupNums = group.talkgroups;
         } else {
           console.error("Error - Socket - Invalid group " + data.filterCode + " Shortname: " + data.shortName + " ClientID: " + client.id + " IP: " + ipAddress);
-          delete clients[client.id];
+          clients.remove(client.id);
           return;
         }
         // Handle filterType == "talkgroup"
       } else if ((data.filterType == "talkgroup") && Array.isArray(data.filterCode)) {
-        clients[client.id].talkgroupNums = data.filterCode;
+        entry.talkgroupNums = data.filterCode;
       } else if ((data.filterType == "all") && (data.filterCode == "")) {
         // Handle filterType == "all"
-        clients[client.id].talkgroupNums = [];
+        entry.talkgroupNums = [];
       } else {
         console.error("Error - Socket - Invalid Filter Type: " + data.filterType + " Filter Code: " + data.filterCode + " Filter Name: " + data.filterName + " ShortName: " + data.shortName.toLowerCase() + " ClientID: " + client.id + " IP: " + ipAddress);
-        delete clients[client.id];
+        clients.remove(client.id);
         return;
       }
+      // All checks passed: start delivering calls under the new filter.
+      clients.index(entry);
     } else {
       console.error("Error - Socket.io [Start] either client not found, shortName:" + data.shortName + " ClientID: " + client.id + " IP: " + ipAddress);
     }
   });
 
   client.on('stop', function (data) {
-    if (clients[client.id]) {
-      clients[client.id].active = false;
+    const entry = clients.get(client.id);
+    if (entry) {
+      entry.active = false;
+      clients.unindex(entry);
     } else {
       console.error("Error - Socket.io [Stop] Client not found ");
     }
   });
   client.on('disconnect', function () {
-    delete clients[client.id];
+    clients.remove(client.id);
   });
 });
 

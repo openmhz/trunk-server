@@ -15,6 +15,12 @@ const mailjet = new Mailjet({
 
 var systemList = [];
 
+// Cached /systems response body; rebuilt when stale or when load_systems swaps the list.
+const SYSTEMS_BODY_TTL_MS = 5000;
+let systemsBody = null;
+let systemsBodyList = null;
+let systemsBodyTime = 0;
+
 exports.contact_system = async function (req, res) {
   var system = await System.findOne({
     shortName: req.params.shortName.toLowerCase()
@@ -181,19 +187,24 @@ exports.get_systems = async function (req, res) {
     await load_systems(req.systemClients);
   }*/
 
-  const systemClients = req.systemClients || {};
-  for (var i = 0; i < systemList.length; i++) {
-    var system = systemList[i];
-    var shortName = system.shortName;
-    if (systemClients.hasOwnProperty(shortName)) {
-      system.clientCount = systemClients[shortName];
+  // The list is a few hundred systems and the homepage requests it constantly,
+  // so serialize it at most every few seconds instead of on every request.
+  const now = Date.now();
+  if (!systemsBody || systemsBodyList !== systemList || now - systemsBodyTime > SYSTEMS_BODY_TTL_MS) {
+    const systemClients = req.systemClients || {};
+    for (var i = 0; i < systemList.length; i++) {
+      var system = systemList[i];
+      system.clientCount = systemClients[system.shortName] || 0;
     }
+    systemsBody = JSON.stringify({
+      success: true,
+      systems: systemList
+    });
+    systemsBodyList = systemList;
+    systemsBodyTime = now;
   }
-  res.contentType('json');
-  res.send(JSON.stringify({
-    success: true,
-    systems: systemList
-  }));
+  res.set('Content-Type', 'application/json; charset=utf-8');
+  res.send(systemsBody);
 }
 
 exports.authorize_system = async function (req, res) {
