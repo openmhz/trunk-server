@@ -7,6 +7,11 @@ map $http_upgrade $backend_connection {
 	''      '';
 }
 
+# Microcache for the public /calls polling endpoints. Responses carry no
+# per-user data; the CORS header varies by Origin, so Origin is in the key.
+proxy_cache_path /var/cache/nginx/api levels=1:2 keys_zone=api_cache:20m
+                 max_size=500m inactive=10m use_temp_path=off;
+
 upstream backend_api {
 	server backend:3005;
 	keepalive 64;
@@ -98,6 +103,44 @@ server {
 			root /var/www/certbot;
 		}
 
+
+	# Live call lists: short TTL; the socket pushes anything newer.
+	location ~ ^/[^/]+/calls(/(latest|newer|next))?$ {
+		proxy_pass http://backend_api;
+		proxy_http_version 1.1;
+		proxy_set_header Connection "";
+		proxy_set_header Host $host;
+		include /etc/nginx/proxy.conf;
+		proxy_cache api_cache;
+		proxy_cache_key "$scheme$host$request_uri|$http_origin";
+		proxy_cache_methods GET HEAD;
+		proxy_cache_valid 200 5s;
+		proxy_cache_lock on;
+		proxy_cache_lock_timeout 5s;
+		proxy_cache_use_stale updating error timeout http_500 http_502 http_503 http_504;
+		proxy_cache_background_update on;
+		add_header X-Cache-Status $upstream_cache_status always;
+		access_log off;
+	}
+
+	# Historical call lists: calls before a fixed time rarely change.
+	location ~ ^/[^/]+/calls/(older|date|[0-9]+/older)$ {
+		proxy_pass http://backend_api;
+		proxy_http_version 1.1;
+		proxy_set_header Connection "";
+		proxy_set_header Host $host;
+		include /etc/nginx/proxy.conf;
+		proxy_cache api_cache;
+		proxy_cache_key "$scheme$host$request_uri|$http_origin";
+		proxy_cache_methods GET HEAD;
+		proxy_cache_valid 200 60s;
+		proxy_cache_lock on;
+		proxy_cache_lock_timeout 5s;
+		proxy_cache_use_stale updating error timeout http_500 http_502 http_503 http_504;
+		proxy_cache_background_update on;
+		add_header X-Cache-Status $upstream_cache_status always;
+		access_log off;
+	}
 
 	location / {
 		proxy_pass http://backend_api;
