@@ -122,6 +122,7 @@ COMPOSE_FILE=compose.yaml:compose.registry.yaml
 Then `git pull && ./deploy.sh` pulls the images for the checked-out commit, keeps the running ones as `:previous`, and switches to the new ones (`:deployed`). It needs the workflow for that commit to have finished. If the images aren't ready yet, it stops before changing anything.
 - `./deploy.sh --rollback backend` goes back to `:previous`, as before.
 - `./deploy.sh --tag <sha> backend` deploys any commit CI has built. That's useful for going back further.
+- `./deploy.sh --build backend` builds from the checkout on the server instead of pulling, for a change that isn't on `master` or when CI is unavailable. The result is deployed the same way as a pulled image, so `--rollback` still works.
 - `data/deploys.log` records what was deployed and when.
 
 The React apps compile their URLs into their bundles, so the repository's Actions variables (`REACT_APP_*`, `STAGE`) must match `prod.env`.
