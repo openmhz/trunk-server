@@ -94,6 +94,17 @@ function ownsActiveSystem(userId) {
   return scanner.systems.countDocuments({ userId: userId, ...activeSystemFilter() }) > 0;
 }
 
+// Emails stored with leading/trailing spaces. Login trims what people type and
+// matches exactly, so these accounts can't sign in until they are trimmed.
+const SPACED = /^\s|\s$/;
+function spacedEmailUsers() {
+  return scanner.users.find({ $or: [{ email: SPACED }, { "local.email": SPACED }] }, { email: 1, local: 1 }).toArray();
+}
+
+function escapeRegex(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function email(user) {
   return user.email || (user.local && user.local.email) || "(no email)";
 }
@@ -128,11 +139,12 @@ function duplicateTalkgroups() {
   ], { allowDiskUse: true }).toArray();
 }
 
-// Groups of user _ids that share a value of `field`, ignoring case.
+// Groups of user _ids that share a value of `field`, ignoring case and
+// surrounding spaces (some older accounts were stored as "name@x.com ").
 function duplicateUsers(field) {
   return scanner.users.aggregate([
     { $match: { [field]: { $type: "string", $ne: "" } } },
-    { $group: { _id: { $toLower: "$" + field }, ids: { $push: "$_id" }, n: { $sum: 1 } } },
+    { $group: { _id: { $toLower: { $trim: { input: "$" + field } } }, ids: { $push: "$_id" }, n: { $sum: 1 } } },
     { $match: { n: { $gt: 1 } } },
   ]).toArray();
 }
@@ -283,7 +295,8 @@ function report() {
   print(`  groups for missing systems: ${orphanShortNames("groups").join(", ") || "none"}`);
 
   header("Duplicate accounts — dedupe-users");
-  print(`  emails differing only by case: ${duplicateUsers("email").length}`);
+  print(`  emails differing only by case or spaces: ${duplicateUsers("email").length}`);
+  print(`  emails stored with surrounding spaces (can't sign in): ${spacedEmailUsers().length}`);
   print(`  screen names shared by several accounts: ${duplicateUsers("screenName").length}`);
   print(`  accounts without a screen name (allowed): ${scanner.users.countDocuments({ screenName: { $not: { $type: "string" } } })}`);
 
@@ -361,7 +374,7 @@ function dedupe() {
 }
 
 function dedupeUsers() {
-  header("Accounts sharing an email address (ignoring case)");
+  header("Accounts sharing an email address (ignoring case and surrounding spaces)");
   const emailPlans = planEmailDedupe();
   if (emailPlans.length === 0) print("  none");
   const removedIds = [];
@@ -385,6 +398,15 @@ function dedupeUsers() {
     p.renames.forEach((r) => action(`   rename ${r.user._id} ${email(r.user)}: ${r.from} -> ${r.to}`));
   });
 
+  header("Emails stored with surrounding spaces");
+  const removedSet = new Set(removedIds.map(String));
+  const trims = spacedEmailUsers().filter((u) => !removedSet.has(String(u._id)));
+  if (trims.length === 0) print("  none");
+  trims.forEach((u) => {
+    action(`   trim ${u._id} ${JSON.stringify(u.email)}` +
+      (u.local && typeof u.local.email === "string" && SPACED.test(u.local.email) ? ` (and local.email ${JSON.stringify(u.local.email)})` : ""));
+  });
+
   if (APPLY) {
     // Recompute against the live data rather than trusting the plan printed above.
     emailPlans.forEach((p) => {
@@ -398,6 +420,18 @@ function dedupeUsers() {
       p.renames.forEach((r) => {
         scanner.users.updateOne({ _id: r.user._id, screenName: r.from }, { $set: { screenName: r.to } });
       });
+    });
+    spacedEmailUsers().forEach((u) => {
+      const set = {};
+      if (typeof u.email === "string" && SPACED.test(u.email)) set.email = u.email.trim();
+      if (u.local && typeof u.local.email === "string" && SPACED.test(u.local.email)) set["local.email"] = u.local.email.trim();
+      const target = set.email || u.email;
+      const clash = target && scanner.users.findOne({ _id: { $ne: u._id }, email: { $regex: "^\\s*" + escapeRegex(target.trim()) + "\\s*$", $options: "i" } }, { _id: 1 });
+      if (clash) {
+        print(`  SKIPPED trim of ${u._id}: ${target.trim()} is also used by ${clash._id}; merge by hand`);
+        return;
+      }
+      scanner.users.updateOne({ _id: u._id }, { $set: set });
     });
   }
 }
