@@ -188,9 +188,9 @@ From the Host OS run:
 ```bash
 docker exec -i -t $(docker ps -a | grep mongo | awk '{print $1}') /bin/bash
 ```
-Then launch the `mongo` CLI tool and find any users you have created
+Then launch the `mongosh` CLI tool and find any users you have created
 ```bash
-mongo
+mongosh
 use scanner
 db.users.find()
 ```
@@ -210,32 +210,27 @@ db.users.updateOne(
 
 
 
-There are a few scripts included with the container:
-- **clean.js** This script removes all Calls that are over 30 days old
-- **totals.js** Lists different system stats
+### Maintaining the database
+`mongo/db.sh` runs the maintenance scripts in `mongo/scripts/maintain.js` inside the running mongo container. Run it from the Docker host. Commands that change data are dry runs until you add `--apply`, and every command is safe to repeat.
+
+```bash
+./mongo/db.sh report                        # read-only: sizes, missing indexes, duplicates, orphans
+./mongo/db.sh indexes --apply               # create the indexes the app needs
+./mongo/db.sh dedupe --apply                # remove duplicate talkgroups and talkgroups/groups of deleted systems
+./mongo/db.sh remove-system <id> --apply    # delete one copy of a system whose shortName is duplicated
+./mongo/db.sh prune-inactive --apply        # delete systems inactive for 6+ months
+./mongo/db.sh clean-calls --apply           # delete calls older than one month (the backend also does this nightly)
+./mongo/db.sh drop-leftovers --apply        # drop collections nothing uses any more
+./mongo/db.sh shell                         # mongosh on the scanner database
+```
+
+A new, empty database gets all of the indexes automatically the first time the mongo container starts. On an existing database, run `report` and then `indexes --apply`. The unique indexes are skipped until the duplicates the report lists are resolved.
+
+### Backups
+`./mongo/backup.sh` writes a gzipped `mongodump` archive of everything except calls to `data/backups/` and keeps the newest 14. `./mongo/backup.sh --full` includes calls. Set `BACKUP_S3_URI` to also copy each dump to a **private** bucket; the dump contains email addresses and password hashes. See the comments at the top of the script for the cron line and how to restore.
 
 ### Compact a collection
-When you run clean.js it doesn't actually remove the files off storge. You can use this command from the mongo cli tool.
-
-First, launch the tool: `mongo`
-Then switch to the scanner db: `use scanner`
-And then the compact command on the **Calls** collection:
-
-```
-db.runCommand({compact:'calls'})
-```
-This blocks all calls to the DB, so the site will not work while this is being run.
-
-### Add an Index
-Adding an index will make it quicker to search calls by date, talkgroup and whether there are stars.
-
-First, launch the tool: `mongo`
-Then switch to the scanner db: `use scanner`
-And then add an index:
-
-```
-db.calls.createIndex( {shortName: 1, time: -1, talkgroupNum: 1})
-```
+Deleting calls doesn't shrink the files on disk. To reclaim space, run `db.runCommand({compact:'calls'})` in `./mongo/db.sh shell`. This can slow the site down while it runs.
 
 ### Upgrading MongoDB
 It is a huge pain to upgrade MongoDB in place. It turns out to be easier to dump backup of the database, wipe everything out and then restore into a new database for the latest version of Mongo.
