@@ -5,6 +5,7 @@
 #   ./deploy.sh backend admin        only these services
 #   ./deploy.sh --rollback backend   go back to the image that was running before the last deploy
 #   ./deploy.sh --tag <sha> ...      (registry mode) deploy the images CI built for that commit
+#   ./deploy.sh --build ...          (registry mode) build from this checkout instead of pulling
 #
 # Run `git pull` first; this deploys whatever is checked out.
 #
@@ -12,6 +13,9 @@
 #   build    (compose.yaml)                        build the images on this server
 #   registry (compose.yaml:compose.registry.yaml)  pull the images GitHub Actions built
 #                                                  for the commit, tagged with its SHA
+# In registry mode, --build builds from the checkout instead (e.g. for a change
+# that isn't on master, or when CI is down) and the result is deployed the same
+# way as a pulled image, so --rollback works the same either way.
 #
 # Order matters:
 #   1. Get the new images ready while the old containers keep serving: build them,
@@ -46,11 +50,13 @@ registry=false
 DEFAULT_SERVICES=(backend admin account frontend)
 
 rollback=false
+build_local=false
 tag=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --rollback) rollback=true; shift ;;
     --tag) tag="${2:-}"; shift 2 ;;
+    --build) build_local=true; shift ;;
     -*) echo "unknown option $1" >&2; exit 1 ;;
     *) break ;;
   esac
@@ -62,6 +68,12 @@ if [[ -n "$tag" && "$registry" != true ]]; then
   echo "--tag needs registry mode (COMPOSE_FILE=compose.yaml:compose.registry.yaml)" >&2
   exit 1
 fi
+if [[ -n "$tag" && "$build_local" == true ]]; then
+  echo "--tag and --build don't go together: --build builds the checked-out code" >&2
+  exit 1
+fi
+# The compose files without the registry overlay: the ones that can build.
+build_files="${COMPOSE_FILE//:compose.registry.yaml/}"
 [[ -z "$tag" ]] && tag="$(git rev-parse HEAD)"
 
 container_of() { compose ps -q "$1" 2>/dev/null | head -n1; }
@@ -111,6 +123,23 @@ reload_nginx() {
   fi
 }
 
+# The image name a service builds to under the build-mode compose files.
+built_image_of() {
+  COMPOSE_FILE="$build_files" docker compose config --format json \
+    | python3 -c 'import json, sys; print(json.load(sys.stdin)["services"][sys.argv[1]]["image"])' "$1"
+}
+
+# Registry mode: keep what's deployed as :previous and deploy <image> as :deployed.
+promote() {
+  local svc=$1 source=$2 repo
+  repo="$(repo_of "$svc")"
+  if docker image inspect "$repo:deployed" >/dev/null 2>&1; then
+    docker tag "$repo:deployed" "$repo:previous"
+    echo "  $svc: kept $repo:previous"
+  fi
+  docker tag "$source" "$repo:deployed"
+}
+
 record() {
   mkdir -p data
   echo "$(date -u +%FT%TZ) $1 ${services[*]}" >> data/deploys.log
@@ -135,6 +164,18 @@ if [[ "$rollback" == true ]]; then
   done
   record "rollback"
 
+elif [[ "$registry" == true && "$build_local" == true ]]; then
+  echo "Deploying $(git rev-parse --short HEAD) ($(git log -1 --format=%s)), built here: ${services[*]}"
+
+  echo "== Building (the running containers keep serving)"
+  COMPOSE_FILE="$build_files" compose build "${services[@]}"
+
+  echo "== Keeping the running images for rollback"
+  for svc in "${services[@]}"; do
+    promote "$svc" "$(built_image_of "$svc")"
+  done
+  record "$(git rev-parse HEAD) (built here)"
+
 elif [[ "$registry" == true ]]; then
   echo "Deploying ${tag:0:12} ($(git log -1 --format=%s "$tag" 2>/dev/null || echo "not in this checkout")): ${services[*]}"
 
@@ -151,16 +192,12 @@ elif [[ "$registry" == true ]]; then
 
   echo "== Keeping the running images for rollback"
   for svc in "${services[@]}"; do
-    repo="$(repo_of "$svc")"
-    if docker image inspect "$repo:deployed" >/dev/null 2>&1; then
-      docker tag "$repo:deployed" "$repo:previous"
-      echo "  $svc: $repo:previous"
-    fi
-    docker tag "$repo:$tag" "$repo:deployed"
+    promote "$svc" "$(repo_of "$svc"):$tag"
   done
   record "$tag"
 
 else
+  # Build mode (--build changes nothing here: building is what it does).
   echo "Deploying $(git rev-parse --short HEAD) ($(git log -1 --format=%s)): ${services[*]}"
 
   # Before building, while the image name still points at what is running.
