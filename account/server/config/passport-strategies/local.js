@@ -21,18 +21,24 @@ const local = new LocalStrategy({
 			console.error("Auth Error - user not found: " + email);
 			return done(null, false, { message: `Invalid email or password`, reason: "invalid" })
 		}
-		if (!user.confirmEmail) {
-			console.error("Auth Error - user has not confirmed email: " + email);
-			return done(null, false, { message: `User's email is not confirmed`, reason: "unconfirmed email"})
-		}
 		user.comparePassword(password, (err, isMatch) => {
 			if (err) return done(err)
-			if (isMatch) {
-				return done(null, user)
-			} else {
+			if (!isMatch) {
 				console.error("Auth Error - password mismatch: " + email);
 				return done(null, false, { message: "Invalid email or password", reason: "invalid"})
 			}
+			// Only someone who knows the password learns the email is unconfirmed
+			// (and gets the id needed to resend the confirmation email).
+			if (!user.confirmEmail) {
+				console.error("Auth Error - user has not confirmed email: " + email);
+				return done(null, false, {
+					message: "User's email is not confirmed",
+					reason: "unconfirmed email",
+					userId: user.id,
+					email: user.email
+				})
+			}
+			return done(null, user)
 		})
 	} catch (err) {
 		return done(err)

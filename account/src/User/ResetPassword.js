@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { resetPassword } from "../features/user/userSlice";
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux'
 import {
   Container,
   Form,
   Segment,
   Button,
+  Message,
 } from "semantic-ui-react";
 
 const ResetPassword = (props) => {
@@ -18,6 +19,7 @@ const ResetPassword = (props) => {
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
   const [checkInputMessages, setCheckInputMessages] = useState([]);
   const { userId, token } = useParams();
+  const [resetError, setResetError] = useState(null);
 
   const handleResetPassword = async () => {
     let error = false;
@@ -45,11 +47,28 @@ const ResetPassword = (props) => {
 
     setCheckInputMessages(inputMessages);
     if (!error) {
-      const result = await dispatch(resetPassword({ userId, token, password })).unwrap();
+      setResetError(null);
+      let result;
+      try {
+        result = await dispatch(resetPassword({ userId, token, password })).unwrap();
+      } catch (e) {
+        console.error(e);
+        setResetError({ text: "We couldn't reach the server. Please check your connection and try again.", newLink: false });
+        return;
+      }
       if (result.success) {
         navigate("/login");
       } else {
         console.error(result);
+        if (result.message === "token expired") {
+          setResetError({ text: "This password reset link has expired.", newLink: true });
+        } else if (result.message === "token mismatch") {
+          setResetError({ text: "This password reset link isn't valid. It may have been replaced by a newer one, or already used.", newLink: true });
+        } else if (result.message === "User not found") {
+          setResetError({ text: "We couldn't find an account for this link.", newLink: true });
+        } else {
+          setResetError({ text: typeof result.message === "string" && result.message ? result.message : "Something went wrong resetting your password. Please try again.", newLink: false });
+        }
       }
 
     }
@@ -98,6 +117,12 @@ const ResetPassword = (props) => {
               </div>
             )}
           </Form>
+          {resetError && (
+            <Message negative>
+              <p>{resetError.text}</p>
+              {resetError.newLink && <p><Link to="/send-reset-password">Request a new password reset email</Link></p>}
+            </Message>
+          )}
         </Segment>
       </Container>
     </div>

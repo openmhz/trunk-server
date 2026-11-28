@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams, Link, useLocation } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { loginUser } from "../features/user/userSlice";
+import { goToNextLocation } from "./nextLocation";
 import {
   Container,
   Header,
@@ -28,7 +29,6 @@ const forgotStyle = {
 
 
 const Login = (props) => {
-  const { terms } = useSelector((state) => state.user);
   const [loginMessage, setLoginMessage] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,7 +36,9 @@ const Login = (props) => {
   let [searchParams] = useSearchParams();
   const nextLocation = searchParams.get("nextLocation");
   const location = useLocation();
-  const { hash, pathname, search } = location;
+  const { pathname } = location;
+  // set when we get sent back here, e.g. after declining the terms
+  const notice = location.state && location.state.notice;
   const dispatch = useDispatch();
 
   const loginSubmit = async (event) => {
@@ -44,41 +46,34 @@ const Login = (props) => {
     const result = await dispatch(loginUser({ email, password })).unwrap();
     const user = result.user;
     if (result.success) {
-      if ((pathname != "/terms") && (user.terms != 1.1)) {
-        navigate("/terms")
+      if ((pathname !== "/terms") && (!user || user.terms !== 1.1)) {
+        // keep where they were headed so Terms can send them there afterwards
+        navigate(nextLocation ? "/terms?nextLocation=" + encodeURIComponent(nextLocation) : "/terms");
       } else if (nextLocation) {
-          switch (nextLocation) {
-            case "frontend":
-              window.location = process.env.REACT_APP_FRONTEND_SERVER;
-              break;
-            default:
-            case "admin":
-              window.location = process.env.REACT_APP_ADMIN_SERVER;
-              break;
-            case "account":
-              navigate("/");
-              break;
-          }
-        } else {
-          navigate("/");
-        }
-      console.log(result)
+        goToNextLocation(nextLocation, navigate);
+      } else {
+        navigate("/");
+      }
     } else {
       console.error(result);
-      setLoginMessage(result.message);
+      setLoginMessage(typeof result.message === "string" ? result.message : "Login failed. Please try again.");
       if (result.reason === "unconfirmed email") {
-        /*data.userId = response.data.userId;
-        dispatch(loginEmailError(data));*/
+        // the userId and email were stored by the userSlice reducer
         navigate("/wait-confirm-email");
       }
-      /*
-      if (result.reason === "unaccepted TOS") {
-        navigate("/terms");
-      }*/
     }
   }
 
   let loginMessageDisplay = (<></>)
+
+  if (notice && !loginMessage) {
+    loginMessageDisplay = (
+      <Message icon>
+        <Icon name="info circle" />
+        <Message.Content>{notice}</Message.Content>
+      </Message>
+    );
+  }
 
   if (loginMessage) {
     loginMessageDisplay = (
@@ -128,7 +123,7 @@ const Login = (props) => {
               {" "}
               - Luke{" "}
               <a
-                href="mailto:{process.env.REACT_APP_ADMIN_EMAIL}?Subject={process.env.REACT_APP_SITE_NAME}"
+                href={`mailto:${process.env.REACT_APP_ADMIN_EMAIL}?Subject=${encodeURIComponent(process.env.REACT_APP_SITE_NAME || "")}`}
                 target="_top"
               >
                 {process.env.REACT_APP_ADMIN_EMAIL}

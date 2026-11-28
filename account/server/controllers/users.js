@@ -86,7 +86,9 @@ exports.login = function (req, res, next) {
       return res.json({
         success: false,
         message: info && info.message,
-        reason: info && info.reason
+        reason: info && info.reason,
+        // only set for reason "unconfirmed email" (after a correct password)
+        ...(info && info.userId ? { userId: info.userId, email: info.email } : {})
       });
     }
     // ***********************************************************************
@@ -114,7 +116,8 @@ exports.login = function (req, res, next) {
             success: false,
             message: "unconfirmed email",
             reason: "unconfirmed email",
-            userId: user.id
+            userId: user.id,
+            email: user.email
           });
         });
       }
@@ -290,7 +293,7 @@ exports.sendResetPassword = async function (req, res, next) {
     res.status(404);
     res.json({
       success: false,
-      message: "No account register for " + email
+      message: "No account registered for " + email
     });
     return;
   }
@@ -316,7 +319,7 @@ exports.sendResetPassword = async function (req, res, next) {
           Name: user.firstName + " " + user.lastName
         }],
         Subject: site_name + " - Password Reset",
-        TextPart: "It looks like you may have forgot your password. Copy this link to your browser to reset your password. Let us know if you are receiving this but did not request a password reset. /r" + account_server + "/reset-password/" + user.id + "/" + token,
+        TextPart: "It looks like you may have forgot your password. Copy this link to your browser to reset your password. Let us know if you are receiving this but did not request a password reset. " + account_server + "/reset-password/" + user.id + "/" + token,
         HTMLPart: "<h3>Thanks for using " + site_name + "!</h3><br />It looks like you may have forgot your password. Copy this link to your browser to reset your password. Let us know if you are receiving this but did not request a password reset.<p>" + account_server + "/reset-password/" + user.id + "/" + token + "</p>"
       }]
     });
@@ -336,6 +339,9 @@ exports.sendResetPassword = async function (req, res, next) {
   });
 };
 
+const CONFIRM_TOKEN_LIFETIME_MS = 24 * 60 * 60 * 1000;
+const RESEND_COOLDOWN_MS = 60 * 1000;
+
 // Resolves {success:true,userId}. Rejects with an Error whose message is a
 // string; err.status is the HTTP status the caller should use.
 async function handleSendConfirmEmail(user) {
@@ -346,13 +352,24 @@ async function handleSendConfirmEmail(user) {
     throw err;
   }
 
+  // confirmEmailTTL is set to (send time + 24h) whenever a token is generated,
+  // so it tells us when the last confirmation email went out.
+  const previousTTL = user.confirmEmailTTL;
+  if (previousTTL) {
+    const age = Date.now() - (new Date(previousTTL).getTime() - CONFIRM_TOKEN_LIFETIME_MS);
+    if (age >= 0 && age < RESEND_COOLDOWN_MS) {
+      const err = new Error("A confirmation email was just sent. Please wait a minute before requesting another.");
+      err.status = 429;
+      throw err;
+    }
+  }
+
   const buffer = crypto.randomBytes(20);
   const token = buffer.toString("hex");
-  var tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
   user.confirmEmailToken = token;
-  user.confirmEmailTTL = tomorrow;
+  user.confirmEmailTTL = new Date(Date.now() + CONFIRM_TOKEN_LIFETIME_MS);
   await user.save();
+  const confirmUrl = account_server + "/confirm-email/" + user._id + "/" + token;
   try {
     await mailjet.post("send", {
       version: "v3.1"
@@ -367,13 +384,16 @@ async function handleSendConfirmEmail(user) {
           Name: user.firstName + " " + user.lastName
         }],
         Subject: "Confirm " + site_name + " Account",
-        TextPart: "Thanks for signing up for " + site_name + ". We just wanted to check and make sure your email address was real. Copy and paste this addres in your browser to confirm your email address: " + account_server + "/confirm-email/" + user._id + "/" + token,
-        HTMLPart: "<h3>Thanks for signing up for " + site_name + "</h3><br />We just wanted to check and make sure your email address was real. Copy and paste this addres in your browser to confirm your email address:<p> " + account_server + "/confirm-email/" + user._id + "/" + token + "</p>"
+        TextPart: "Thanks for signing up for " + site_name + ". We just wanted to check and make sure your email address was real. Copy and paste this address in your browser to confirm your email address: " + confirmUrl,
+        HTMLPart: "<h3>Thanks for signing up for " + site_name + "</h3><br />We just wanted to check and make sure your email address was real. Click this link to confirm your email address:<p><a href=\"" + confirmUrl + "\">" + confirmUrl + "</a></p>"
       }]
     });
   } catch (cause) {
     console.error("Admin Email: " + admin_email + " User Email: " + user.email);
     console.error("Error - Send Confirm Email - caught: " + cause);
+    // Nothing was sent, so don't let the cooldown block an immediate retry.
+    user.confirmEmailTTL = previousTTL;
+    try { await user.save(); } catch (e) { console.error("Could not reset confirmEmailTTL: " + e); }
     const err = new Error("Unable to send confirmation email");
     err.status = 500;
     throw err;
@@ -469,6 +489,9 @@ const sendBadRequest = (res, message) => {
   });
 };
 
+// Names and locations: any Unicode letter/mark/digit plus space . , ' ` _ -
+const NAME_DISALLOWED = /[^\p{L}\p{M}\p{N} .,'`_\-]/gu;
+
 exports.validateProfile = function (req, res, next) {
   const body = req.body || {};
   console.log("Validating user profile: " + body.email);
@@ -476,13 +499,13 @@ exports.validateProfile = function (req, res, next) {
     console.error("ERROR: Validate System - req.body.firstName");
     return sendBadRequest(res, "First Name is Required");
   }
-  res.locals.firstName = body.firstName.replace(/[^\w\s\.\,\-\'\`]/gi, '');
+  res.locals.firstName = body.firstName.replace(NAME_DISALLOWED, '');
 
   if (typeof body.lastName !== "string" || (body.lastName.length < 2)) {
     console.error("ERROR: Validate System - req.body.lastName");
     return sendBadRequest(res, "Last Name is Required");
   }
-  res.locals.lastName = body.lastName.replace(/[^\w\s\.\,\-\'\`]/gi, '');
+  res.locals.lastName = body.lastName.replace(NAME_DISALLOWED, '');
 
   if (typeof body.screenName !== "string") {
     console.error("ERROR: Validate System - req.body.screenName");
@@ -500,7 +523,7 @@ exports.validateProfile = function (req, res, next) {
     console.error("ERROR: Validate System - req.body.location");
     return sendBadRequest(res, "System location is Required");
   }
-  res.locals.location = body.location.replace(/[^\w\s\.\,\-\_]/gi, '');
+  res.locals.location = body.location.replace(NAME_DISALLOWED, '');
 
   next();
 }
@@ -643,21 +666,25 @@ exports.register = async function (req, res, next) {
 
   console.log("Successfully registered: " + email + ", now sending confirmation email.");
   // Since registration worked, send a confirmation email.
-  let result;
   try {
-    result = await handleSendConfirmEmail(savedUser);
+    await handleSendConfirmEmail(savedUser);
   } catch (err) {
-    console.error("Error creating user: " + email + " Error: " + err.message);
-    res.status(err.status || 500);
+    console.error("Error sending confirmation email to new user: " + email + " Error: " + err.message);
+    // The account exists, so report success and let the client offer "Resend".
     res.json({
-      success: false,
-      message: err.message
+      success: true,
+      userId: savedUser.id,
+      email: savedUser.email,
+      emailSent: false
     });
     return;
   }
   console.log("Confirmation email sent to: " + email);
   res.json({
     success: true,
-    message: result
+    message: { success: true, userId: savedUser._id },
+    userId: savedUser.id,
+    email: savedUser.email,
+    emailSent: true
   });
 }

@@ -128,7 +128,9 @@ test("mailjet failure on send-confirm and register responds once", async () => {
   assert.strictEqual(r.json.success, false);
   assert.strictEqual(typeof r.json.message, "string");
   const reg = await t.post("/register", profile());
-  assert.strictEqual(reg.json.success, false);
+  // the account is created; the client is told the email didn't go out
+  assert.strictEqual(reg.json.success, true);
+  assert.strictEqual(reg.json.emailSent, false);
 });
 
 test("reset password requires a valid new password", async () => {
@@ -190,4 +192,82 @@ test("wrap + errorHandler turn a thrown async error into one 500", async () => {
     const late = await fetch(base + "/late");
     assert.strictEqual(late.status, 200);
   } finally { console.error = orig; server.close(); }
+});
+
+test("unconfirmed account: password is checked before revealing 'unconfirmed email'", async () => {
+  const u = await makeUser({ confirmEmail: false });
+  const wrong = await t.post("/login", { email: "al@x.com", password: "wrong-password" });
+  assert.strictEqual(wrong.json.success, false);
+  assert.strictEqual(wrong.json.reason, "invalid");
+  assert.strictEqual(wrong.json.message, "Invalid email or password");
+  assert.strictEqual(wrong.json.userId, undefined);
+
+  const right = await t.post("/login", { email: "al@x.com", password: "password1" });
+  assert.strictEqual(right.json.success, false);
+  assert.strictEqual(right.json.reason, "unconfirmed email");
+  assert.strictEqual(right.json.userId, u.id);
+  assert.strictEqual(right.json.email, "al@x.com");
+});
+
+test("register with Mailjet failing still succeeds (emailSent:false) and the user can resend", async () => {
+  t.mailer.fail = true;
+  const orig = console.error; console.error = () => {};
+  let r;
+  try { r = await t.post("/register", profile()); } finally { console.error = orig; }
+  assert.strictEqual(r.json.success, true);
+  assert.strictEqual(r.json.emailSent, false);
+  assert.strictEqual(r.json.email, "bob@x.com");
+  assert.ok(r.json.userId);
+  assert.strictEqual(await t.User.countDocuments(), 1);
+
+  // a failed send must not start the resend cooldown
+  t.mailer.fail = false;
+  const resend = await t.post(`/users/${r.json.userId}/send-confirm`);
+  assert.strictEqual(resend.status, 200);
+  assert.strictEqual(resend.json.success, true);
+  assert.strictEqual(t.mailer.sent.length, 1);
+  const html = t.mailer.sent[0].Messages[0].HTMLPart;
+  assert.match(html, /<a href="[^"]+\/confirm-email\/[0-9a-f]{24}\/[0-9a-f]+">/);
+});
+
+test("register success includes userId, email and emailSent:true", async () => {
+  const r = await t.post("/register", profile());
+  assert.strictEqual(r.json.success, true);
+  assert.strictEqual(r.json.emailSent, true);
+  assert.ok(r.json.userId);
+  assert.strictEqual(r.json.email, "bob@x.com");
+});
+
+test("resend within 60 seconds is refused with 429, allowed afterwards", async () => {
+  const reg = await t.post("/register", profile());
+  assert.strictEqual(t.mailer.sent.length, 1);
+  const again = await t.post(`/users/${reg.json.userId}/send-confirm`);
+  assert.strictEqual(again.status, 429);
+  assert.strictEqual(again.json.success, false);
+  assert.ok(typeof again.json.message === "string" && again.json.message.length > 0);
+  assert.strictEqual(t.mailer.sent.length, 1);
+
+  // pretend the last email went out two minutes ago
+  const ttl = new Date(Date.now() + 24 * 60 * 60 * 1000 - 120 * 1000);
+  await t.User.updateOne({ _id: reg.json.userId }, { confirmEmailTTL: ttl });
+  const later = await t.post(`/users/${reg.json.userId}/send-confirm`);
+  assert.strictEqual(later.status, 200);
+  assert.strictEqual(t.mailer.sent.length, 2);
+});
+
+test("Unicode names and locations survive validation; screen name stays ASCII", async () => {
+  const r = await t.post("/register", profile({
+    firstName: "José", lastName: "Müller-O'Neil", location: "東京, Japan", screenName: "jose!",
+  }));
+  assert.strictEqual(r.json.success, true);
+  const u = await t.User.findById(r.json.userId);
+  assert.strictEqual(u.firstName, "José");
+  assert.strictEqual(u.lastName, "Müller-O'Neil");
+  assert.strictEqual(u.location, "東京, Japan");
+  assert.strictEqual(u.screenName, "jose");
+
+  const cjk = await t.post("/register", profile({ firstName: "田中", lastName: "太郎", email: "t@x.com", screenName: "tanaka" }));
+  assert.strictEqual(cjk.json.success, true);
+  const c = await t.User.findById(cjk.json.userId);
+  assert.strictEqual(c.firstName, "田中");
 });

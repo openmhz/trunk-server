@@ -12,7 +12,7 @@ import {
 
 // ----------------------------------------------------
 const UserForm = (props) => {
-  const [checkInputMessages, setCheckInputMessages] = useState([]);
+  const [inputMessages, setInputMessages] = useState([]);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [screenName, setScreenName] = useState("");
@@ -29,7 +29,8 @@ const UserForm = (props) => {
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
   const [isEditing] = useState(props.isEditing);
   const [changed, setChanged] = useState(false);
-  const requestMessage = props.requestMessage;
+  // server messages normally arrive as strings; ignore anything else
+  const requestMessage = typeof props.requestMessage === "string" ? props.requestMessage : "";
   
   useEffect(() => {
     if (props.isEditing) {
@@ -42,43 +43,46 @@ const UserForm = (props) => {
     }
   }, [props.isEditing, props.user]);
 
+  // These rules mirror the server's validateProfile / register checks.
   const checkInputs = () => {
     let error = false;
     let inputMessages = [];
 
-    if (firstName === "") {
+    if (firstName.trim().length < 2) {
       setFirstNameError(true);
-      inputMessages.push("First Name is required");
+      inputMessages.push("First Name is required (at least 2 characters)");
       error = true;
     } else {
       setFirstNameError(false);
     }
 
-    if (lastName === "") {
+    if (lastName.trim().length < 2) {
       setLastNameError(true);
-      inputMessages.push("Last Name is required");
+      inputMessages.push("Last Name is required (at least 2 characters)");
       error = true;
     } else {
       setLastNameError(false);
     }
 
-    if (email === "") {
-      setEmailError(true);
-      inputMessages.push("Email is required");
-      error = true;
-    } else {
-      setEmailError(false);
+    if (!props.isEditing) {
+      if (email.trim() === "") {
+        setEmailError(true);
+        inputMessages.push("Email is required");
+        error = true;
+      } else {
+        setEmailError(false);
+      }
     }
 
-    if (location === "") {
+    if (location.trim().length < 2) {
       setLocationError(true);
-      inputMessages.push("Location is required");
+      inputMessages.push("Location is required (at least 2 characters)");
       error = true;
     } else {
       setLocationError(false);
     }
 
-    if (screenName === "") {
+    if (screenName.trim() === "") {
       setScreenNameError(true);
       inputMessages.push("Screen Name is required");
       error = true;
@@ -87,7 +91,7 @@ const UserForm = (props) => {
     }
 
     if (props.isEditing) {
-      setCheckInputMessages(checkInputMessages);
+      setInputMessages(inputMessages);
       return error;
     }
 
@@ -95,9 +99,9 @@ const UserForm = (props) => {
       setPasswordError(true);
       inputMessages.push("Password is required");
       error = true;
-    } if (password.length < 7) {
+    } else if (password.length < 7) {
       setPasswordError(true);
-      inputMessages.push("Password must be 7 charecters or more");
+      inputMessages.push("Password must be 7 characters or more");
       error = true;
     } else {
       setPasswordError(false);
@@ -111,7 +115,7 @@ const UserForm = (props) => {
       setConfirmPasswordError(false);
     }
 
-    setCheckInputMessages(inputMessages);
+    setInputMessages(inputMessages);
     return error;
   }
 
@@ -137,7 +141,7 @@ const UserForm = (props) => {
     dimmerProps["active"] = true;
   }
 
-  if (checkInputMessages.length || requestMessage.length) {
+  if (inputMessages.length > 0 || requestMessage.length > 0) {
     var counter = 0;
     registerMessage = (
       <Message compact warning icon>
@@ -145,7 +149,7 @@ const UserForm = (props) => {
         <Message.Content>
           <Message.Header>Problems...</Message.Header>
           <ul>
-            {checkInputMessages.map(function (listValue) {
+            {inputMessages.map(function (listValue) {
               return <li key={`ListItem_${counter++}`}>{listValue}</li>;
             })}
             {requestMessage.length > 0 &&
