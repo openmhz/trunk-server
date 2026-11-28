@@ -7,3 +7,6 @@ admin/.eslintcache
 frontend/.eslintcache
 admin/.eslintcache
 data/*
+
+# Workspaces install everything into the root node_modules
+/node_modules
