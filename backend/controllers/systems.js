@@ -22,15 +22,19 @@ let systemsBodyList = null;
 let systemsBodyTime = 0;
 
 exports.contact_system = async function (req, res) {
+  const { name, email, message: userMessage } = req.body || {};
+  if (typeof name !== "string" || typeof email !== "string" || typeof userMessage !== "string" ||
+      !name.trim() || !email.trim() || !userMessage.trim()) {
+    res.status(400).json({ success: false, message: "Name, email and message are required." });
+    return;
+  }
+  if (name.length > 200 || email.length > 200 || userMessage.length > 5000) {
+    res.status(400).json({ success: false, message: "Message is too long." });
+    return;
+  }
+  // Errors propagate to the error handler; this used to respond and then carry on.
   var system = await System.findOne({
     shortName: req.params.shortName.toLowerCase()
-  }).catch(err => {
-    res.status(500);
-    res.json({
-      success: false,
-      message: err
-    });
-    return;
   });
   if (!system) {
     console.error("[contact_system] The Short Name does not exist: " + req.params.shortName.toLowerCase());
@@ -62,9 +66,9 @@ exports.contact_system = async function (req, res) {
   }
 
   let message = "Thank you for contributing a feed to OpenMHz. A user has sent in a message about this feed:\n\n-------------------------------\n"
-  message = message + "User Name: " + req.body.name + "\n";
-  message = message + "User Email: " + req.body.email + "\n-------------------------------\n";
-  message = message + "Message:\n" + req.body.message + "\n-------------------------------\n\n";
+  message = message + "User Name: " + name + "\n";
+  message = message + "User Email: " + email + "\n-------------------------------\n";
+  message = message + "Message:\n" + userMessage + "\n-------------------------------\n\n";
   message = message + "If you wish to stop receiving User Messages for this System:\n - goto the Admin for " + site_name + ": " + admin_server + "\n - find this System\n - Update it and turn off this Allow Contact option."
   const request = mailjet.post("send", {
     version: "v3.1"
@@ -75,8 +79,8 @@ exports.contact_system = async function (req, res) {
         Name: site_name + " Admin"
       },
       ReplyTo: {
-        Email: req.body.email,
-        Name: req.body.name
+        Email: email.trim(),
+        Name: name
       },
       To: [{
         Email: user.email,
@@ -89,34 +93,35 @@ exports.contact_system = async function (req, res) {
       TextPart: message
     }]
   });
-  request.then(result => {
+  try {
+    await request;
     console.log(`User Comment sent to: ${user.email} for shortName: ${system.shortName}`)
     res.json({
       success: true
     });
-  })
-    .catch(err => {
-      console.error(err.statusCode);
-      console.error(err);
-      res.status(500);
-      res.json({
-        success: false,
-        message: "Failed to send"
-      });
-      return;
+  } catch (err) {
+    console.error("Contact email failed: " + (err && err.statusCode) + " " + err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to send"
     });
+  }
 
 
 }
 
 async function load_systems(systemClients) {
   let fromDate = new Date(Date.now() - 60 * 60 * 24 * 30 * 1000);
-  const results = await System.find({ lastActive: { $gte: fromDate } }).populate('userId', "screenName").catch(err => {
-    //const results = await System.find({active: true}).populate('userId', "screenName").catch( err => {
-    //const results = await System.find({active: true}).catch( err => {  // super simple query
-    console.error("Error - get_systems: " + err.message);
-  });
-  tempList = [];
+  let results;
+  try {
+    results = await System.find({ lastActive: { $gte: fromDate } });
+  } catch (err) {
+    // Keep serving the last good list; replacing it with nothing emptied the
+    // homepage for five minutes after any Mongo blip.
+    console.error("Error - load_systems: " + err.message);
+    return;
+  }
+  const tempList = [];
   for (var result in results) {
 
     var clientCount = 0;
@@ -241,9 +246,9 @@ exports.authorize_system = async function (req, res) {
 
 }
 
-load_systems();
+load_systems().catch((err) => console.error("Error - load_systems: " + err));
 
 var statSched = schedule.scheduleJob('*/5 * * * *', function() {
-  load_systems();
+  load_systems().catch((err) => console.error("Error - load_systems: " + err));
 });
 

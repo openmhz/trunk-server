@@ -6,7 +6,10 @@ const path = require("path");
 const secrets = require("./config/secrets");
 const configurePassport = require("./config/passport");
 const configureExpress = require("./config/express");
-const users = require("./controllers/users");
+const registerRoutes = require("./lib/routes");
+const { wrap, errorHandler, installProcessHandlers } = require("./lib/safety");
+
+installProcessHandlers("account");
 require("./models/user");
 
 // -------------------------------------------
@@ -15,43 +18,30 @@ const app = express()
 
 // -------------------------------------------
 
-const connect = async () => {
+mongoose.connection.on('connecting', () => console.log('Mongoose is connecting'));
+mongoose.connection.on('connected', () => console.log('Mongoose is connected'));
+mongoose.connection.on('disconnecting', () => console.log('Mongoose is disconnecting'));
+mongoose.connection.on('error', err => console.error("Mongoose Error! " + err));
 
-	// Demonstrate the readyState and on event emitters
-	console.log(mongoose.connection.readyState); //logs 0
-	mongoose.connection.on('connecting', () => {
-		console.log('Mongoose is connecting')
-		console.log(mongoose.connection.readyState); //logs 2
-	});
-	mongoose.connection.on('connected', () => {
-		console.log('Mongoose is connected');
-		console.log(mongoose.connection.readyState); //logs 1
-	});
-	mongoose.connection.on('disconnecting', () => {
-		console.log('Mongoose is disconnecting');
-		console.log(mongoose.connection.readyState); // logs 3
-	});
-
-	// Connect to a MongoDB server running on 'localhost:27017' and use the
-	// 'test' database.
-	await mongoose.connect(secrets.db, { useNewUrlParser: true, useUnifiedTopology: true }).catch(err => {
-
-		console.error(`Mongoose - Error connecting to ${secrets.db}. ${err}`)
-
-	});
-	console.log("All Done");
+// Retry until Mongo is reachable. Listeners are registered once, above; they
+// used to be added again on every reconnect.
+let connecting = false;
+async function connect() {
+  if (connecting || mongoose.connection.readyState !== 0) return;
+  connecting = true;
+  try {
+    await mongoose.connect(secrets.db);
+  } catch (err) {
+    console.error("Mongo connect failed, retrying in 5s: " + ((err && err.message) || err));
+    setTimeout(connect, 5000);
+  } finally {
+    connecting = false;
+  }
 }
-
 connect();
-
-mongoose.connection.on('error', err => {
-	console.error("Mongoose Error!")
-	console.error(err);
-});
 mongoose.connection.on('disconnected', () => {
-	console.log('Mongoose disconnected');
-	console.log(mongoose.connection.readyState); //logs 0
-	connect();
+  console.log('Mongoose disconnected');
+  setTimeout(connect, 1000);
 });
 
 // -------------------------------------------
@@ -86,26 +76,19 @@ app.all('*', function (req, res, next) {
 
 // -------------------------------------------
 app.use(express.static(path.join(__dirname, "public")));
-app.post("/login", users.login)
-app.get("/logout", users.logout)
-app.get("/authenticated", users.authenticated)
-app.post("/register", users.validateProfile, users.register)
-app.post("/users/:userId/reset-password/:token", users.resetPassword)
-app.post("/api/send-reset-password", users.sendResetPassword)
-app.post("/users/:userId", users.isLoggedIn, users.validateProfile, users.updateProfile)
-app.post("/users/:userId/terms", users.isLoggedIn, users.terms)
-app.post("/users/:userId/send-confirm", users.sendConfirmEmail)
-app.post("/users/:userId/confirm/:token", users.confirmEmail)
+registerRoutes(app)
 
-app.get("*", (req, res, next) => {
+app.get("*", wrap((req, res, next) => {
 	res.sendFile(__dirname + '/public/index.html');
-});
+}));
+
+app.use(errorHandler);
 
 
 // start listening to incoming requests
 app.listen(app.get("port"), app.get("host"), (err) => {
 	if (err) {
-		console.err(err.stack)
+		console.error(err.stack)
 	} else {
 		console.log(`App listening on port ${app.get("port")} [${process.env.NODE_ENV} mode]`)
 	}

@@ -5,12 +5,8 @@ let groups = {};
 let talkgroups = {};
 
 async function load_talkgroups(shortName) {
-    const tg_results = await Talkgroup.find({ 'shortName': shortName }).catch(err => {
-        console.error(err);
-        res.status(500);
-        res.json({ success: false, message: err });
-        return;
-    });
+    // Errors propagate to the route's error handler (this used to reference an undefined res).
+    const tg_results = await Talkgroup.find({ 'shortName': shortName }, ["num", "alpha", "description"]).lean();
 
     let temp = {}
     for (var tg in tg_results) {
@@ -41,12 +37,7 @@ exports.get_talkgroups = async function (req, res) {
 exports.get_groups = async function (req, res) {
     const shortName = req.params.shortName.toLowerCase();
 
-    const grp_results = await Group.find({ shortName: req.params.shortName.toLowerCase() }).sort("position").catch(err => {
-        console.error(err);
-        res.status(500);
-        res.json({ success: false, message: err });
-        return;
-    });
+    const grp_results = await Group.find({ shortName: shortName }).sort("position");
 
     res.contentType('json');
     res.send(JSON.stringify(grp_results));

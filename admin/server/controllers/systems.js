@@ -6,11 +6,6 @@ const Group = require("../models/group");
 const User = require("../models/user");
 const crypto = require("crypto");
 
-exports.isLoggedIn = function (req, res, next) {
-  if (req.isAuthenticated()) return next();
-  res.redirect(account_server + "/login");
-};
-
 // -------------------------------------------
 
 
@@ -22,20 +17,17 @@ exports.listActiveUsers = async function (req,res,next) {
   }
   let users = {};
   let fromDate = new Date(Date.now() - 60 * 60 * 24 * 30 * 1000);
-  const systems = await System.find({lastActive: {$gte: fromDate}}).populate('userId', "screenName").catch( err => {
-     console.error("Error - get_systems: " + err.message);
-      res.json({
-        success: false,
-        message: err
-      });
-      return;
-  });
+  const systems = await System.find({lastActive: {$gte: fromDate}}).populate('userId', "screenName");
   for (let index = 0; index < systems.length; index++) {
     const system = systems[index];
 
-    if (!users.hasOwnProperty(system.userId.toString())) {
+    // populate() leaves userId null when the user was deleted
+    if (!system.userId) continue;
+    const userKey = system.userId.toString();
+    if (!users.hasOwnProperty(userKey)) {
       const user = await User.findById(system.userId, "_id email firstName lastName lastLogin");
-      users[system.userId.toString()] = { email: user.email, firstName: user.firstName, lastName: user.lastName };   
+      if (!user) continue;
+      users[userKey] = { email: user.email, firstName: user.firstName, lastName: user.lastName };
     }
 
   }
@@ -80,7 +72,7 @@ exports.listAllSystems = async function (req, res, next) {
   const systems = await System.find().exec();
   if (systems == null) {
     res.status(400);
-    res.json({ success: false, message: err });
+    res.json({ success: false, message: "No systems found." });
     return;
   }
 
@@ -139,7 +131,7 @@ exports.listSystems = async function (req, res, next) {
   const systems = await System.find({ userId: userId }).exec();
   if (systems == null) {
     res.status(400);
-    res.json({ success: false, message: err });
+    res.json({ success: false, message: "No systems found." });
     return;
   }
 
@@ -230,13 +222,6 @@ exports.deleteSystem = async function (req, res, next) {
   //router.get('/delete_system/:shortName', isLoggedIn, function(req, res) {
   var system = await System.findOne({
     shortName: req.params.shortName.toLowerCase()
-  }).catch(err => {
-    res.status(500);
-    res.json({
-      success: false,
-      message: err
-    });
-    return;
   });
   if (!system) {
     res.status(500);
@@ -246,8 +231,8 @@ exports.deleteSystem = async function (req, res, next) {
     });
     return;
   }
-  if (!system.userId.equals(req.user._id)) {
-    console.log("Error deleting syste - Wrong User - sys: " + system.userId + " profile:  " + mongoose.Types.ObjectId(req.user._id));
+  if (!system.userId || !system.userId.equals(req.user._id)) {
+    console.log("Error deleting syste - Wrong User - sys: " + system.userId + " profile:  " + req.user._id);
     res.status(401);
     res.json({
       success: false,
@@ -256,7 +241,8 @@ exports.deleteSystem = async function (req, res, next) {
     return;
   }
   console.log("Removing: " + system.name);
-  remove_system(system.shortName);
+  // fire and forget as before, but never let a failure become an unhandled rejection
+  remove_system(system.shortName).catch(err => console.error("remove_system failed: " + (err && err.stack || err)));
   res.json({
     success: true
   });
@@ -267,6 +253,11 @@ exports.deleteSystem = async function (req, res, next) {
 // -------------------------------------------
 exports.ownSystem = async function (req, res, next) {
   try {
+    if (typeof req.body.shortName !== "string") {
+      res.status(400);
+      res.json({ success: false, message: "System ShortName is Required" });
+      return;
+    }
     var system = await System.findOne({
       shortName: req.body.shortName.toLowerCase()
     });
@@ -280,7 +271,7 @@ exports.ownSystem = async function (req, res, next) {
       });
       return;
     }
-    if (!system.userId.equals(req.user._id)) {
+    if (!system.userId || !system.userId.equals(req.user._id)) {
       console.error("ERROR: OwnSystem - not users system " + req.body.shortName.toLowerCase());
       res.status(500)
       res.json({
@@ -290,18 +281,17 @@ exports.ownSystem = async function (req, res, next) {
       console.error("System: " + system.userId + " User: " + req.user._id);
       return;
     }
-    res.locals.system = system;
-    next();
-
   } catch (err) {
     console.error("ERROR: ownSystem - caught: " + err);
     res.status(500)
     res.json({
       success: false,
-      message: err
+      message: "Internal server error"
     });
     return;
   }
+  res.locals.system = system;
+  next();
 
 }
 
@@ -314,17 +304,18 @@ exports.uniqueShortName = async function (req, res, next) {
     console.error("ShortName is not in res.local, pulling from req.body instead")
     shortName = req.body.shortName;
   }
-  if (typeof shortName == 'undefined') {
-    console.error("ShortName is not in req.body instead")
-    res.status(500)
+  if (typeof shortName !== 'string') {
+    console.error("ShortName is missing or not a string in req.body")
+    res.status(400)
     res.json({
       success: false,
       message: "Shortname not provided in form"
     });
+    return;
   }
 
-    shortName = shortName.replace(/[^\w]/gi, '');
-    shortName = shortName.toLowerCase();
+  shortName = shortName.replace(/[^\w]/gi, '');
+  shortName = shortName.toLowerCase();
 
 
   try {
@@ -333,23 +324,21 @@ exports.uniqueShortName = async function (req, res, next) {
     });
 
     if (system) {
-      console.error("ERROR: Unique Shortname already in use: " + req.body.shortName.toLowerCase());
+      console.error("ERROR: Unique Shortname already in use: " + shortName);
       res.status(500)
       res.json({
         success: false,
         message: "Shortname already in use"
       });
       return;
-    } else {
-      next();
     }
   } catch (err) {
     console.error("ERROR: Unique ShortName - caught: " + err);
     res.status(500);
-    res.json({ message: "ERROR: Unique ShortName - caught: " + err });
+    res.json({ success: false, message: "Internal server error" });
     return;
   }
-
+  next();
 }
 
 
@@ -372,14 +361,17 @@ exports.updateSystem = async function (req, res, next) {
   res.locals.system.ignoreUnknownTalkgroup = res.locals.ignoreUnknownTalkgroup;
 
 
-  await res.locals.system.save().catch(err => {
+  try {
+    await res.locals.system.save();
+  } catch (err) {
+    console.error("ERROR: updateSystem save - caught: " + (err && err.stack || err));
     res.status(500);
     res.json({
       success: false,
-      message: err
+      message: "Could not save the system."
     });
     return;
-  });
+  }
   var returnSys = (({
     name,
     shortName,
@@ -422,9 +414,29 @@ exports.updateSystem = async function (req, res, next) {
 
 exports.validateSystem = async function (req, res, next) {
   try {
-    res.locals.showScreenName = req.body.showScreenName;
-    res.locals.ignoreUnknownTalkgroup = req.body.ignoreUnknownTalkgroup;
-    res.locals.allowContact = req.body.allowContact;
+    // body fields must be the right type or later .replace()/casts throw
+    for (const field of ["name", "description", "status", "shortName", "systemType", "state", "city", "county", "country"]) {
+      const v = req.body[field];
+      if (v !== undefined && v !== null && typeof v !== "string") {
+        res.status(400);
+        res.json({ success: false, message: "Invalid value for " + field + ": expected text" });
+        return;
+      }
+    }
+    for (const field of ["showScreenName", "allowContact", "ignoreUnknownTalkgroup"]) {
+      const v = req.body[field];
+      if (v === undefined || v === null) {
+        res.locals[field] = undefined;
+      } else if (typeof v === "boolean") {
+        res.locals[field] = v;
+      } else if (v === "true" || v === "false") {
+        res.locals[field] = (v === "true");
+      } else {
+        res.status(400);
+        res.json({ success: false, message: "Invalid value for " + field + ": expected true or false" });
+        return;
+      }
+    }
     if (!req.body.name || (req.body.name.length < 2)) {
       console.error("ERROR: Validate System - req.body.name");
       res.status(500)
@@ -543,7 +555,7 @@ exports.validateSystem = async function (req, res, next) {
     res.status(500)
     res.json({
       success: false,
-      message: err
+      message: "Internal server error"
     });
     return;
   }
@@ -586,16 +598,18 @@ exports.createSystem = async function (req, res, next) {
   }))(res.locals);
   system.key = key;
   system.userId = new mongoose.Types.ObjectId(req.user._id);
-  const newSys = await System.create(system).catch(err => {
-
-    console.error(err);
+  let newSys;
+  try {
+    newSys = await System.create(system);
+  } catch (err) {
+    console.error("ERROR: createSystem - caught: " + (err && err.stack || err));
     res.status(500)
     res.json({
       success: false,
-      message: err
+      message: "Could not create the system."
     });
     return;
-  });
+  }
 
   var returnSys = (({
     name,

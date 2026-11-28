@@ -10,9 +10,12 @@ exports.cleanOldEvents = async function() {
         filter: { expireTime: {$lt: date} }
       }
     }
-  ]).then(res => {
+  ]).catch(err => {
+    console.error("Cleanup failed: " + err);
+    return { deletedCount: 0 };
+  }).then(res => {
    // Prints "1 1 1"
-   console.log("Removed " + res.deletedCount + " Podcasts");
+   console.log("Removed " + res.deletedCount + " Events");
   });
 }
 
@@ -24,9 +27,12 @@ exports.cleanOldPodcasts = async function() {
         filter: { expireTime: {$lt: date} }
       }
     }
-  ]).then(res => {
+  ]).catch(err => {
+    console.error("Cleanup failed: " + err);
+    return { deletedCount: 0 };
+  }).then(res => {
    // Prints "1 1 1"
-   console.log("Removed " + res.deletedCount + " Events");
+   console.log("Removed " + res.deletedCount + " Podcasts");
   });
 }
 
@@ -41,7 +47,10 @@ exports.cleanOldCalls = async function() {
         filter: { time: {$lt: date} }
       }
     }
-  ]).then(res => {
+  ]).catch(err => {
+    console.error("Cleanup failed: " + err);
+    return { deletedCount: 0 };
+  }).then(res => {
    // Prints "1 1 1"
    console.log("Removed " + res.deletedCount + " Calls older than " + date);
   });

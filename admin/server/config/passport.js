@@ -15,11 +15,12 @@ module.exports = function (app, passport) {
   })
 
   passport.deserializeUser(async (id, done) => {
-    const user = await User.findById(id).exec();
-    if (user) {
-      done(null,user);
-    } else {
-      done("User not found", null);
+    try {
+      const user = await User.findById(id).exec();
+      // false (not an error) invalidates the session instead of 500ing every request
+      done(null, user || false);
+    } catch (err) {
+      done(err);
     }
   })
 

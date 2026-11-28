@@ -8,6 +8,9 @@ const configureExpress = require("./config/express");
 const systems = require("./controllers/systems");
 const groups = require("./controllers/groups");
 const talkgroups = require("./controllers/talkgroups");
+const { wrap, errorHandler, installProcessHandlers } = require("./lib/safety");
+
+installProcessHandlers("admin");
 
 require("./models/user");
 const multer = require('multer');
@@ -23,83 +26,32 @@ const app = express()
 
 // -------------------------------------------
 
+mongoose.connection.on('connecting', () => console.log('Mongoose is connecting'));
+mongoose.connection.on('connected', () => console.log('Mongoose is connected'));
+mongoose.connection.on('disconnecting', () => console.log('Mongoose is disconnecting'));
+mongoose.connection.on('error', err => console.error("Mongoose Error! " + err));
+
+// Retry until Mongo is reachable. Listeners are registered once, above; they
+// used to be added again on every reconnect.
+let connecting = false;
 async function connect() {
-
-  // Demonstrate the readyState and on event emitters
-  console.log(mongoose.connection.readyState); //logs 0
-  mongoose.connection.on('connecting', () => {
-    console.log('Mongoose is connecting')
-    console.log(mongoose.connection.readyState); //logs 2
-  });
-  mongoose.connection.on('connected', () => {
-    console.log('Mongoose is connected');
-    console.log(mongoose.connection.readyState); //logs 1
-  });
-  mongoose.connection.on('disconnecting', () => {
-    console.log('Mongoose is disconnecting');
-    console.log(mongoose.connection.readyState); // logs 3
-  });
-
-  // Connect to a MongoDB server running on 'localhost:27017' and use the
-  // 'test' database.
-  await mongoose.connect(secrets.db, { useNewUrlParser: true, useUnifiedTopology: true });
-  console.log("All Done");
+  if (connecting || mongoose.connection.readyState !== 0) return;
+  connecting = true;
+  try {
+    await mongoose.connect(secrets.db);
+  } catch (err) {
+    console.error("Mongo connect failed, retrying in 5s: " + ((err && err.message) || err));
+    setTimeout(connect, 5000);
+  } finally {
+    connecting = false;
+  }
 }
 connect();
-mongoose.connection.on('error', err => {
-  console.error("Mongoose Error!")
-  console.error(err);
-});
 mongoose.connection.on('disconnected', () => {
   console.log('Mongoose disconnected');
-  console.log(mongoose.connection.readyState); //logs 0
-  connect();
+  setTimeout(connect, 1000);
 });
 // -------------------------------------------
-
-function isOwner(req, res, next) {
-  if (req.params.shortName && req.user) {
-    var short_name = req.params.shortName.toLowerCase();
-    var userId = req.user._id;
-    Permission.findOne({ 'userId': userId, 'shortName': short_name }, function (err, permission) {
-      if (err) {
-        console.error('Error - getRole userId: ' + userId + ' shortName: ' + short_name + ' error: ' + err);
-      }
-      console.log('Found - getRole userId: ' + userId + ' shortName: ' + short_name + ' role: ' + permission.role);
-      if (permission.role >= 15) {
-        return next();
-      } else {
-        res.status(401).send({
-          success: false,
-          message: "Insufficent Permission, role: " + permission.role
-        });
-      }
-
-    });
-  }
-}
-
-/*
-function isAdmin(req, res, next) {
-  if (req.params.shortName && req.user) {
-    var short_name = req.params.shortName.toLowerCase();
-    var userId = req.user._id;
-    Permission.findOne({ 'userId': userId, 'shortName': short_name }, function (err, permission) {
-      if (err) {
-        console.error('Error - getRole userId: ' + userId + ' shortName: ' + short_name + ' error: ' + err);
-      }
-      console.log('Found - getRole userId: ' + userId + ' shortName: ' + short_name + ' role: ' + permission.role);
-      if (permission.role >= 10) {
-        return next();
-      } else {
-        res.status(401).send({
-          success: false,
-          message: "Insufficent Permission, role: " + permission.role
-        });
-      }
-    });
-  }
-}*/
 
 function isLoggedIn(req, res, next) {
   if (req.isAuthenticated()) return next();
@@ -120,18 +72,18 @@ function isAdmin(req, res, next) {
 
 
 function uploadFile(req, res, next) {
-  const upload = multer({dest: 'uploads/'}).single('file');
+  const upload = multer({ dest: 'uploads/' }).single('file');
 
   upload(req, res, function (err) {
-      if (err instanceof multer.MulterError) {
-          console.error("Multer Error: " + err)
-      } else if (err) {
-          console.error(err);
-          // An unknown error occurred when uploading.
-      }
-      console.log("Things look good for Multer")
-      // Everything went fine. 
-      next()
+    if (err) {
+      console.error("Upload error: " + (err.stack || err));
+      // The client displays this body as plain text.
+      const message = (err instanceof multer.MulterError)
+        ? "File upload failed: " + err.message
+        : "File upload failed. Please try again.";
+      return res.status(400).send(message);
+    }
+    next();
   })
 }
 
@@ -142,31 +94,33 @@ configureExpress(app, passport)
 
 // -------------------------------------------
 app.use(express.static(path.join(__dirname, "public")));
-app.get("")
 
-app.get("/talkgroups/:shortName", isLoggedIn, talkgroups.fetchTalkgroups)
-app.post("/talkgroups/:shortName/import", isLoggedIn, uploadFile, talkgroups.importTalkgroups)
-app.get("/talkgroups/:shortName/export", isLoggedIn, talkgroups.exportTalkgroups)
-app.post("/groups/:shortName/reorder", isLoggedIn, groups.reorderGroups);
-app.post("/groups/:shortName/:groupId?", isLoggedIn, groups.upsertGroup);
-app.get("/groups/:shortName/:groupId?", isLoggedIn, groups.getGroups);
-app.delete("/groups/:shortName/:groupId", isLoggedIn, groups.deleteGroup);
-app.get("/systems", isLoggedIn, systems.listSystems)
-app.get("/admin/systems", isAdmin, systems.listAllSystems)
-app.get("/admin/users/active", isAdmin, systems.listActiveUsers)
-app.get("/admin/users", isAdmin, systems.listUserSystems)
-app.delete("/systems/:shortName", isLoggedIn, systems.deleteSystem)
-app.post("/systems/:shortName", [isLoggedIn, systems.ownSystem, systems.validateSystem, systems.updateSystem])
-app.post("/systems", [isLoggedIn, systems.uniqueShortName, systems.validateSystem, systems.createSystem])
+app.get("/talkgroups/:shortName", wrap(isLoggedIn), wrap(talkgroups.fetchTalkgroups))
+app.post("/talkgroups/:shortName/import", wrap(isLoggedIn), uploadFile, wrap(talkgroups.importTalkgroups))
+app.get("/talkgroups/:shortName/export", wrap(isLoggedIn), wrap(talkgroups.exportTalkgroups))
+app.post("/groups/:shortName/reorder", wrap(isLoggedIn), wrap(groups.reorderGroups));
+app.post("/groups/:shortName/:groupId?", wrap(isLoggedIn), wrap(groups.upsertGroup));
+app.get("/groups/:shortName/:groupId?", wrap(isLoggedIn), wrap(groups.getGroups));
+app.delete("/groups/:shortName/:groupId", wrap(isLoggedIn), wrap(groups.deleteGroup));
+app.get("/systems", wrap(isLoggedIn), wrap(systems.listSystems))
+app.get("/admin/systems", wrap(isAdmin), wrap(systems.listAllSystems))
+app.get("/admin/users/active", wrap(isAdmin), wrap(systems.listActiveUsers))
+app.get("/admin/users", wrap(isAdmin), wrap(systems.listUserSystems))
+app.delete("/systems/:shortName", wrap(isLoggedIn), wrap(systems.deleteSystem))
+app.post("/systems/:shortName", [wrap(isLoggedIn), wrap(systems.ownSystem), wrap(systems.validateSystem), wrap(systems.updateSystem)])
+app.post("/systems", [wrap(isLoggedIn), wrap(systems.uniqueShortName), wrap(systems.validateSystem), wrap(systems.createSystem)])
 
 app.get("*", (req, res, next) => {
   res.sendFile(__dirname + '/public/index.html');
 });
 
+// must be registered after all routes
+app.use(errorHandler);
+
 // start listening to incoming requests
 app.listen(app.get("port"), app.get("host"), (err) => {
   if (err) {
-    console.err(err.stack)
+    console.error(err.stack)
   } else {
     console.log(`App listening on port ${app.get("port")} [${process.env.NODE_ENV} mode]`)
   }

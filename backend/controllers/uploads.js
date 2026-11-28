@@ -9,6 +9,7 @@ const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { fromIni } = require("@aws-sdk/credential-providers");
 const { NodeHttpHandler } = require('@smithy/node-http-handler');
 const https = require('https');
+const { str } = require("../lib/safety");
 
 // keepAlive matters: without it every upload does a full TCP + TLS handshake to S3.
 const agent = new https.Agent({
@@ -48,8 +49,12 @@ mongo_conn_fast.model('Talkgroup', talkgroupSchema);
 
 
 const client = new S3Client({
+  // Without timeouts a stalled S3 request held an upload open for minutes
+  // (270s seen in production).
   requestHandler: new NodeHttpHandler({
     httpsAgent: agent,
+    connectionTimeout: 5000,
+    requestTimeout: 30000,
   }),
   credentials: fromIni({ profile: s3_profile }),
   requestChecksumCalculation: 'WHEN_REQUIRED',
@@ -87,6 +92,7 @@ exports.upload = async function (req, res, next) {
   let saveCallTime = 0;
   let cleanupTime = 0;
   let statsTime = 0;
+  let call = null;
   try {
     if (!req.file || !['.m4a', '.mp3'].includes(path.extname(req.file.originalname))) {
       console.warn(`[${req.params.shortName}] Error file name is wrong or file does not exist`);
@@ -99,12 +105,22 @@ exports.upload = async function (req, res, next) {
     const talkgroupNum = parseInt(req.body.talkgroup_num);
     const freq = parseFloat(req.body.freq);
     const time = new Date(parseInt(req.body.start_time) * 1000);
+    // Catch these before anything is written: they used to upload the audio to
+    // S3 under "NaN" and then fail on save.
+    if (!Number.isFinite(talkgroupNum)) {
+      res.status(400).send("Invalid talkgroup_num\n");
+      return;
+    }
+    if (isNaN(time.getTime())) {
+      res.status(400).send("Invalid start_time\n");
+      return;
+    }
     let stopTime = new Date();
     if (req.body.stop_time) {
       stopTime = new Date(parseInt(req.body.stop_time) * 1000);
     }
     const startTime = req.body.start_time;
-    const emergency = parseInt(req.body.emergency);
+    const emergency = parseInt(req.body.emergency) || 0;
 
     let errorCount = parseInt(req.body.error_count) || 0;
     let spikeCount = parseInt(req.body.spike_count) || 0;
@@ -112,6 +128,9 @@ exports.upload = async function (req, res, next) {
     let srcList = [];
     try {
       srcList = JSON.parse(req.body.source_list);
+      if (!Array.isArray(srcList)) {
+        srcList = [];
+      }
     } catch (err) {
       console.warn(`[${req.params.shortName}] Error /:shortName/upload Parsing Source/Freq List - Error: ${err}`);
       res.status(500).send("Error parsing sourcelist " + err);
@@ -121,7 +140,7 @@ exports.upload = async function (req, res, next) {
     const patches = [];
 
     let req_patches;
-    req_patches = req.body.patch_list;
+    req_patches = str(req.body.patch_list);
 
     if(typeof req_patches != "undefined"){
       var split_patches = req_patches.replace("[","").replace("]","").split(",");
@@ -173,7 +192,7 @@ exports.upload = async function (req, res, next) {
     const object_key = `media/${shortName}/${talkgroupNum}/${shortName}-${talkgroupNum}-${startTime}${path.extname(req.file.originalname)}`;
     const url = `${s3_public_url}/${object_key}`;
 
-    const call = new (mongo_conn_slow.model("Call"))({
+    call = new (mongo_conn_slow.model("Call"))({
       shortName,
       talkgroupNum,
       objectKey: object_key,
@@ -181,7 +200,8 @@ exports.upload = async function (req, res, next) {
       bucket: s3_bucket,
       time,
       name: `${talkgroupNum}-${startTime}.m4a`,
-      freq,
+      // A missing freq used to fail the whole save; store it as absent instead.
+      freq: Number.isFinite(freq) ? freq : undefined,
       errorCount,
       spikeCount,
       url,
@@ -193,9 +213,10 @@ exports.upload = async function (req, res, next) {
     });
 
     let fileContent;
+    let audioStored = false;
 
     try {
-      fileContent = fs.readFileSync(req.file.path);
+      fileContent = await fs.promises.readFile(req.file.path);
       readFileTime = Date.now();
       const command = new PutObjectCommand({
         Bucket: s3_bucket,
@@ -207,16 +228,28 @@ exports.upload = async function (req, res, next) {
       if (result && result.$metadata.httpStatusCode !== 200) {
         console.error(`[${shortName}] Upload Error status code: ${result.$metadata.httpStatusCode}`);
         console.error(result);
+      } else {
+        audioStored = true;
       }
     } catch (err) {
       console.warn(`[${call.shortName}] Upload Error: ${err}`);
     }
     uploadFileTime = Date.now();
 
+    // A call whose audio never reached S3 is a dead link that stalls the
+    // player for everyone listening, so don't save or broadcast it.
+    if (!audioStored) {
+      console.warn(`[${shortName}] Dropping call ${object_key}: audio was not stored`);
+      return;
+    }
+
     try {
       await call.save();
     } catch (err) {
+      // Don't broadcast a call that isn't in the archive: it can't be linked,
+      // starred or found again.
       console.warn(`[${call.shortName}] Error saving call: ${err}`);
+      return;
     }
 
     saveCallTime = Date.now();
@@ -230,12 +263,15 @@ exports.upload = async function (req, res, next) {
 
     //console.log(`[${call.shortName}] \t Verify System: ${validateSystemTime - start_time}  \t Read file: ${readFileTime - validateSystemTime} \t Upload: ${ uploadFileTime - validateSystemTime} \t Save: ${saveCallTime - uploadFileTime} \tStats: ${statsTime - saveCallTime}\tCleanup: ${cleanupTime - statsTime} \t\t Total: ${cleanupTime - start_time}`);
   } catch (error) {
-    console.error("Error processing call upload: " + error);
+    console.error(`[${req.params.shortName}] Error processing call upload: ${(error && error.stack) || error}`);
+    if (!res.headersSent) {
+      res.status(500).send("Error processing upload\n");
+    }
   } finally {
     // multer has already written the temp file, so remove it on every exit path.
     if (req.file) {
       try {
-        fs.unlinkSync(req.file.path);
+        await fs.promises.unlink(req.file.path);
       } catch (err) {
         console.warn("There was an Error deleting: " + req.file.path);
       }
@@ -243,7 +279,7 @@ exports.upload = async function (req, res, next) {
     cleanupTime = Date.now();
     const totalTime = Date.now() - start_time;
     if (totalTime > 10000) {
-      console.warn(`[${req.params.shortName}] Slow Upload - Size: ${call.len} Verify System: ${validateSystemTime - start_time}  Read file: ${readFileTime - validateSystemTime} Upload: ${ uploadFileTime - validateSystemTime} Save: ${saveCallTime - uploadFileTime} Stats: ${statsTime - saveCallTime} Cleanup: ${cleanupTime - statsTime} Total: ${totalTime}`);
+      console.warn(`[${req.params.shortName}] Slow Upload - Size: ${call ? call.len : "?"} Verify System: ${validateSystemTime - start_time}  Read file: ${readFileTime - validateSystemTime} Upload: ${ uploadFileTime - validateSystemTime} Save: ${saveCallTime - uploadFileTime} Stats: ${statsTime - saveCallTime} Cleanup: ${cleanupTime - statsTime} Total: ${totalTime}`);
     }
   }
 };
