@@ -1,6 +1,7 @@
 
 
-import { Routes ,Route } from 'react-router-dom';
+import { Routes ,Route, useLocation } from 'react-router-dom';
+import ErrorBoundary from "./Common/ErrorBoundary";
 import { usePageTracking } from "./tracking";
 
 import 'semantic-ui-css/semantic.min.css'
@@ -24,8 +25,11 @@ import ViewEvent from "./Event/ViewEvent"
 
 const App = () => {
 usePageTracking();
+const { pathname } = useLocation();
 
 return (
+      // keyed by path so navigating away from a crashed page recovers
+      <ErrorBoundary key={pathname}>
         <Routes>
           <Route exact path="/" element={<Main/>} />
           <Route exact path="/systems" element={<ListSystems/>} />
@@ -35,6 +39,7 @@ return (
           <Route exact path="/about" element={<AboutComponent/>} />
           <Route exact path="/terms" element={<Terms/>} />
         </Routes>
+      </ErrorBoundary>
 )
 }
 
