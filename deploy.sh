@@ -21,17 +21,17 @@
 set -euo pipefail
 
 cd "$(dirname "$0")"
-# ENV_FILE / COMPOSE_FILES let the same script drive the test stack:
-#   ENV_FILE=test.env COMPOSE_FILES="docker-compose.yml test-compose.yml" ./deploy.sh
+# ENV_FILE selects the settings (and, through COMPOSE_FILE in it, the stage):
+#   ENV_FILE=test.env ./deploy.sh
 ENV_FILE="${ENV_FILE:-prod.env}"
-read -r -a compose_files <<< "${COMPOSE_FILES:-docker-compose.yml}"
 set +u
+set -a
 # shellcheck disable=SC1090
 source "$ENV_FILE"
+set +a
 set -u
-compose_args=()
-for f in "${compose_files[@]}"; do compose_args+=(-f "$f"); done
-compose() { docker compose "${compose_args[@]}" "$@"; }
+export COMPOSE_FILE="${COMPOSE_FILE:-compose.yaml}"
+compose() { docker compose "$@"; }
 
 DEFAULT_SERVICES=(backend admin account frontend)
 
@@ -48,17 +48,24 @@ image_of() { docker inspect -f '{{.Config.Image}}' "$1"; }
 
 wait_running() {
   local svc=$1 id state restarts
-  for _ in $(seq 1 30); do
+  # Up to ~2 minutes: healthchecks allow a 30s start period.
+  for _ in $(seq 1 60); do
     id="$(container_of "$svc")"
     if [[ -n "$id" ]]; then
       state="$(docker inspect -f '{{.State.Status}}' "$id")"
       restarts="$(docker inspect -f '{{.RestartCount}}' "$id")"
+      health="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{end}}' "$id")"
       if [[ "$state" == "running" && "$restarts" == "0" ]]; then
-        sleep 5
-        # Still up and not restarting after a few seconds: good enough.
-        if [[ "$(docker inspect -f '{{.State.Status}} {{.RestartCount}}' "$id")" == "running 0" ]]; then
-          echo "  $svc is running"
+        if [[ "$health" == "healthy" ]]; then
+          echo "  $svc is healthy"
           return 0
+        elif [[ -z "$health" ]]; then
+          sleep 5
+          # No healthcheck: still up and not restarting after a few seconds.
+          if [[ "$(docker inspect -f '{{.State.Status}} {{.RestartCount}}' "$id")" == "running 0" ]]; then
+            echo "  $svc is running"
+            return 0
+          fi
         fi
       fi
     fi

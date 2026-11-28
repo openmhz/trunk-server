@@ -1,0 +1,77 @@
+# Local test stack: the production stack over plain HTTP on *.openmhz.test,
+# self-contained (local S3 emulator, seeded database, no certbot).
+#
+#   COMPOSE_FILE=compose.yaml:compose.test.yaml   (set in .env; see test.env.example)
+#   docker compose up -d --build
+#
+# Data lives under data/test/, separate from anything else on the machine.
+# Sign in as test@openmhz.test / openmhz-test; the system "test" takes uploads
+# with API key "test-api-key" (see mongo/scripts/test-data.js).
+
+x-test-logging: &test-logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "2"
+
+services:
+  nginx:
+    logging: *test-logging
+    volumes: !override
+      - ./data/test/log/nginx:/var/log/nginx
+
+  # Certificates are only needed in production.
+  certbot:
+    profiles: ["production-only"]
+
+  mongo:
+    logging: *test-logging
+    volumes: !override
+      - ./data/test/mongo:/data/db
+      # Loaded once, when data/test/mongo is empty (after the indexes).
+      - ./mongo/scripts/test-data.js:/docker-entrypoint-initdb.d/20-test-data.js:ro
+
+  # A local S3 for call audio, events and podcasts.
+  s3:
+    image: adobe/s3mock:latest
+    environment:
+      # Spring Boot settings com.adobe.testing.s3mock.store.* (s3mock 4.x names).
+      - COM_ADOBE_TESTING_S3MOCK_STORE_INITIALBUCKETS=${S3_BUCKET:-openmhz-test}
+      - COM_ADOBE_TESTING_S3MOCK_STORE_ROOT=/data
+      - COM_ADOBE_TESTING_S3MOCK_STORE_RETAINFILESONEXIT=true
+    volumes:
+      - ./data/test/s3:/data
+    ports:
+      # The browser fetches call audio from here (S3_PUBLIC_URL below).
+      - "9090:9090"
+    networks:
+      - node
+    logging: *test-logging
+
+  backend:
+    logging: *test-logging
+    environment:
+      - S3_ENDPOINT=http://s3:9090
+      - S3_FORCE_PATH_STYLE=true
+      - S3_ACCESS_KEY_ID=test
+      - S3_SECRET_ACCESS_KEY=test
+      - S3_BUCKET=${S3_BUCKET:-openmhz-test}
+      - S3_PUBLIC_URL=http://${DOMAIN_NAME}:9090/${S3_BUCKET:-openmhz-test}
+    volumes: !override
+      - ./data/test/stats:/data/stats
+    # Call audio URLs use the public name (for the browser); event packaging
+    # downloads them from inside this container, so point the name at the host.
+    extra_hosts:
+      - "${DOMAIN_NAME}:host-gateway"
+    depends_on:
+      s3:
+        condition: service_started
+
+  admin:
+    logging: *test-logging
+
+  account:
+    logging: *test-logging
+
+  frontend:
+    logging: *test-logging

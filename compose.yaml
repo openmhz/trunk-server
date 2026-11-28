@@ -1,4 +1,13 @@
-version: "3"
+# OpenMHz, production. This file on its own is the production stack.
+#
+#   production:   COMPOSE_FILE=compose.yaml
+#   local test:   COMPOSE_FILE=compose.yaml:compose.test.yaml
+#   development:  COMPOSE_FILE=compose.yaml:compose.test.yaml:compose.dev.yaml
+#
+# Put COMPOSE_FILE and the settings in an env file named .env next to this file
+# (start from prod.env.example or test.env.example), and every `docker compose`
+# command picks them up. See "Running the stack" in the README.
+
 services:
   nginx:
     build:
@@ -13,7 +22,6 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "5602:5602"
     restart: always
     # nginx logs to the container's stdout; cap it so it can't fill the disk.
     logging:
@@ -22,10 +30,10 @@ services:
         max-size: "50m"
         max-file: "3"
     volumes:
-      - ${PWD}/data/log/syslog:/var/log/syslog
-      - ${PWD}/data/log/nginx:/var/log/nginx
-      - ${PWD}/data/certbot/www/:/var/www/certbot/:ro
-      - ${PWD}/data/certbot/conf/:/etc/letsencrypt/:ro
+      - ./data/log/syslog:/var/log/syslog
+      - ./data/log/nginx:/var/log/nginx
+      - ./data/certbot/www/:/var/www/certbot/:ro
+      - ./data/certbot/conf/:/etc/letsencrypt/:ro
     depends_on:
       - backend
       - frontend 
@@ -35,8 +43,8 @@ services:
   certbot:
     image: certbot/certbot:latest
     volumes:
-      - ${PWD}/data/certbot/www/:/var/www/certbot/:rw
-      - ${PWD}/data/certbot/conf/:/etc/letsencrypt/:rw
+      - ./data/certbot/www/:/var/www/certbot/:rw
+      - ./data/certbot/conf/:/etc/letsencrypt/:rw
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
     logging:
       driver: syslog
@@ -53,12 +61,18 @@ services:
       - PRO_PLAN_ARCHIVE
     image: "mongo:${TAG}-${STAGE}"
     volumes:
-      - ${PWD}/data/mongo:/data/db
+      - ./data/mongo:/data/db
     networks:
       - node
     # Reachable from the host only (for mongosh/backups), never from outside.
     ports:
       - "127.0.0.1:27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     restart: always
     logging:
       driver: syslog
@@ -99,9 +113,17 @@ services:
       - HONEYCOMB_API_KEY
     volumes:
       - "~/.aws:/home/app/.aws"
-      - ${PWD}/data/stats:/data/stats
+      - ./data/stats:/data/stats
+    healthcheck:
+      # Any answer from the app counts; a 5xx or no answer does not.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3005/stats').then(r => process.exit(r.status < 500 ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     ports:
       - "3005:3005"
     networks:
@@ -139,8 +161,16 @@ services:
       - MONGO_PASSWORD
       - SESSION_SECRET
       - NODE_ENV
+    healthcheck:
+      # Any answer from the app counts; a 5xx or no answer does not.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3008/').then(r => process.exit(r.status < 500 ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     networks:
       - node
       - proxy
@@ -180,8 +210,16 @@ services:
       - REACT_APP_ADMIN_EMAIL
       - REACT_APP_COOKIE_DOMAIN
       - NODE_ENV
+    healthcheck:
+      # Any answer from the app counts; a 5xx or no answer does not.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3009/authenticated').then(r => process.exit(r.status < 500 ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     networks:
       - node
       - proxy
@@ -213,8 +251,16 @@ services:
         - GLIBC_TUNABLES=glibc.pthread.rseq=0
     ulimits:
       memlock: -1
+    healthcheck:
+      # Any answer from the app counts; a 5xx or no answer does not.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.status < 500 ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     networks:
       - node
       - proxy

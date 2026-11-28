@@ -2,6 +2,7 @@
 const { ObjectId } = require('mongodb');
 const { spawn } = require('node:child_process');
 const https = require('https');
+const http = require('http');
 var Event = require("../models/event");
 var Podcast = require("../models/podcast");
 var System = require("../models/system");
@@ -14,12 +15,10 @@ const os = require('os');
 var fs = require('fs');
 
 const { PutObjectCommand, S3Client } = require("@aws-sdk/client-s3");
-const { fromIni } = require("@aws-sdk/credential-providers");
+const s3 = require("../lib/s3");
 
-var s3_endpoint = process.env['S3_ENDPOINT'] != null ? process.env['S3_ENDPOINT'] : 'https://s3.us-west-1.wasabisys.com';
-var s3_region = process.env['S3_REGION'] != null ? process.env['S3_REGION'] : 'us-west-1';
-var s3_bucket = process.env['S3_BUCKET'] != null ? process.env['S3_BUCKET'] : 'openmhz-west';
-var s3_profile = process.env['S3_PROFILE'] != null ? process.env['S3_PROFILE'] : 'wasabi-account';
+var s3_endpoint = s3.settings.endpoint;
+var s3_bucket = s3.settings.bucket;
 
 // The largest event so far had 610 calls.
 const MAX_EVENT_CALLS = 1000;
@@ -30,14 +29,7 @@ const DOWNLOAD_TIMEOUT_MS = 30 * 1000;
 const packagingQueue = [];
 let packagingBusy = false;
 
-const client = new S3Client({
-    credentials: fromIni({ profile: s3_profile }),
-    requestChecksumCalculation: 'WHEN_REQUIRED',
-    responseChecksumValidation: 'WHEN_REQUIRED',
-    endpoint: s3_endpoint,
-    region: s3_region,
-    maxAttempts: 2
-});
+const client = new S3Client(s3.clientOptions());
 
 function badRequest(res, message) {
     res.status(400).json({ success: false, message: message });
@@ -81,7 +73,8 @@ exports.getEvents = async function (req, res, next) {
 // stalled download, instead of saving an S3 error page as audio.
 function downloadFile(folderName, url) {
     return new Promise((resolve, reject) => {
-        const request = https.get(url, (response) => {
+        // http for the test stack's S3 emulator, https everywhere else.
+        const request = (url.startsWith("http:") ? http : https).get(url, (response) => {
             if (response.statusCode !== 200) {
                 response.resume();
                 reject(new Error(`Download failed with HTTP ${response.statusCode}: ${url}`));
