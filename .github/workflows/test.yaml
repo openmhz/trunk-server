@@ -59,3 +59,17 @@ jobs:
               'envsubst "\$DOMAIN_NAME" < /etc/nginx/conf.d/site.template > /etc/nginx/conf.d/default.conf && nginx -t'
             echo "$stage config OK"
           done
+
+  # The production, test and development stacks must all be valid compose
+  # configs; a broken override would otherwise only show up on a server.
+  compose-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check each stage's compose files
+        run: |
+          set -e
+          COMPOSE_FILE=compose.yaml docker compose --env-file prod.env.example config --quiet
+          COMPOSE_FILE=compose.yaml:compose.test.yaml docker compose --env-file test.env.example config --quiet
+          COMPOSE_FILE=compose.yaml:compose.test.yaml:compose.dev.yaml docker compose --env-file test.env.example config --quiet
+          echo "production, test and development configs are valid"

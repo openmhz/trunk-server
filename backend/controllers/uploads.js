@@ -6,7 +6,7 @@ const  talkgroupSchema  = require("../models/talkgroupSchema");
 const  callSchema  = require("../models/callSchema");
 const mongoose = require("mongoose");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-const { fromIni } = require("@aws-sdk/credential-providers");
+const s3 = require("../lib/s3");
 const { NodeHttpHandler } = require('@smithy/node-http-handler');
 const https = require('https');
 const { str } = require("@openmhz/shared");
@@ -17,11 +17,9 @@ const agent = new https.Agent({
   maxSockets: 250,
 });
 
-const s3_endpoint = process.env['S3_ENDPOINT'] ?? 'https://s3.us-west-1.wasabisys.com';
-const s3_region = process.env['S3_REGION'] ?? 'us-west-1';
-const s3_bucket = process.env['S3_BUCKET'] ?? 'openmhz-west';
-const s3_profile = process.env['S3_PROFILE'] ?? 'wasabi-account';
-const s3_public_url = process.env['S3_PUBLIC_URL'] ?? `${s3_endpoint}/${s3_bucket}`;
+const s3_endpoint = s3.settings.endpoint;
+const s3_bucket = s3.settings.bucket;
+const s3_public_url = s3.settings.publicUrl;
 // Same URL as the rest of the backend (it used to ignore MONGO_HOST and the credentials).
 const mongoUrl = require("@openmhz/shared").mongoUrl(process.env, { log: false });
 
@@ -49,7 +47,7 @@ mongo_conn_fast.model('Talkgroup', talkgroupSchema);
 
 
 
-const client = new S3Client({
+const client = new S3Client(s3.clientOptions({
   // Without timeouts a stalled S3 request held an upload open for minutes
   // (270s seen in production).
   requestHandler: new NodeHttpHandler({
@@ -57,13 +55,7 @@ const client = new S3Client({
     connectionTimeout: 5000,
     requestTimeout: 30000,
   }),
-  credentials: fromIni({ profile: s3_profile }),
-  requestChecksumCalculation: 'WHEN_REQUIRED',
- 	responseChecksumValidation: 'WHEN_REQUIRED',
-  endpoint: s3_endpoint,
-  region: s3_region,
-  maxAttempts: 2,
-});
+}));
 
 // Every upload needs the system's key, so cache the lookup. A changed key or
 // ignoreUnknownTalkgroup setting takes up to the TTL to apply. Only found systems

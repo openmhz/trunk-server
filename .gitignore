@@ -10,3 +10,6 @@ data/*
 
 # Workspaces install everything into the root node_modules
 /node_modules
+
+# The stage settings each machine links or copies to .env (see the README).
+.env

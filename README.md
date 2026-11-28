@@ -14,8 +14,16 @@ There are a bunch of experiments lurking in the code. There is some code for add
 
 I haven't done a great job of keeping all the packages up to date... and I never got around to adding tests. Both of these would be great things for folks to go after.
 
-## PROD vs TEST Env
-The Prod environment expects you to be using HTTPS for your domains. It is pretty easy to use Let's Encrypt to grab Certs for the domains you are using. If not, just run things using the `docker-test.sh` script.
+## Stages: production, test and development
+Everything runs with Docker Compose. The stage is chosen by which compose files are loaded:
+
+| Stage | Compose files | What it is |
+|---|---|---|
+| production | `compose.yaml` | HTTPS, certbot, syslog logging, real S3 |
+| test | `compose.yaml` + `compose.test.yaml` | the same stack over HTTP on `*.openmhz.test`, with a local S3 emulator and a seeded database, nothing external needed |
+| development | the test files + `compose.dev.yaml` | the test stack with live reload of the server code |
+
+Each machine has an env file named `.env` in the repo root that holds its settings and a `COMPOSE_FILE` line naming those files, so every command is plain `docker compose ...`. `.env` is git-ignored.
 
 ## Path Forward
 It would be great to get the code to a place where there is base code and people can add customization on top of that. They would probably fork the base code, add additional features and design and then rebaseline the code as new things are added to the mainline. 
@@ -78,13 +86,12 @@ And then run the following to make sure everything has stopped:
 docker compose -f certbot-compose.yml down
 ```
 
-### Configure
-The configurations for both **test** and **prod** come from environment variable files that are read in before the containers are started.
-Copy the example files and fill in the required info:
+### Configure and run production
+Copy the example settings, fill them in, and link them as `.env`:
 
 ```bash
-cp test.env.example test.env
 cp prod.env.example prod.env
+ln -s prod.env .env
 ```
 
 Fill in:
@@ -93,23 +100,21 @@ Fill in:
 - Site name
 - Admin Email (The email will appear to come from this email. You should make sure it matches the domain MailJet is configured for)
 - How many days calls will be archived for.... this is just a UI thing, you need to create some S3 rules to make sure they are deleted
+- `SESSION_SECRET`, a long random value (changing it later signs everyone out once)
 
+Then `docker compose up -d --build` starts everything. Every service has a healthcheck, and `docker compose ps` shows whether each one is healthy.
 
-### Scripts
-
-`./docker-test.sh` - sets up docker-compose to run with the correct environment variables for testing
-
-`./docker-prod.sh` - sets up docker-compose to run with the correct environment variables for production
-
-`./deploy.sh` - deploys the checked-out code to production with only a few seconds of downtime per service. Run `git pull` first.
+`./deploy.sh` deploys the checked-out code with only a few seconds of downtime per service. Run `git pull` first.
 ```bash
 ./deploy.sh                      # backend, admin, account and frontend
 ./deploy.sh backend admin        # just these
 ./deploy.sh --rollback admin     # back to the image that was running before the last deploy
 ```
-It keeps the running images as `<image>-previous`, builds the new ones while the old containers keep serving, swaps the containers, and reloads nginx. Don't stop containers before building: on 2026-11-28 that took the API down for 27 minutes.
+It keeps the running images as `<image>-previous`, builds the new ones while the old containers keep serving, swaps the containers, waits for each to report healthy, and reloads nginx. Don't stop containers before building: on 2026-11-28 that took the API down for 27 minutes.
 
-nginx looks up the app containers through Docker's DNS every couple of seconds (`nginx-proxy/upstreams.conf`), so recreated containers that come back on new IP addresses are picked up without a reload. Before this change, nginx kept the addresses it found at startup, and admin and account returned 502 after a deploy until nginx was reloaded.
+nginx looks up the app containers through Docker's DNS every couple of seconds (`nginx-proxy/upstreams.conf`), so recreated containers that come back on new IP addresses are picked up without a reload.
+
+`./docker-prod.sh` and `./docker-test.sh` still work as shorthands for `docker compose` with `prod.env` or `test.env`.
 
 If you are having trouble with Docker Compose not building the images, try adding "--parallel 1". There may have been too many builds happening at once.
 
@@ -137,45 +142,50 @@ You get $100 of credit to use in 60 days.
 - 🔒 I use Let's Encrypt. It works.
 
 
-## Local Testing
+## Local test and development
 
 ### Local DNS
 
-It helps to have similar subdomains mapping to localhost/127.0.0.1. I used the domain `openmhz.test`. Feel free to use this, or come up with something clever. If you do something different, make sure you use that instead in the commands below.
+The test stack serves `openmhz.test` and its subdomains, so point them at your machine.
 
 On MacOS, make the changes in: */etc/hosts*
 
 ````
-##
-# Host Database
-#
-# localhost is used to configure the loopback interface
-# when the system is booting.  Do not change this entry.
-##
 127.0.0.1       localhost
-127.0.0.1       openmhz.test account.openmhz.test api.openmhz.test admin.openmhz.test media.openmhz.test
+127.0.0.1       openmhz.test account.openmhz.test api.openmhz.test admin.openmhz.test
 ````
 Then load these values into local DNS: `sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder`
 
+### Test stack
+```bash
+cp test.env.example .env
+docker compose up -d --build
+```
+Then browse to http://openmhz.test, http://account.openmhz.test and http://admin.openmhz.test.
 
-  - In root dir, run: `./docker-test.sh build`
-  - `./docker-test.sh up -d`
+The test stack needs nothing outside your machine:
+- **Database:** an empty database (in `data/test/mongo`) is created with the app's indexes and some test data. Sign in as `test@openmhz.test` with password `openmhz-test`.
+- **Test system:** the system `test` takes uploads with the API key `test-api-key`:
+  ```bash
+  curl -F call=@call.m4a -F talkgroup_num=101 -F start_time=$(date +%s) -F api_key=test-api-key \
+       -F source_list='[]' -F freq=851000000 http://api.openmhz.test/test/upload
+  ```
+- **S3:** a local S3 emulator stores call audio, events and podcasts in `data/test/s3`.
+- **Email:** Mailjet is only needed to test emails. Without keys, registration still works, and the page offers to resend the confirmation.
 
-You can then browser to:
-- openmhz.test
-- admin.openmhz.test
+To start again from an empty database, `docker compose down` and delete `data/test/`.
 
-*Interesting Note*: Safari 13+ does not like the **.test** TLD and doesn't seem to want to store cookies from the TLD. It seems to work fine in production when you are using a real TLD. I guess use Chrome for local testing or a different TLD for testing, like local. 
+*Interesting Note*: Safari 13+ does not like the **.test** TLD and doesn't seem to want to store cookies from the TLD. It seems to work fine in production when you are using a real TLD. I guess use Chrome for local testing or a different TLD for testing, like local.
 https://stackoverflow.com/questions/62023857/sharing-cookies-across-test-sub-domains-in-safari-13-not-possible
 
-### Debugging Node Servers using Dev Containers
-
-VS Code makes it easy to work on code running in a Docker container - whether it is on your machine or on a remote host. The [Dev Container](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension lets you edit files running inside a Docker container. Install the [Remote Explorer](https://marketplace.visualstudio.com/items?itemName=ms-vscode.remote-explorer) extension to work with remote hosts over SSH.
-
-If you are editing on a remote host, first use the Remote Explorer to get to that machine. 
-
-Now, launch all of the containers using `./docker-test.sh up -d`. The **Account**, **Admin**, **Frontend** and **Backend** node servers will all be started using [Nodemon](https://nodemon.io). When you make a change to any of the server related files, the server will reload. This makes it easy to edit and test against running code in a full deployment. To go to one of these Containers, open the Remote Explorer extension from the sidebar, select Dev Containers from the dropdown in the upper right of the sidebar, and then choose the Container you wish to work on.
-
+### Development with live reload
+In `.env`, switch `COMPOSE_FILE` to the development line (it's in `test.env.example`), then:
+```bash
+docker compose up --build --watch
+```
+- **Server code:** edits to the backend, to the account, admin and frontend servers, or to `packages/shared` are copied into the running container, and the service restarts in a second or two.
+- **Dependencies:** changing a `package.json` or the lockfile rebuilds that image.
+- **React clients:** changing a client's `src/` rebuilds its image too. For instant hot reload while working on a client, run that client on your machine instead (next section).
 
 ### Debugging React Apps using Hot Reloading
 If you are trying to make changes to any of react frontends, it is a huge pain to have to compile to site and rebuild the container each time you make a change. Instead, simply run the react app in development mode. This will work for the frontends for the:
@@ -183,7 +193,7 @@ If you are trying to make changes to any of react frontends, it is a huge pain t
 - account frontend
 - frontend... frontend
 
-First, start up all of the containers as described above. You will still the backend APIs they provide.
+First, start the test or development stack as described above; the client still talks to its APIs.
 
 The apps are npm workspaces that share one `package-lock.json` at the repo root. Install once from the root (not from the app folders):
 ````
@@ -191,7 +201,7 @@ npm install
 ````
 Then start the app you are working on, for example the admin frontend:
 ````
-source test.env
+set -a; source .env; set +a
 npm start --workspace admin
 ````
 

@@ -1,0 +1,85 @@
+# Development: the test stack plus live reload of the server code.
+#
+#   COMPOSE_FILE=compose.yaml:compose.test.yaml:compose.dev.yaml   (in .env)
+#   docker compose up --build --watch
+#
+# Editing server code (backend, the account/admin/frontend servers, or
+# packages/shared) copies it into the running container and restarts it in a
+# second or two. Changing a package.json or the lockfile rebuilds that image.
+# Changing a React client (src/) also rebuilds that image; for instant hot
+# reload while working on a client, run it on the host instead (see the README).
+
+x-shared-sync: &shared-sync
+  action: sync+restart
+  path: ./packages/shared
+  target: /app/packages/shared
+  ignore:
+    - node_modules/
+    - test/
+
+x-rebuild-on-deps: &rebuild-on-deps
+  action: rebuild
+  path: ./package-lock.json
+
+services:
+  backend:
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./backend
+          target: /app/backend
+          ignore:
+            - node_modules/
+            - test/
+            - package.json
+        - action: rebuild
+          path: ./backend/package.json
+        - *shared-sync
+        - *rebuild-on-deps
+
+  account:
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./account/server
+          target: /app/account
+          ignore:
+            - node_modules/
+            - test/
+        - action: rebuild
+          path: ./account/src
+        - action: rebuild
+          path: ./account/package.json
+        - *shared-sync
+        - *rebuild-on-deps
+
+  admin:
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./admin/server
+          target: /app/admin
+          ignore:
+            - node_modules/
+            - test/
+        - action: rebuild
+          path: ./admin/src
+        - action: rebuild
+          path: ./admin/package.json
+        - *shared-sync
+        - *rebuild-on-deps
+
+  frontend:
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./frontend/server
+          target: /app/frontend
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./frontend/src
+        - action: rebuild
+          path: ./frontend/package.json
+        - *shared-sync
+        - *rebuild-on-deps
