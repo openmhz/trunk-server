@@ -29,17 +29,19 @@ const mongoUrl = 'mongodb://' + host + ':' + port + '/scanner';
 
 // `asPromise()` returns a promise that resolves to the connection
 // once the connection succeeds, or rejects if connection failed.
-const mongo_conn_slow = mongoose.createConnection(mongoUrl,  { maxPoolSize: 150 });
-const mongo_conn_fast = mongoose.createConnection(mongoUrl,  { maxPoolSize: 150 });
+// Indexes are created by mongo/db.sh, not by Mongoose at startup (an index
+// added to a model would otherwise start a build on 80M+ calls at deploy).
+const mongo_conn_slow = mongoose.createConnection(mongoUrl,  { maxPoolSize: 150, autoIndex: false });
+const mongo_conn_fast = mongoose.createConnection(mongoUrl,  { maxPoolSize: 150, autoIndex: false });
 mongo_conn_slow.on('error', console.error);
 mongo_conn_fast.on('error', console.error);
 mongo_conn_slow.on('disconnected', () => {
   console.log('Mongo Slow Disconnected');
-  mongo_conn_slow.openUri(mongoUrl, { maxPoolSize: 150 }).catch(console.error);
+  mongo_conn_slow.openUri(mongoUrl, { maxPoolSize: 150, autoIndex: false }).catch(console.error);
 });
 mongo_conn_fast.on('disconnected', () => {
   console.log('Mongo Fast Disconnected');
-  mongo_conn_fast.openUri(mongoUrl, { maxPoolSize: 150 }).catch(console.error);
+  mongo_conn_fast.openUri(mongoUrl, { maxPoolSize: 150, autoIndex: false }).catch(console.error);
 });
 
 mongo_conn_slow.model('Call', callSchema);

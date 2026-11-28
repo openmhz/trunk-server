@@ -79,7 +79,9 @@ const connect = async () => {
   if (connecting || mongoose.connection.readyState !== 0) return;
   connecting = true;
   try {
-    await mongoose.connect(mongoUrl, { maxPoolSize: 50 });
+    // Indexes are created by mongo/db.sh, not by Mongoose at startup (an index
+    // added to a model would otherwise start a build on 80M+ calls at deploy).
+    await mongoose.connect(mongoUrl, { maxPoolSize: 50, autoIndex: false });
   } catch (err) {
     console.error("Mongoose connect failed, retrying in 5s: " + err);
     setTimeout(connect, 5000);

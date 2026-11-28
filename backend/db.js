@@ -38,20 +38,27 @@ exports.cleanOldPodcasts = async function() {
 
 
 
+// One delete per system so each uses the { shortName, time } index. A single
+// deleteMany on time alone scanned the whole collection every night (64M
+// documents, about 6 minutes, in the last profile). Same logic as
+// `mongo/db.sh clean-calls`.
 exports.cleanOldCalls = async function() {
-  var date = new Date();
+  const date = new Date();
   date.setMonth(date.getMonth() - 1);
-  Call.bulkWrite([
-    {
-      deleteMany: {
-        filter: { time: {$lt: date} }
+  const started = Date.now();
+  let removed = 0;
+  try {
+    const shortNames = await Call.distinct("shortName");
+    for (const shortName of shortNames) {
+      try {
+        const res = await Call.deleteMany({ shortName: shortName, time: { $lt: date } });
+        removed += res.deletedCount;
+      } catch (err) {
+        console.error("Cleanup failed for " + shortName + ": " + err);
       }
     }
-  ]).catch(err => {
+  } catch (err) {
     console.error("Cleanup failed: " + err);
-    return { deletedCount: 0 };
-  }).then(res => {
-   // Prints "1 1 1"
-   console.log("Removed " + res.deletedCount + " Calls older than " + date);
-  });
+  }
+  console.log("Removed " + removed + " Calls older than " + date + " in " + Math.round((Date.now() - started) / 1000) + "s");
 }
