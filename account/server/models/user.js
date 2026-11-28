@@ -73,7 +73,7 @@ UserSchema.pre("save", function(next) {
     if(!this.isModified("password")) {
         return next();
     }
-	hashed = bcrypt.hashSync(this.password, 8);
+	const hashed = bcrypt.hashSync(this.password, 8);
 	this.password = hashed;
 	this.local.password = hashed;
 
@@ -94,7 +94,15 @@ UserSchema.pre("save", function(next) {
  }*/
 
  UserSchema.methods.comparePassword = function(plaintext, callback) {
-    return callback(null, bcrypt.compareSync(plaintext, this.local.password));
+    const hash = this.local && this.local.password;
+    if (typeof plaintext !== "string" || typeof hash !== "string" || !hash) {
+        return callback(null, false);
+    }
+    try {
+        return callback(null, bcrypt.compareSync(plaintext, hash));
+    } catch (err) {
+        return callback(err);
+    }
 };
 
 
