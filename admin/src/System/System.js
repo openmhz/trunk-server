@@ -1,16 +1,13 @@
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import React, { useLayoutEffect, useState } from "react";
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import ListTalkgroups from "../Talkgroups/ListTalkgroups.js";
 import MessageBox from "../Components/Message.js";
 import ListGroups from "../Group/ListGroups.js";
 import GroupModal from "../Group/GroupModal.js";
-import ErrorChart from "./ResponsiveErrorChart"
-import CallChart from "./ResponsiveCallChart"
-import { useGetSystemsQuery, useGetTalkgroupsQuery, useGetGroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useDeleteSystemMutation, useImportTalkgroupsMutation, useSaveGroupOrderMutation } from '../features/api/apiSlice'
+import { useGetSystemsQuery, useGetTalkgroupsQuery, useGetGroupsQuery, useDeleteGroupMutation, useDeleteSystemMutation, useImportTalkgroupsMutation, useSaveGroupOrderMutation } from '../features/api/apiSlice'
 import {
   Button,
   Confirm,
-  Icon,
   Form,
   TextArea,
   Message,
@@ -28,7 +25,6 @@ const System = () => {
   const { data: systemsData, isSuccess: isSystemsSuccess } = useGetSystemsQuery();
   const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
   const { data: groupsData } = useGetGroupsQuery(shortName);
-  //const { data: systemErrorData, isSuccess: isErrorsSuccess } = useGetErrorsQuery(shortName);
   const [deleteGroupAPI] = useDeleteGroupMutation();
   const [reorderGroupsAPI] = useSaveGroupOrderMutation();
   const [importTalkgroupsAPI, { error: importError }] = useImportTalkgroupsMutation();
@@ -38,129 +34,8 @@ const System = () => {
   const [requestMessage, setRequestMessage] = useState("");
   const [groupVisible, setGroupVisible] = useState(false);
   const [editGroupId, setEditGroupId] = useState(false);
-  const [errorData, setErrorData] = useState({});
-  const [callStatistics, setCallStatistics] = useState({});
   const [groupOrder, setGroupOrder] = useState([]);
 
-
-  const processErrors = (statistics) => {
-    const errors = statistics.decodeErrorsFreq;
-    var allData = [];
-
-    var num = 0;
-    const now = new Date();
-    var maxDate = now;
-    var minDate = now;
-    var minValue = 0;
-    var maxValue = 0;
-    var legend = [];
-    var MS_PER_MINUTE = 60000;
-    for (const freq in errors) {
-      const freqErrors = errors[freq];
-      var data = [];
-      for (var i = 0; i < freqErrors.errorHistory.length; i++) {
-        let spotsBack = i; //freqErrors.errorHistory.length - i;
-        let time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
-        if (time < minDate) minDate = time;
-        
-        if (freqErrors.errorHistory[i] > maxValue)
-          maxValue = freqErrors.errorHistory[i];
-        var value = {
-          id: num++,
-          y: freqErrors.errorHistory[i],
-          x: time
-        };
-        data.push(value);
-      }
-      const id = Math.floor(freq / 1000) / 1000 + "MHz";
-      legend.push(id);
-      var obj = {
-        id: id,
-        data: data
-      };
-      allData.push(obj);
-    }
-    const errorData = {
-      data: allData,
-      minDate: minDate,
-      maxDate: maxDate,
-      minValue: minValue,
-      maxValue: maxValue,
-      legend: legend
-    };
-
-    setErrorData(errorData);
-  };
-
-  const processStatistics = (statistic) => {
-    var callTotals = [];
-    var uploadErrors= [];
-    let talkgroupStats = [];
-    let decodeErrorsFreq = [];
-
-    const now = new Date();
-    var maxDate = now;
-    var minDate = now;
-    var minValue = 0;
-    var maxValue = 0;
-    var MS_PER_MINUTE = 60000;
-    if (statistic) {
-      for (let j = 0; j < statistic.callTotals.length; j++) {
-        let spotsBack = j;//statistic.callTotals.length - j;
-        let time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
-        if (time < minDate) minDate = time;
-        if (statistic.callTotals[j] > maxValue)
-          maxValue = statistic.callTotals[j];
-        callTotals.push({ y: statistic.callTotals[j], x: time });
-      }
-      for (let j = 0; j < statistic.uploadErrors.length; j++) {
-        let spotsBack = statistic.uploadErrors.length - j;
-        let time = new Date(now - spotsBack * 15 * MS_PER_MINUTE);
-        if (time < minDate) minDate = time;
-        if (statistic.uploadErrors[j] > maxValue)
-          maxValue = statistic.uploadErrors[j];
-        uploadErrors.push({ x: time, y: statistic.uploadErrors[j] });
-      }
-      const data = {
-        minDate: minDate,
-        maxDate: maxDate,
-        minValue: minValue,
-        maxValue: maxValue,
-        callTotals: callTotals,
-        uploadErrors: uploadErrors
-      };
-
-      setCallStatistics(data);
-    }
-  }
-
-
-  /*
-    componentDidMount() {
-      this.props.systemActions.fetchSystems();
-      this.props.talkgroupActions.fetchTalkgroups(this.props.shortName);
-      this.props.groupActions.fetchGroups(this.props.shortName);
-      this.props.errorActions.fetch(this.props.shortName);
-      if (this.props.statistic) {
-        this.processStatistics(this.props.statistic);
-      }
-      if (this.props.errors) {
-        this.processErrors(this.props.errors);
-      }
-    }
-  
-    componentDidUpdate(prevProp) {
-  
-      // If we just received the error statistics for a system, for the first time, proccess them.
-      if (this.props.errors && !prevProp.errors) {
-        this.processErrors(this.props.errors);
-      }
-      // If we just received the call statistics for a system, for the first time, proccess them.
-      if (this.props.statistic && !prevProp.statistic) {
-        this.processStatistics(this.props.statistic);
-      }
-    }
-  */
 
   const editGroup = (groupId) => {
     setEditGroupId(groupId)
@@ -236,19 +111,6 @@ const System = () => {
       setGroupOrder(newOrder);
     }
   }, [groupsData])
-  useEffect(() => {
-    if (isSystemsSuccess && systemsData.stats[shortName]) {
-      processStatistics(systemsData.stats[shortName])
-      processErrors(systemsData.stats[shortName])
-    }
-  }, [isSystemsSuccess, systemsData]);
-/*
-  useEffect(() => {
-    if (isErrorsSuccess) {
-      processErrors(systemErrorData)
-    }
-  }, [systemErrorData]);*/
-
   let fileInput = null;
   var location = "";
   var example = "";
@@ -470,22 +332,6 @@ const System = () => {
     {
       menuItem: "Groups",
       render: groupRender
-    }, {
-      menuItem: "Stats",
-      render: () => (
-        <div>
-          <Divider horizontal>
-            <Icon name="microphone" />
-            24-Hour Call History
-          </Divider>
-          <CallChart data={callStatistics} />
-          <Divider horizontal>
-            <Icon name="microphone" />
-            Hourly Vocoder Error Percentage
-          </Divider>
-          <ErrorChart data={errorData} />
-        </div>
-      )
     }
   ];
 

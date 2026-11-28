@@ -41,10 +41,6 @@ export const apiSlice = createApi({
           : ['Group'],
     }),
 
-    getErrors: builder.query({
-      // The URL for the request is '/fakeApi/posts'
-      query: (shortName) => ({ url: `${process.env.REACT_APP_BACKEND_SERVER}/${shortName}/errors` })
-    }),
     updateGroup: builder.mutation({
       query: (group) => ({
         url: `/groups/${group.shortName}/${group._id}`,
@@ -206,4 +202,4 @@ export const apiSlice = createApi({
 })
 
 // Export the auto-generated hook for the `getPosts` query endpoint
-export const { useGetGroupsQuery, useGetSystemsQuery, useGetAllSystemsQuery, useGetActiveUsersQuery, useGetTalkgroupsQuery, useGetErrorsQuery, useDeleteGroupMutation, useCreateGroupMutation, useCreateSystemMutation, useUpdateSystemMutation, useDeleteSystemMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation } = apiSlice
+export const { useGetGroupsQuery, useGetSystemsQuery, useGetAllSystemsQuery, useGetActiveUsersQuery, useGetTalkgroupsQuery, useDeleteGroupMutation, useCreateGroupMutation, useCreateSystemMutation, useUpdateSystemMutation, useDeleteSystemMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation } = apiSlice
