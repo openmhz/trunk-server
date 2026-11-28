@@ -12,10 +12,13 @@ exports.get_stats = function(req, res) {
     var callTotals = sysStats.callTotals(short_name);
     var talkgroupStats = sysStats.talkgroupStats(short_name);
 
-    if (callTotals && talkgroupStats) {
+    // callTotals is 0 for every system right after each 15-minute rollover, so
+    // only a missing talkgroupStats means the system has no stats. Treating 0 as
+    // missing made the public Activity view fail for a moment every 15 minutes.
+    if (talkgroupStats !== undefined) {
         res.contentType('json');
         res.send(JSON.stringify({
-            callTotals: callTotals,
+            callTotals: callTotals || 0,
             talkgroupStats: talkgroupStats
         }));
     } else {

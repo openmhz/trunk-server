@@ -81,7 +81,13 @@ test("addCall -> shiftStats updates histories, systems, files and endpoints", as
   assert.strictEqual(site.activeSystems, 1);
   assert.strictEqual(site.totalClients, 7);
 
-  // /<shortName>/stats response (callTotals is truthy because of the new call)
+  // Right after a shift callTotals is 0; the Activity view must still get its data.
+  const r0 = fakeRes();
+  stats.get_stats({ params: { shortName: "sysa" } }, r0);
+  assert.strictEqual(r0.statusCode || 200, 200, "0 calls this period is not 'system missing'");
+  assert.strictEqual(JSON.parse(r0.body).callTotals, 0);
+
+  // /<shortName>/stats response after a new call
   sysStats.addCall({ shortName: "sysa", talkgroupNum: 100, len: 4, freq: 1, errorCount: 0, spikeCount: 0 });
   const r2 = fakeRes();
   stats.get_stats({ params: { shortName: "SysA" } }, r2);
