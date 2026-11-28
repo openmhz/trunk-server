@@ -11,16 +11,12 @@ exports.get_stats = function(req, res) {
 
     var callTotals = sysStats.callTotals(short_name);
     var talkgroupStats = sysStats.talkgroupStats(short_name);
-    var uploadErrors = sysStats.uploadErrors(short_name);
-    let decodeErrorsFreq = sysStats.decodeErrorsFreq(short_name);
 
     if (callTotals && talkgroupStats) {
         res.contentType('json');
         res.send(JSON.stringify({
             callTotals: callTotals,
-            talkgroupStats: talkgroupStats,
-            uploadErrors: uploadErrors,
-            decodeErrorsFreq: decodeErrorsFreq
+            talkgroupStats: talkgroupStats
         }));
     } else {
         console.log("ShortName didn't exist for stats: " + util.inspect(req.params));
@@ -31,6 +27,6 @@ exports.get_stats = function(req, res) {
 
 
 var statSched = schedule.scheduleJob('*/15 * * * *', function() {
-    sysStats.shiftStats();
+    sysStats.shiftStats().catch(err => console.error("Stats - shiftStats failed: " + (err && err.stack || err)));
 });
 
