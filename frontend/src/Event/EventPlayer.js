@@ -87,6 +87,16 @@ function EventPlayer(props) {
 
 
 
+  // A call that can't be loaded/played is skipped; autoplay-blocked just stops and waits for a tap.
+  const callFailed = () => {
+    setIsPlaying(false);
+    callEnded();
+  }
+
+  const autoplayBlocked = () => {
+    setIsPlaying(false);
+  }
+
   useEffect(() => {
     if (selectCallId && eventData && !currentCall) {
       const call = eventData.calls.find((call) => call._id == selectCallId);
@@ -122,7 +132,7 @@ function EventPlayer(props) {
         <div className="item-container">
           <div className={autoplayClassName}  onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></div>
           <div className="mediaplayer">
-            <MediaPlayer call={currentCall} onEnded={callEnded} onPlayPause={handlePlayPause} />
+            <MediaPlayer call={currentCall} onEnded={callEnded} onPlayPause={handlePlayPause} onFailed={callFailed} onAutoplayBlocked={autoplayBlocked} />
           </div>
           <div className="link-item desktop-only" >
             <a href={callDownload}><Icon name="download" />Download</a>

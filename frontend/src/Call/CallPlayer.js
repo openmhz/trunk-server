@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from 'react-router-dom';
 import MediaPlayer from "./components/MediaPlayer";
 import SupportModal from "../Common/SupportModal";
@@ -6,7 +6,9 @@ import CallInfo from "./components/CallInfo";
 import ListCalls from "./components/ListCalls";
 import { useSelector, useDispatch } from 'react-redux'
 import { useGetTalkgroupsQuery } from '../features/api/apiSlice'
-import { playedCall } from "../features/calls/callsSlice";
+import { playedCall, failedCall } from "../features/calls/callsSlice";
+import { setCurrentCallId } from "../features/callPlayer/callPlayerSlice";
+import { nextAfterFailure, getNextPlayableId, isPlaybackStalled } from "./playback";
 import { useInView } from 'react-intersection-observer';
 import {
   Container,
@@ -26,13 +28,8 @@ import {
 } from "semantic-ui-react";
 import "./CallPlayer.css";
 import queryString from '../query-string';
-import io from 'socket.io-client';
 import { useCallLink } from "./components/CallLinks";
 import "./CallPlayer.css";
-import { set } from "date-fns";
-
-
-const socket = io(process.env.REACT_APP_BACKEND_SERVER);
 
 
 // ----------------------------------------------------
@@ -60,15 +57,17 @@ function CallPlayer(props) {
   const [currentCall, setCurrentCall] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [silenceCount, setSilenceCount] = useState(0);
+  const [needsTap, setNeedsTap] = useState(false); // autoplay was blocked by the browser
   const [selectedInitialCall, setSelectedInitialCall] = useState(false);
   const { callLink, callDownload, callTweet } = useCallLink(currentCall)
 
   const dispatch = useDispatch();
   const stickyRef = useRef(); // lets us get the Y Scroll offset for the Call List
   const positionRef = useRef(); // lets us get the Y Scroll offset for the Call List
-  const shouldPlayAddCallRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
-  //const selectedInitialCall = useRef(false); // allows you to track if you have already selected the Initial Call - you only want to do this once
-  shouldPlayAddCallRef.current = (!isPlaying && autoPlay) ? true : false;
+  const startedAtRef = useRef(0);       // when the current call was started
+  const lastProgressRef = useRef(0);    // last time its audio advanced
+  const attemptRef = useRef(0);         // increments for every call we start
+  const failedAttemptRef = useRef(-1);  // attempt that was already reported as failed
 
   let currentCallId = false;
 
@@ -76,45 +75,100 @@ function CallPlayer(props) {
     currentCallId = currentCall._id;
   }
 
+  // Start playing a call. Every path that changes the current call goes through here.
+  const startCall = useCallback((call) => {
+    attemptRef.current += 1;
+    startedAtRef.current = Date.now();
+    lastProgressRef.current = 0;
+    setCurrentCall(call);
+    dispatch(setCurrentCallId(call._id));
+    dispatch(playedCall(call._id));
+    setIsPlaying(true);
+  }, [dispatch]);
+
+  const playCall = useCallback((data) => {
+    startCall(data.call);
+  }, [startCall]);
+
+  useEffect(() => () => {
+    dispatch(setCurrentCallId(false));
+  }, []);
+
   const handlePlayPause = (playing) => {
     setIsPlaying(playing);
+    if (playing) {
+      setNeedsTap(false);
+      lastProgressRef.current = Date.now();
+    }
+  }
+
+  const handleProgress = () => {
+    lastProgressRef.current = Date.now();
   }
 
   const handleAutoPlay = (currentAutoPlay) => {
     setAutoPlay(!currentAutoPlay);
   }
 
-  const playCall = (data) => {
-    setCurrentCall(data.call);
-    dispatch(playedCall(data.call._id));
-    setIsPlaying(true);
+  // The browser refused to start audio without a user gesture: don't pretend to be playing.
+  const handleAutoplayBlocked = () => {
+    setIsPlaying(false);
+    setNeedsTap(true);
   }
 
+  // Audio failed to load/decode/play, or stalled: mark it, then move on to the next call.
+  const handleCallFailed = () => {
+    if (!currentCallId) return;
+    if (failedAttemptRef.current === attemptRef.current) return; // already handled
+    failedAttemptRef.current = attemptRef.current;
+    console.log("Call failed, skipping: " + currentCallId);
+    dispatch(failedCall(currentCallId));
+    setIsPlaying(false);
+    if (callsData) {
+      const nextId = nextAfterFailure({ autoPlay, ids: callsData.ids, entities: callsData.entities, failedId: currentCallId });
+      if (nextId) startCall(callsData.entities[nextId]);
+    }
+  }
+
+  // Watchdog: a call that is "playing" but makes no progress for its length + 10s has failed.
+  const handleCallFailedRef = useRef(handleCallFailed);
+  handleCallFailedRef.current = handleCallFailed;
+  const currentLen = currentCall ? currentCall.len : 0;
+  useEffect(() => {
+    if (!isPlaying || !currentCallId) return;
+    const timer = setInterval(() => {
+      if (isPlaybackStalled({
+        isPlaying: true,
+        startedAt: startedAtRef.current,
+        lastProgressAt: lastProgressRef.current,
+        now: Date.now(),
+        lengthSec: currentLen
+      })) {
+        handleCallFailedRef.current();
+      }
+    }, 2000);
+    return () => clearInterval(timer);
+  }, [isPlaying, currentCallId, currentLen]);
 
   /* This function gets called whenever the currently playing call ends.*/
 
   const callEnded = () => {
     if (callsData) {
-      const currentIndex = callsData.ids.findIndex(callId => callId === currentCallId);
       if (autoPlay) {
-        if (currentIndex > 0) {
-          const nextCallId = callsData.ids[currentIndex - 1];
-          const nextCall = callsData.entities[nextCallId];
-          console.log("Autoplaying next call, current Index is: " + currentIndex + " isPlaying is: " + isPlaying)
-          setCurrentCall(nextCall);
-          dispatch(playedCall(nextCall._id));
-          setIsPlaying(true);
+        const nextId = getNextPlayableId(callsData.ids, callsData.entities, currentCallId);
+        if (nextId) {
+          console.log("Autoplaying next call: " + nextId);
+          startCall(callsData.entities[nextId]);
         } else if (backgroundAutoplay) {
           // there are no more calls to play, but we want to keep playing something so the webpage is not put to sleep, so we play silence!
+          // The silence is not counted as "playing", so a new live call is never held up by it.
+          setIsPlaying(false);
           setSilenceCount(silenceCount + 1);
         } else {
           // there are no more calls to play and backgroundAutoplay is disabled
           setIsPlaying(false);
         }
       } else {
-        if (!autoPlay) {
-          console.log("Not playing because Autoplay is false - current index is: " + currentIndex)
-        }
         setIsPlaying(false);
       }
     } else {
@@ -143,10 +197,8 @@ function CallPlayer(props) {
         const time = new Date(call.time);
 
         console.log("Playing Initial Call: " + call._id + " Start Time: " + time.toLocaleTimeString());
-        setIsPlaying(true);
-        setCurrentCall(call);
         setSelectedInitialCall(true); // signals that it has selected the initial call - you only want to do this once
-        dispatch(playedCall(call._id));
+        startCall(call);
       }
     }
   }, [props.initialCallId, callsData])
@@ -164,9 +216,7 @@ function CallPlayer(props) {
         const time = new Date(call.time);
 
         console.log("Playing Selected Call: " + call._id + " Start Time: " + time.toLocaleTimeString());
-        setIsPlaying(true);
-        setCurrentCall(call);
-        dispatch(playedCall(call._id));
+        startCall(call);
       }
     }
   }, [selectCallId])
@@ -220,11 +270,18 @@ function CallPlayer(props) {
         </Rail>
       </Container>
 
+      {needsTap &&
+        <div style={{ position: 'fixed', bottom: '4.5em', left: 0, right: 0, textAlign: 'center', zIndex: 1000, pointerEvents: 'none' }}>
+          <Message compact info style={{ display: 'inline-block', margin: 0 }}>
+            <Icon name="play" /> Tap play to start listening
+          </Message>
+        </div>
+      }
       <Menu fixed="bottom" inverted vertical fluid>
         <div className="item-container">
           <div className={autoplayClassName} onClick={() => handleAutoPlay(autoPlay)}><Icon name="level up" /><span className="desktop-only">Autoplay</span></div>
           <div className="mediaplayer">
-            <MediaPlayer call={currentCall} playSilence={silenceCount} onEnded={callEnded} onPlayPause={handlePlayPause} />
+            <MediaPlayer call={currentCall} playSilence={silenceCount} onEnded={callEnded} onPlayPause={handlePlayPause} onFailed={handleCallFailed} onAutoplayBlocked={handleAutoplayBlocked} onProgress={handleProgress} />
           </div>
           <div className="link-item desktop-only" >
             <a href={callDownload}><Icon name="download" />Download</a>

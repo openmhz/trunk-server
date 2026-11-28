@@ -17,14 +17,14 @@ import WavesurferPlayer from '@wavesurfer/react'
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.js';
 
 
-import { is } from "date-fns/locale";
 import "./MediaPlayer.css";
 
 
 
 
+const SILENCE_URL = "/silence.m4a";
+
 const MediaPlayer = (props) => {
-  const audioRef = React.createRef();
   const call = props.call;
   const [volume, setVolume] = useState(1);
   const [sourceIndex, setSourceIndex] = useState(0);
@@ -33,6 +33,12 @@ const MediaPlayer = (props) => {
   const [playTime, setPlayTime] = useState(0);
   const playSilence = props.playSilence;
   const parentHandlePlayPause = props.onPlayPause
+  // The silence clip keeps the page/audio session alive. It is never reported to the
+  // parent as "playing", so it can't hold up a new live call.
+  const silenceRef = useRef(false);
+  const callIdRef = useRef(false);
+  const currentCallKey = call ? call._id : false;
+  callIdRef.current = currentCallKey;
   const regionsPlugin = useMemo(() => RegionsPlugin.create(), []);
   const plugins = useMemo(() => [regionsPlugin], [regionsPlugin]);
 
@@ -52,23 +58,17 @@ const MediaPlayer = (props) => {
       });
     }
 
-    wavesurfer && wavesurfer.load("/silence.m4a");
-    regionsPlugin.clearRegions();
-
-    // // In browsers that don’t yet support this functionality,
-    // // playPromise won’t be defined.
-    // if (playPromise !== undefined) {
-    //   playPromise.then(function () {
-
-    //   }).catch(function (error) {
-    //     console.log("Automatic playback failed: " + error);
-    //     // Show a UI element to let the user manually start playback.
-    //   });
-    // } else {
-    //   audio.src = false;
-    // }
-
+    if (playSilence > 0 && wavesurfer) {
+      silenceRef.current = true;
+      regionsPlugin.clearRegions();
+      Promise.resolve(wavesurfer.load(SILENCE_URL)).catch(() => {});
+    }
   }, [playSilence]);
+
+  // a real call replaces whatever silence was playing
+  useEffect(() => {
+    silenceRef.current = false;
+  }, [currentCallKey]);
 
   useEffect(() => {
     setSourceIndex(0);
@@ -81,10 +81,42 @@ const MediaPlayer = (props) => {
   }, [volume, wavesurfer]);
 
 
+  const reportFailure = (err) => {
+    if (silenceRef.current) return; // the silence clip is allowed to fail quietly
+    if (err && err.name === 'AbortError') return; // a newer load replaced this one
+    console.log("Playback error: " + (err && err.message ? err.message : err));
+    setIsPlaying(false);
+    props.onFailed && props.onFailed(err);
+  }
+
   const onReady = (ws) => {
     setWavesurfer(ws)
     setIsPlaying(false)
     regionsPlugin.clearRegions();
+    if (silenceRef.current) {
+      Promise.resolve(ws.play()).catch(() => {});
+      return;
+    }
+    // Start the call ourselves so a rejected play() (autoplay blocked, bad media) is visible.
+    // The media element's own 'error' event is forwarded by wavesurfer as its 'error' event.
+    const forCallId = callIdRef.current;
+    try {
+      const played = ws.play();
+      if (played && played.catch) {
+        played.catch((err) => {
+          if (callIdRef.current !== forCallId) return; // stale: another call is loaded now
+          if (err && err.name === 'AbortError') return;
+          if (err && err.name === 'NotAllowedError') {
+            setIsPlaying(false);
+            props.onAutoplayBlocked && props.onAutoplayBlocked();
+          } else {
+            reportFailure(err);
+          }
+        });
+      }
+    } catch (err) {
+      reportFailure(err);
+    }
     if (call) {
       call.srcList.forEach(src => {
         regionsPlugin.addRegion({
@@ -98,17 +130,25 @@ const MediaPlayer = (props) => {
   }
 
   const onPlay = () => {
+    if (silenceRef.current) return; // silence doesn't count as playing
     setIsPlaying(true);
     parentHandlePlayPause(true);
 
   }
 
   const onPause = () => {
+    if (silenceRef.current) return;
     setIsPlaying(false);
     parentHandlePlayPause(false);
   }
   const onPlayPause = () => {
-    wavesurfer && wavesurfer.playPause()
+    if (!wavesurfer) return;
+    if (wavesurfer.isPlaying()) {
+      wavesurfer.pause();
+    } else {
+      // a user tap is the gesture the browser wants; swallow aborts from a racing load
+      Promise.resolve(wavesurfer.play()).catch(() => {});
+    }
   }
 
   const updatePlayProgress = () => {
@@ -118,6 +158,8 @@ const MediaPlayer = (props) => {
         currentTime = wavesurfer.getCurrentTime(),
         remainingTime = totalTime - currentTime;
 
+      if (silenceRef.current) return;
+      props.onProgress && props.onProgress();
       if (!isPlaying) {
         setIsPlaying(true);
       }
@@ -194,6 +236,7 @@ const MediaPlayer = (props) => {
           onPause={onPause}
           onAudioprocess={updatePlayProgress}
           onFinish={props.onEnded}
+          onError={(ws, err) => reportFailure(err)}
           plugins={plugins}
         />
       </div>
