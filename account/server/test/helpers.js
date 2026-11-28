@@ -13,7 +13,7 @@ const MONGO_URL = process.env.TEST_MONGO_URL || "mongodb://127.0.0.1:27119/accou
 const users = require("../controllers/users");
 const configurePassport = require("../config/passport");
 const registerRoutes = require("../lib/routes");
-const { errorHandler } = require("../lib/safety");
+const { errorHandler } = require("@openmhz/shared");
 const User = require("../models/user");
 
 // Mailjet stub: records sends; set .fail to reject.

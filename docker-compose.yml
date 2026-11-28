@@ -131,6 +131,7 @@ services:
       - MONGO_PORT
       - MONGO_USER
       - MONGO_PASSWORD
+      - SESSION_SECRET
       - NODE_ENV
     depends_on:
       - mongo
@@ -162,6 +163,7 @@ services:
       - MONGO_PORT
       - MONGO_USER
       - MONGO_PASSWORD
+      - SESSION_SECRET
       - MAILJET_KEY
       - MAILJET_SECRET
       - REACT_APP_BACKEND_SERVER

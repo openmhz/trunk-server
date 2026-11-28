@@ -1,0 +1,10 @@
+{
+  "name": "@openmhz/shared",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Code shared by the OpenMHz servers (backend, account, admin). No dependencies of its own: anything that needs mongoose takes the app's mongoose instance, since the apps run different mongoose versions.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}

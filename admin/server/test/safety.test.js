@@ -2,7 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert");
 const http = require("node:http");
 const express = require("express");
-const { wrap, errorHandler } = require("../lib/safety");
+const { wrap, errorHandler } = require("@openmhz/shared");
 
 test("wrap + errorHandler turn a thrown async error into a single 500", async () => {
   const app = express();

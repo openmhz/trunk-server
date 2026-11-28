@@ -9,7 +9,7 @@ const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { fromIni } = require("@aws-sdk/credential-providers");
 const { NodeHttpHandler } = require('@smithy/node-http-handler');
 const https = require('https');
-const { str } = require("../lib/safety");
+const { str } = require("@openmhz/shared");
 
 // keepAlive matters: without it every upload does a full TCP + TLS handshake to S3.
 const agent = new https.Agent({
@@ -22,9 +22,8 @@ const s3_region = process.env['S3_REGION'] ?? 'us-west-1';
 const s3_bucket = process.env['S3_BUCKET'] ?? 'openmhz-west';
 const s3_profile = process.env['S3_PROFILE'] ?? 'wasabi-account';
 const s3_public_url = process.env['S3_PUBLIC_URL'] ?? `${s3_endpoint}/${s3_bucket}`;
-const host = process.env['MONGO_NODE_DRIVER_HOST'] != null ? process.env['MONGO_NODE_DRIVER_HOST'] : 'mongo';
-const port = process.env['MONGO_NODE_DRIVER_PORT'] != null ? process.env['MONGO_NODE_DRIVER_PORT'] : 27017;
-const mongoUrl = 'mongodb://' + host + ':' + port + '/scanner';
+// Same URL as the rest of the backend (it used to ignore MONGO_HOST and the credentials).
+const mongoUrl = require("@openmhz/shared").mongoUrl(process.env, { log: false });
 
 
 // `asPromise()` returns a promise that resolves to the connection

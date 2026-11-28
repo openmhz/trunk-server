@@ -8,7 +8,7 @@ const configureExpress = require("./config/express");
 const systems = require("./controllers/systems");
 const groups = require("./controllers/groups");
 const talkgroups = require("./controllers/talkgroups");
-const { wrap, errorHandler, installProcessHandlers } = require("./lib/safety");
+const { wrap, errorHandler, installProcessHandlers, connectWithRetry } = require("@openmhz/shared");
 
 installProcessHandlers("admin");
 
@@ -26,33 +26,7 @@ const app = express()
 
 // -------------------------------------------
 
-mongoose.connection.on('connecting', () => console.log('Mongoose is connecting'));
-mongoose.connection.on('connected', () => console.log('Mongoose is connected'));
-mongoose.connection.on('disconnecting', () => console.log('Mongoose is disconnecting'));
-mongoose.connection.on('error', err => console.error("Mongoose Error! " + err));
-
-// Retry until Mongo is reachable. Listeners are registered once, above; they
-// used to be added again on every reconnect.
-let connecting = false;
-async function connect() {
-  if (connecting || mongoose.connection.readyState !== 0) return;
-  connecting = true;
-  try {
-    // Indexes are created by mongo/db.sh, not by Mongoose at startup (an index
-    // added to a model would otherwise start a build on 80M+ calls at deploy).
-    await mongoose.connect(secrets.db, { autoIndex: false });
-  } catch (err) {
-    console.error("Mongo connect failed, retrying in 5s: " + ((err && err.message) || err));
-    setTimeout(connect, 5000);
-  } finally {
-    connecting = false;
-  }
-}
-connect();
-mongoose.connection.on('disconnected', () => {
-  console.log('Mongoose disconnected');
-  setTimeout(connect, 1000);
-});
+connectWithRetry(mongoose, secrets.db, {}, { name: "admin" });
 // -------------------------------------------
 
 function isLoggedIn(req, res, next) {

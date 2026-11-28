@@ -17,7 +17,7 @@ const { ObjectId } = require('mongodb');
 const Group = require("./models/group");
 
 var multer = require('multer');
-const { wrap, errorHandler, installProcessHandlers } = require('./lib/safety');
+const { wrap, errorHandler, installProcessHandlers, connectWithRetry, mongoUrl } = require("@openmhz/shared");
 
 installProcessHandlers("backend");
 
@@ -51,46 +51,9 @@ configureExpress(app)
 
 // -------------------------------------------
 
-const mongo_host = typeof process.env['MONGO_HOST'] !== 'undefined' ? process.env['MONGO_HOST'] : 'mongo';
-const mongo_port = typeof process.env['MONGO_PORT'] !== 'undefined' ? process.env['MONGO_PORT'] : 27017;
-const mongo_user = process.env['MONGO_USER'];
-const mongo_password = process.env['MONGO_PASSWORD'];
 const firehose_key = process.env['FIREHOSE_KEY'] !== 'undefined' ? process.env['FIREHOSE_KEY'] : null;
 
-let mongoUrl;
-
-if ((typeof mongo_user !== 'undefined') && (typeof mongo_password !== 'undefined')) {
-  console.log("Using authentication for MongoDB - user: " + mongo_user);
-  mongoUrl = 'mongodb://' + mongo_user + ':' + mongo_password + '@' + mongo_host + ':' + mongo_port + '/scanner';
-} else {
-  mongoUrl = 'mongodb://' + mongo_host + ':' + mongo_port + '/scanner';
-}
-
-
-mongoose.connection.on('connecting', () => console.log('Mongoose is connecting'));
-mongoose.connection.on('connected', () => console.log('Mongoose is connected'));
-mongoose.connection.on('disconnecting', () => console.log('Mongoose is disconnecting'));
-mongoose.connection.on("error", (err) => console.error("Mongoose error: " + err));
-
-// Retry until Mongo is reachable. Before the process handlers were added a
-// failed first connect crashed the process and Docker retried; now we must.
-let connecting = false;
-const connect = async () => {
-  if (connecting || mongoose.connection.readyState !== 0) return;
-  connecting = true;
-  try {
-    // Indexes are created by mongo/db.sh, not by Mongoose at startup (an index
-    // added to a model would otherwise start a build on 80M+ calls at deploy).
-    await mongoose.connect(mongoUrl, { maxPoolSize: 50, autoIndex: false });
-  } catch (err) {
-    console.error("Mongoose connect failed, retrying in 5s: " + err);
-    setTimeout(connect, 5000);
-  } finally {
-    connecting = false;
-  }
-};
-connect();
-mongoose.connection.on("disconnected", () => setTimeout(connect, 1000));
+connectWithRetry(mongoose, mongoUrl(), { maxPoolSize: 50 }, { name: "backend" });
 
 
 var upload = multer({

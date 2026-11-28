@@ -17,6 +17,7 @@ COPY backend/package.json backend/
 COPY frontend/package.json frontend/
 COPY account/package.json account/
 COPY admin/package.json admin/
+COPY packages/shared/package.json packages/shared/
 # --include=dev: the build tools are devDependencies, and NODE_ENV may be
 # "production" here, which would otherwise skip them.
 RUN npm ci --workspace account --include=dev --no-audit --no-fund
@@ -31,9 +32,11 @@ COPY backend/package.json backend/
 COPY frontend/package.json frontend/
 COPY account/package.json account/
 COPY admin/package.json admin/
+COPY packages/shared/package.json packages/shared/
 RUN npm ci --workspace account --omit=dev --no-audit --no-fund
 # The test overlay (test-compose.yml) runs the app under nodemon.
 RUN npm install -g nodemon
+COPY packages/shared/ packages/shared/
 COPY account/server/ account/
 COPY --from=build /app/account/build account/public
 WORKDIR /app/account

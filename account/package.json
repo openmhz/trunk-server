@@ -35,6 +35,7 @@
     ]
   },
   "dependencies": {
+    "@openmhz/shared": "*",
     "bcrypt": "5.1.0",
     "body-parser": "^1.20.3",
     "connect-mongo": "5.0.0",

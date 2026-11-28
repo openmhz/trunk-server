@@ -19,8 +19,10 @@ COPY backend/package.json backend/
 COPY frontend/package.json frontend/
 COPY account/package.json account/
 COPY admin/package.json admin/
+COPY packages/shared/package.json packages/shared/
 RUN npm ci --workspace backend --omit=dev --no-audit --no-fund
 
+COPY packages/shared/ packages/shared/
 COPY backend/ backend/
 WORKDIR /app/backend
 # The test overlay (test-compose.yml) runs the app under nodemon.

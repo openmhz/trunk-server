@@ -20,7 +20,7 @@ process.env.MAILJET_KEY = process.env.MAILJET_KEY || "test";
 process.env.MAILJET_SECRET = process.env.MAILJET_SECRET || "test";
 
 const mongoose = require("mongoose");
-const { wrap, errorHandler, str } = require("../lib/safety");
+const { wrap, errorHandler, str } = require("@openmhz/shared");
 const { makeStartHandler } = require("../socket_start");
 const clients = require("../client_registry");
 

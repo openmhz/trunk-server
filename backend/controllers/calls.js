@@ -2,7 +2,7 @@
 const { ObjectId } = require('mongodb');
 const Call = require("../models/call");
 const Group = require("../models/group");
-const { str } = require("../lib/safety");
+const { str } = require("@openmhz/shared");
 var defaultNumResults = 50;
 
 var channels = {};
