@@ -40,9 +40,9 @@ const ListEventCalls = (props) => {
             
             { props.eventData.calls.map((call, index) => {
               if (call._id === props.activeCallId) {
-                return (<Ref innerRef={activeCallRef} key={index} ><EventCallItem activeCall={true}  call={call} key={index} onClick={props.playCall} showStar={false}/></Ref>)
+                return (<Ref innerRef={activeCallRef} key={call._id} ><EventCallItem activeCall={true}  call={call} key={call._id} onClick={props.playCall} showStar={false}/></Ref>)
               } else {
-                return <EventCallItem activeCall={false} call={call} key={index} onClick={props.playCall} showStar={false}/>
+                return <EventCallItem activeCall={false} call={call} key={call._id} onClick={props.playCall} showStar={false}/>
               }
             })
            
