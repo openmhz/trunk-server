@@ -162,14 +162,22 @@ If you are trying to make changes to any of react frontends, it is a huge pain t
 
 First, start up all of the containers as described above. You will still the backend APIs they provide.
 
-Now go into the respective sub directory for the component you are interested in and run:
+The apps are npm workspaces that share one `package-lock.json` at the repo root. Install once from the root (not from the app folders):
 ````
-source ../test.env
-yarn install #only need to do this the first time, it installs the Node packages locally
-yarn start
+npm install
+````
+Then start the app you are working on, for example the admin frontend:
+````
+source test.env
+npm start --workspace admin
 ````
 
 This should build the frontend and open a browser. In order to have all the cookies work correctly, you have to use the same domain name. Make sure you have setup the local domains as described above. Then goto the base domain, for me that is openmhz.test, at port 3000 `openmhz.test:3000`
+
+## Dependencies and tests
+- Add or upgrade a package for one app with `npm install <package> --workspace <app>` from the repo root. This updates that app's `package.json` and the root `package-lock.json`; commit both. The Docker images install with `npm ci`, so they get exactly what the lockfile lists.
+- Run every app's tests with `npm test` from the root (they need a MongoDB; see the comments at the top of each test file). GitHub Actions runs them on every pull request.
+- The Node images build with the repo root as their context (`docker build -f backend/Dockerfile .`). The root `.dockerignore` keeps `data/`, `node_modules` and env files out of them.
 
 ## Upgrading a "Frontend" server
 

@@ -50,6 +50,9 @@ services:
       - ${PWD}/data/mongo:/data/db
     networks:
       - node
+    # Reachable from the host only (for mongosh/backups), never from outside.
+    ports:
+      - "127.0.0.1:27017:27017"
     restart: always
     logging:
       driver: syslog
@@ -58,7 +61,9 @@ services:
 
   backend:
     build:
-      context: ./backend
+      # Repo root: the image installs from the root package-lock.json.
+      context: .
+      dockerfile: backend/Dockerfile
     image: "backend:${TAG}-${STAGE}"
     pid: "host"
     environment:
@@ -104,7 +109,9 @@ services:
 
   admin:
     build:
-      context: ./admin
+      # Repo root: the image installs from the root package-lock.json.
+      context: .
+      dockerfile: admin/Dockerfile
       args:
         - REACT_APP_BACKEND_SERVER
         - REACT_APP_ADMIN_SERVER
@@ -138,7 +145,9 @@ services:
 
   account:
     build:
-      context: ./account
+      # Repo root: the image installs from the root package-lock.json.
+      context: .
+      dockerfile: account/Dockerfile
       args:
         - REACT_APP_BACKEND_SERVER
         - REACT_APP_ADMIN_SERVER
@@ -176,7 +185,9 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      # Repo root: the image installs from the root package-lock.json.
+      context: .
+      dockerfile: frontend/Dockerfile
       args:
         - REACT_APP_BACKEND_SERVER
         - REACT_APP_FRONTEND_SERVER
