@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const System = require("../models/system");
-const SystemStat = require("../models/system_stat");
 const Talkgroup = require("../models/talkgroup");
 const Group = require("../models/group");
 const User = require("../models/user");
@@ -183,21 +182,9 @@ exports.listSystems = async function (req, res, next) {
     return rObj;
   });
 
-  const stats = await SystemStat.find({ shortName: { $in: shortNames } }).exec();
-  var sys_stats = {}
-  for (var i = 0; i < stats.length; i++) {
-    sys_stats[stats[i].shortName] = {
-      uploadErrors: stats[i].uploadErrors,
-      callTotals: stats[i].callTotals,
-      talkgroupStats: stats[i].talkgroupStats,
-      decodeErrorsFreq: stats[i].decodeErrorsFreq
-    };
-  }
-
   res.json({
     success: true,
-    systems: returnSys,
-    stats: sys_stats
+    systems: returnSys
   });
   return;
 };

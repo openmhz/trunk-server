@@ -11,16 +11,15 @@ exports.get_stats = function(req, res) {
 
     var callTotals = sysStats.callTotals(short_name);
     var talkgroupStats = sysStats.talkgroupStats(short_name);
-    var uploadErrors = sysStats.uploadErrors(short_name);
-    let decodeErrorsFreq = sysStats.decodeErrorsFreq(short_name);
 
-    if (callTotals && talkgroupStats) {
+    // callTotals is 0 for every system right after each 15-minute rollover, so
+    // only a missing talkgroupStats means the system has no stats. Treating 0 as
+    // missing made the public Activity view fail for a moment every 15 minutes.
+    if (talkgroupStats !== undefined) {
         res.contentType('json');
         res.send(JSON.stringify({
-            callTotals: callTotals,
-            talkgroupStats: talkgroupStats,
-            uploadErrors: uploadErrors,
-            decodeErrorsFreq: decodeErrorsFreq
+            callTotals: callTotals || 0,
+            talkgroupStats: talkgroupStats
         }));
     } else {
         console.log("ShortName didn't exist for stats: " + util.inspect(req.params));
@@ -31,6 +30,6 @@ exports.get_stats = function(req, res) {
 
 
 var statSched = schedule.scheduleJob('*/15 * * * *', function() {
-    sysStats.shiftStats();
+    sysStats.shiftStats().catch(err => console.error("Stats - shiftStats failed: " + (err && err.stack || err)));
 });
 
