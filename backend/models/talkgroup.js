@@ -1,4 +1,5 @@
-var mongoose = require('mongoose');
-const talkgroupSchema = require('./talkgroupSchema');
+const mongoose = require("mongoose");
+const { getModel } = require("@openmhz/shared");
+const talkgroupSchema = require("./talkgroupSchema");
 
-module.exports = mongoose.model('Talkgroup', talkgroupSchema);
+module.exports = getModel(mongoose, "Talkgroup", () => talkgroupSchema);

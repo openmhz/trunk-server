@@ -1,15 +1,6 @@
-var mongoose = require('mongoose');
+// Schema shared with the other servers: packages/shared/models.js. Exported as a
+// schema because uploads.js registers it on its own connection as well.
+const mongoose = require("mongoose");
+const { talkgroupSchema } = require("@openmhz/shared");
 
-const talkgroupSchema = mongoose.Schema({
-  shortName: String,
-  userId: String,
-  num: Number,
-  mode: String,
-  alpha: String,
-  description: String,
-  tag: String,
-  group: String,
-  priority: Number
-});
-
-module.exports = talkgroupSchema;
+module.exports = talkgroupSchema(mongoose);

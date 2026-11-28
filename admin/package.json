@@ -4,7 +4,6 @@
   "private": true,
   "dependencies": {
     "@openmhz/shared": "*",
-    "bcrypt": "5.1.0",
     "body-parser": "^1.20.3",
     "connect-mongo": "^4.6.0",
     "csv-parse": "5.3.6",

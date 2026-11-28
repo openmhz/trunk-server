@@ -1,6 +1,5 @@
-var mongoose = require('mongoose');
-const systemSchema = require('./systemSchema');
+const mongoose = require("mongoose");
+const { getModel } = require("@openmhz/shared");
+const systemSchema = require("./systemSchema");
 
-
-exports.systemSchema = systemSchema;
-module.exports = mongoose.model('System', systemSchema);
+module.exports = getModel(mongoose, "System", () => systemSchema);
