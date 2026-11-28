@@ -113,6 +113,19 @@ nginx looks up the app containers through Docker's DNS every couple of seconds (
 
 If you are having trouble with Docker Compose not building the images, try adding "--parallel 1". There may have been too many builds happening at once.
 
+### Server maintenance
+`sudo ./ops/setup-host.sh` shows what it would install on the Docker host; add `--apply` to install it. It sets up:
+- daily rotation of nginx's log files in `data/log/nginx`
+- a 500 MB cap on the systemd journal
+- a daily database backup (`mongo/backup.sh`, 10:15 UTC)
+- a weekly cleanup of untagged Docker images and old build cache (Sundays, 10:30 UTC)
+
+Re-running the script updates these files. Output from the cron jobs goes to `/var/log/openmhz-maintenance.log`.
+
+Traffic is lowest from 09:00 to 11:00 UTC, so do reboots and nginx recreates then. Every container has `restart: always` and comes back by itself after a reboot; afterwards, check `docker ps` and the sites.
+
+`./deploy.sh` keeps each service's previous image as `<image>-previous`. Images you tagged yourself for a rollback stay until you remove them with `docker rmi`.
+
 ### Service I Like
 - 💻 I use Digital Ocean and they have been pretty great. If you need hosting, give them a try and use my referal code: https://m.do.co/c/402fa446f7a6 
 You get $100 of credit to use in 60 days.
