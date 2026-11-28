@@ -20,7 +20,15 @@ jobs:
   push_to_registry:
     strategy:
       matrix:
-        service: [account, admin, backend, frontend, mongo, nginx-proxy]
+        # The Node apps build from the repo root (they install from the root
+        # package-lock.json); mongo and nginx-proxy build from their own folder.
+        include:
+          - { service: account, context: ., file: account/Dockerfile }
+          - { service: admin, context: ., file: admin/Dockerfile }
+          - { service: backend, context: ., file: backend/Dockerfile }
+          - { service: frontend, context: ., file: frontend/Dockerfile }
+          - { service: mongo, context: mongo, file: mongo/Dockerfile }
+          - { service: nginx-proxy, context: nginx-proxy, file: nginx-proxy/Dockerfile }
     name: Push Docker image to DockerHub
     runs-on: ubuntu-latest
     steps:
@@ -42,7 +50,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ matrix.service }}
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
           platforms: linux/arm64,linux/amd64
           push: true
           tags: ${{ vars.DOCKER_NAMESPACE }}/trunk-server-${{ matrix.service }}:latest

@@ -1,0 +1,39 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:8
+        ports:
+          - 27017:27017
+    env:
+      TEST_MONGO_HOST: 127.0.0.1
+      TEST_MONGO_PORT: "27017"
+      TEST_MONGO_URL: mongodb://127.0.0.1:27017/ci_test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Fails if package-lock.json is out of date with any package.json.
+      - name: Install
+        run: npm ci --no-audit --no-fund
+
+      - name: Test
+        run: npm test
+
+      - name: Check the database scripts parse
+        run: |
+          bash -n mongo/db.sh
+          bash -n mongo/backup.sh
+          node --check mongo/scripts/maintain.js

@@ -1,0 +1,25 @@
+# The Node apps build with the repo root as the context (they need the root
+# package-lock.json). Keep the context small and free of secrets.
+
+# Server data: Mongo files, backups, logs, stats. Tens of GB in production.
+data
+
+# Installed and built output; images install and build their own.
+**/node_modules
+**/build
+**/.eslintcache
+
+# Secrets and local config.
+*.env
+.env*
+**/.env*
+**/.aws
+
+# Not part of any Node image (mongo and nginx-proxy build from their own folders).
+.git
+.github
+.claude
+mongo
+nginx-proxy
+utils
+**/.DS_Store

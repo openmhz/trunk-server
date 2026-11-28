@@ -1,26 +1,28 @@
-# docker build -t smartnet-player .
-# do a `git pull` in smartnet-player to update
-
+# Built from the repo root:  docker build -f backend/Dockerfile .
+# Dependencies come from the root package-lock.json (npm workspaces).
 FROM node:22-bookworm
 
-# RUN echo deb https://www.deb-multimedia.org bullseye main non-free \
-# 	>>/etc/apt/sources.list && apt-get update -oAcquire::AllowInsecureRepositories=true &&\
-# 	apt-get install -y --force-yes deb-multimedia-keyring && \
-
 RUN apt-get update && \
-	apt-get install -y ffmpeg cron python3 build-essential g++
+	apt-get install -y ffmpeg python3 build-essential g++ && \
+	rm -rf /var/lib/apt/lists/*
 
+# ~/.aws is mounted here for S3 credentials; uploads are written here too.
 ENV HOME=/home/app
+RUN mkdir -p /home/app/upload
 
+WORKDIR /app
+# npm ci installs exactly what package-lock.json lists. Every workspace's
+# package.json is needed for npm to read the lockfile, but only the backend's
+# dependencies are installed.
+COPY package.json package-lock.json ./
+COPY backend/package.json backend/
+COPY frontend/package.json frontend/
+COPY account/package.json account/
+COPY admin/package.json admin/
+RUN npm ci --workspace backend --omit=dev --no-audit --no-fund
 
-RUN mkdir -p /home/app
-# npm ci installs exactly what package-lock.json lists, so rebuilds don't pick up newer versions.
-COPY package.json package-lock.json /tmp/
-RUN cd /tmp && npm --unsafe-perm install -g node-gyp && npm --unsafe-perm ci
-RUN mkdir -p /home/app/upload && cp -a /tmp/node_modules /home/app
-
-WORKDIR $HOME/
-COPY . $HOME/
+COPY backend/ backend/
+WORKDIR /app/backend
+# The test overlay (test-compose.yml) runs the app under nodemon.
 RUN npm install -g nodemon
-# Run the command on container startup
-CMD node index.js
+CMD ["node", "index.js"]
