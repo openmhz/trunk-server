@@ -72,4 +72,5 @@ jobs:
           COMPOSE_FILE=compose.yaml docker compose --env-file prod.env.example config --quiet
           COMPOSE_FILE=compose.yaml:compose.test.yaml docker compose --env-file test.env.example config --quiet
           COMPOSE_FILE=compose.yaml:compose.test.yaml:compose.dev.yaml docker compose --env-file test.env.example config --quiet
-          echo "production, test and development configs are valid"
+          COMPOSE_FILE=compose.yaml:compose.registry.yaml docker compose --env-file prod.env.example config --quiet
+          echo "production (build and registry), test and development configs are valid"
