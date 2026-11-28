@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import SystemCard from "./SystemCard";
 
 
-const SystemsByState = (states, onContactClick) => {
+const SystemsByState = ({ states, onContactClick }) => {
     const navigate = useNavigate();
     let systemsByState = [];
 
@@ -29,7 +29,7 @@ const SystemsByState = (states, onContactClick) => {
             ))
         }
     }
-    return systemsByState;
+    return <>{systemsByState}</>;
 }
 
 export default SystemsByState;

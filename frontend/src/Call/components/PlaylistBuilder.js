@@ -84,7 +84,7 @@ function PlaylistBuilder(props) {
       }
     }
 
-    return (<PlaylistItem call={call} tgAlpha={tgAlpha} index={index} removeItem={removeItem} />)
+    return (<PlaylistItem key={call._id} call={call} tgAlpha={tgAlpha} index={index} removeItem={removeItem} />)
   })
 
   const submitPlaylist = () => {

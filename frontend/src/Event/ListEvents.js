@@ -46,10 +46,10 @@ const ListEvents = (props) => {
         <Table basic="very">
           <Table.Body>
 
-            {isSuccess && events.map((event, index) =>
-              <Table.Row key={index}>
+            {isSuccess && events.map((event) =>
+              <Table.Row key={event._id}>
                 <Table.Cell><Link to={"/events/" + event._id}><Header as='h3'>{event.title}</Header></Link></Table.Cell>
-                <Table.Cell><List>{event.shortNames.map( shortName => <List.Item><Link to={"/system/"+shortName}>{shortName}</Link></List.Item>  )}</List></Table.Cell>
+                <Table.Cell><List>{event.shortNames.map( shortName => <List.Item key={shortName}><Link to={"/system/"+shortName}>{shortName}</Link></List.Item>  )}</List></Table.Cell>
                 <Table.Cell>{event.description}</Table.Cell>
                 <Table.Cell>{event.numCalls} Calls</Table.Cell>
                 <Table.Cell>{dateRange(new Date(event.startTime), new Date(event.endTime))}</Table.Cell>
