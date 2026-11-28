@@ -84,6 +84,7 @@ app.get("/admin/users/active", wrap(isAdmin), wrap(systems.listActiveUsers))
 app.get("/admin/users", wrap(isAdmin), wrap(systems.listUserSystems))
 app.delete("/systems/:shortName", wrap(isLoggedIn), wrap(systems.deleteSystem))
 app.post("/systems/:shortName", [wrap(isLoggedIn), wrap(systems.ownSystem), wrap(systems.validateSystem), wrap(systems.updateSystem)])
+app.post("/systems/:shortName/key", wrap(isLoggedIn), wrap(systems.regenerateKey))
 app.post("/systems", [wrap(isLoggedIn), wrap(systems.uniqueShortName), wrap(systems.validateSystem), wrap(systems.createSystem)])
 
 app.get("*", (req, res, next) => {

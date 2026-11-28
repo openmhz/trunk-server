@@ -9,6 +9,7 @@ import {  useCreateSystemMutation} from '../features/api/apiSlice'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom';
 import SystemForm from "./SystemForm";
+import { getErrorMessage, TRUNK_RECORDER_URL } from "../Components/helpers";
 
 // ----------------------------------------------------
 const CreateSystem = () => {
@@ -20,10 +21,10 @@ const CreateSystem = () => {
 
   const handleSubmit = async (system) => {
       try {
-        await createSystem(system).unwrap();
-        navigate("/list-systems")
+        const newSystem = await createSystem(system).unwrap();
+        navigate("/system/" + newSystem.shortName, { state: { justCreated: true } })
       } catch (error) {
-        const message = error.data.message;
+        const message = getErrorMessage(error);
         console.log(message);
         setRequestMessage(message);
       }
@@ -32,19 +33,18 @@ const CreateSystem = () => {
     return (
       <div>
         <Container text>
-            <Header as="h2">Join Us!</Header>
+            <Header as="h2">Add your radio system</Header>
             <p>
-              Record the your community's radio systems and share them! All it
+              Record your community's radio systems and share them! All it
               takes is a spare computer and a cheap SDR. The software you need,
               along with an explanation of how to set it up, is available{" "}
-              <a href="https://github.com/robotastic/trunk-recorder">here</a>.
-              </p>
-              <p>
-              After you have the Trunk Recorder software up and running, come
-              back here and sign-up for an account so you can share your
-              recordings
+              <a href={TRUNK_RECORDER_URL} target="_blank" rel="noopener noreferrer">here</a>.
             </p>
-            <p> - Luke</p>
+            <p>
+              Fill in the details below to create your system. On the next
+              page you will get the API key and the settings to paste into
+              Trunk Recorder so it can start sharing your recordings.
+            </p>
         <Divider />
         <p></p>
         </Container>

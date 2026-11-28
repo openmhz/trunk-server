@@ -156,7 +156,10 @@ exports.listSystems = async function (req, res, next) {
       key,
       showScreenName,
       allowContact,
-      ignoreUnknownTalkgroup
+      ignoreUnknownTalkgroup,
+      active,
+      lastActive,
+      callAvg
     }) => ({
       name,
       shortName,
@@ -171,7 +174,10 @@ exports.listSystems = async function (req, res, next) {
       key,
       showScreenName,
       allowContact,
-      ignoreUnknownTalkgroup
+      ignoreUnknownTalkgroup,
+      active,
+      lastActive,
+      callAvg
     }))(obj);
     if (obj.showScreenName) {
       rObj.screenName = req.user.screenName;
@@ -634,3 +640,24 @@ exports.createSystem = async function (req, res, next) {
   return;
 
 }
+
+// -------------------------------------------
+exports.regenerateKey = async function (req, res, next) {
+  const shortName = String(req.params.shortName || "").toLowerCase();
+  const system = await System.findOne({ shortName: shortName });
+  if (!system) {
+    res.status(404);
+    res.json({ success: false, message: "That System does not exist." });
+    return;
+  }
+  if (!system.userId || !system.userId.equals(req.user._id)) {
+    res.status(401);
+    res.json({ success: false, message: "You are not the user associated with this system." });
+    return;
+  }
+  const key = crypto.randomBytes(16).toString("hex");
+  system.key = key;
+  await system.save();
+  res.json({ success: true, key });
+  return;
+};

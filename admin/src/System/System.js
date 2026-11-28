@@ -1,15 +1,16 @@
 import React, { useLayoutEffect, useState } from "react";
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import ListTalkgroups from "../Talkgroups/ListTalkgroups.js";
 import MessageBox from "../Components/Message.js";
+import GetStarted from "./GetStarted.js";
+import SystemStatus from "./SystemStatus.js";
+import { getErrorMessage } from "../Components/helpers";
 import ListGroups from "../Group/ListGroups.js";
 import GroupModal from "../Group/GroupModal.js";
 import { useGetSystemsQuery, useGetTalkgroupsQuery, useGetGroupsQuery, useDeleteGroupMutation, useDeleteSystemMutation, useImportTalkgroupsMutation, useSaveGroupOrderMutation } from '../features/api/apiSlice'
 import {
   Button,
   Confirm,
-  Form,
-  TextArea,
   Message,
   Header,
   Container,
@@ -22,12 +23,15 @@ import {
 const System = () => {
   const { shortName } = useParams();
   const navigate = useNavigate();
+  const routeLocation = useLocation();
+  const justCreated = Boolean(routeLocation.state && routeLocation.state.justCreated);
+  const [activeTab, setActiveTab] = useState(justCreated ? 1 : 0);
   const { data: systemsData, isSuccess: isSystemsSuccess } = useGetSystemsQuery();
   const { data: talkgroupsData, isSuccess: isTalkgroupsSuccess } = useGetTalkgroupsQuery(shortName);
   const { data: groupsData } = useGetGroupsQuery(shortName);
   const [deleteGroupAPI] = useDeleteGroupMutation();
   const [reorderGroupsAPI] = useSaveGroupOrderMutation();
-  const [importTalkgroupsAPI, { error: importError }] = useImportTalkgroupsMutation();
+  const [importTalkgroupsAPI, { error: importError, data: importResult, isLoading: isImporting }] = useImportTalkgroupsMutation();
   const [deleteSystemAPI ] = useDeleteSystemMutation();
   const [openSystemDeleteConfirm, setOpenSystemDeleteConfirm] = useState(false);
   const [openMessage, setOpenMessage] = useState(false);
@@ -73,7 +77,11 @@ const System = () => {
     await reorderGroupsAPI({ shortName: shortName, order: { groupOrder: JSON.stringify(groupOrder) } });
   }
 
-  const handleUpload = async (file) => {
+  const handleUpload = async (event) => {
+    const file = event.target.files[0];
+    // reset so choosing the same file again fires onChange
+    event.target.value = "";
+    if (!file) return;
     const formData = new FormData();
     formData.append('file', file)
     await importTalkgroupsAPI({ shortName: shortName, file: formData });
@@ -87,9 +95,10 @@ const System = () => {
       await deleteSystemAPI(shortName).unwrap();
       navigate("/list-systems")
     } catch (error) {
-      const message = error.data.message;
+      const message = getErrorMessage(error);
       console.log(message);
       setRequestMessage(message);
+      setOpenMessage(true);
     }
 
   };
@@ -111,9 +120,7 @@ const System = () => {
       setGroupOrder(newOrder);
     }
   }, [groupsData])
-  let fileInput = null;
   var location = "";
-  var example = "";
   var groupRender = () => { };
 
   if (system) {
@@ -143,15 +150,6 @@ const System = () => {
       );
     }
 
-
-    example =
-      '{\n\t"systems": [\n\t\t{\n\t\t\t"shortName": "' +
-      system.shortName +
-      '",\n\t\t\t"apiKey": "' +
-      system.key +
-      '"\n\t\t}\n\t],\n\t"uploadServer": "' +
-      process.env.REACT_APP_BACKEND_SERVER +
-      '"\n}';
 
     switch (system.systemType) {
       case "state":
@@ -186,6 +184,10 @@ const System = () => {
                 {system.shortName}
               </Segment>
               <Segment>
+                <Header size="small">Status</Header>
+                <SystemStatus system={system} showLink />
+              </Segment>
+              <Segment>
                 <Header size="small">Description</Header>
                 {system.description}
               </Segment>
@@ -217,40 +219,8 @@ const System = () => {
       )
     },
     {
-      menuItem: "Config",
-      render: () => (
-        <div>
-          <Container text>
-            <Header as="h2">Configure Trunk Recorder</Header>
-            <p>
-              Below are the parameters you will need to configure Trunk
-              Recorder. The example below shows how they should be added to
-              the config.json file.
-            </p>
-
-            <Segment.Group>
-              <Segment>
-                <Header size="small">API Key</Header>
-                {system.key}
-              </Segment>
-              <Segment>
-                <Header size="small">Short Name</Header>
-                {system.shortName}
-              </Segment>
-              <Segment>
-                <Header size="small">Upload Server</Header>
-                {process.env.REACT_APP_BACKEND_SERVER}
-              </Segment>
-              <Segment>
-                <Header size="small">Example</Header>
-                <Form>
-                  <TextArea rows="10" readOnly="readOnly" value={example} />
-                </Form>
-              </Segment>
-            </Segment.Group>
-          </Container>
-        </div>
-      )
+      menuItem: justCreated ? "Get started" : "Config",
+      render: () => <GetStarted system={system} isNew={justCreated} />
     },
     {
       menuItem: "Talkgroups",
@@ -259,7 +229,7 @@ const System = () => {
           <Container text>
             <p>
               <em>
-                The Talkgroup file is a .CSV file that has infromation about the different talkgroups on the system. Headers are required for the columns, and should be the first
+                The Talkgroup file is a .CSV file that has information about the different talkgroups on the system. Headers are required for the columns, and should be the first
                 line of the file. The columns can be in any order, but the headers must match exactly.<br/>
                 <p>If you export the file from Excel, make sure to use "Comma Separated Values" and NOT "CSV UTF-8" for the File Format.</p>
                 An example header line is: <br />
@@ -279,7 +249,7 @@ const System = () => {
                 <List.Content>
                   <List.Header>Alpha Tag</List.Header>
                   <List.Description>
-                    Up to 12 charecter description of the talkgroup
+                    Up to 12 character description of the talkgroup
                   </List.Description>
                 </List.Content>
               </List.Item>
@@ -295,9 +265,9 @@ const System = () => {
           </Container>
           <Divider />
           <span>
-            <label htmlFor="upload-button" className="ui icon button">
+            <label htmlFor="upload-button" className={"ui icon button" + (isImporting ? " loading disabled" : "")}>
               <i className="upload icon" />
-              Import Talkgroups
+              {isImporting ? "Importing..." : "Import Talkgroups"}
             </label>
             <input
               type="file"
@@ -305,12 +275,8 @@ const System = () => {
               style={{
                 display: "none"
               }}
-              onChange={() => {
-                handleUpload(fileInput.files[0]);
-              }}
-              ref={input => {
-                fileInput = input;
-              }}
+              disabled={isImporting}
+              onChange={handleUpload}
             />
           </span>
           <a href={"/talkgroups/" + system.shortName + "/export"}>
@@ -319,11 +285,15 @@ const System = () => {
               Export Talkgroups
             </Button>
           </a>
-          {importError ? (
-            <div>
-              <Message color='red'>{importError.data}</Message>
-            </div>
-          ) : (<div></div>)}
+          {importError && (
+            <Message color='red'>{getErrorMessage(importError)}</Message>
+          )}
+          {importResult && !isImporting && (
+            <Message positive>
+              Imported {importResult.imported} talkgroup{importResult.imported === 1 ? "" : "s"}
+              {importResult.duplicates ? ` (${importResult.duplicates} duplicate${importResult.duplicates === 1 ? "" : "s"} skipped)` : ""}.
+            </Message>
+          )}
           
           <ListTalkgroups talkgroups={talkgroupsData} />
         </div>
@@ -373,7 +343,8 @@ const System = () => {
               pointing: true
             }}
             panes={panes}
-          //defaultActiveIndex={activeTab}
+            activeIndex={activeTab}
+            onTabChange={(e, data) => setActiveTab(data.activeIndex)}
           />
         </Container>
       }

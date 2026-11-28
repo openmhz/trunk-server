@@ -51,6 +51,7 @@ export const apiSlice = createApi({
       async onQueryStarted(group, { dispatch, queryFulfilled }) {
         try {
           const { data: updatedGroup } = await queryFulfilled
+          if (updatedGroup.success === false) return;
           dispatch(
             apiSlice.util.updateQueryData('getGroups', updatedGroup.shortName, (groups) => {
               const groupIndex = groups.findIndex((obj => obj.groupId === updatedGroup.groupId));
@@ -70,6 +71,7 @@ export const apiSlice = createApi({
       async onQueryStarted(group, { dispatch, queryFulfilled }) {
         try {
           const { data: newGroup } = await queryFulfilled;
+          if (newGroup.success === false) return;
           dispatch(
             apiSlice.util.updateQueryData('getGroups', newGroup.shortName, (groups) => {
               groups.push(newGroup);
@@ -114,19 +116,30 @@ export const apiSlice = createApi({
         credentials: "include",
         body: file,
       }),
-      
+      // Success body is the array of talkgroups; counts come from the response headers when
+      // the browser exposes them, otherwise fall back to the array length.
+      transformResponse: (talkgroups, meta) => {
+        const header = (name) => parseInt(meta?.response?.headers?.get(name), 10);
+        const imported = header("X-Talkgroups-Imported");
+        const duplicates = header("X-Talkgroups-Duplicates-Skipped");
+        return {
+          talkgroups,
+          imported: Number.isNaN(imported) ? talkgroups.length : imported,
+          duplicates: Number.isNaN(duplicates) ? null : duplicates,
+        };
+      },
+
       async onQueryStarted({shortName,file}, { dispatch, queryFulfilled }) {
         try {
-          const { data: newTalkgroups } = await queryFulfilled;
+          const { data } = await queryFulfilled;
           dispatch(
             apiSlice.util.updateQueryData('getTalkgroups', shortName, (talkgroups) => {
               talkgroups.length = 0; // Clear your array
-              talkgroups.push(...newTalkgroups);
+              talkgroups.push(...data.talkgroups);
             })
           )
         } catch { }
       },
-      //invalidatesTags: (result, error, group) => ['Group'],
     }),
     getSystems: builder.query({
       // The URL for the request is '/fakeApi/posts'
@@ -179,6 +192,24 @@ export const apiSlice = createApi({
         } catch {}
       },
     }),
+    regenerateKey: builder.mutation({
+      query: (shortName) => ({
+        url: `/systems/${shortName}/key`,
+        method: 'POST',
+        credentials: "include",
+      }),
+      async onQueryStarted(shortName, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled
+          dispatch(
+            apiSlice.util.updateQueryData('getSystems', undefined, (systemsData) => {
+              const system = systemsData.systems.find(obj => obj.shortName === shortName);
+              if (system) system.key = data.key;
+            })
+          )
+        } catch {}
+      },
+    }),
     deleteSystem: builder.mutation({
       query: (shortName) => ({
         url: `/systems/${shortName}`,
@@ -202,4 +233,4 @@ export const apiSlice = createApi({
 })
 
 // Export the auto-generated hook for the `getPosts` query endpoint
-export const { useGetGroupsQuery, useGetSystemsQuery, useGetAllSystemsQuery, useGetActiveUsersQuery, useGetTalkgroupsQuery, useDeleteGroupMutation, useCreateGroupMutation, useCreateSystemMutation, useUpdateSystemMutation, useDeleteSystemMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation } = apiSlice
+export const { useGetGroupsQuery, useGetSystemsQuery, useGetAllSystemsQuery, useGetActiveUsersQuery, useGetTalkgroupsQuery, useDeleteGroupMutation, useCreateGroupMutation, useCreateSystemMutation, useUpdateSystemMutation, useDeleteSystemMutation, useSaveGroupOrderMutation, useUpdateGroupMutation, useImportTalkgroupsMutation, useRegenerateKeyMutation } = apiSlice

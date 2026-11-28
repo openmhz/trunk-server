@@ -1,4 +1,5 @@
 import React, {  useState } from "react";
+import { getErrorMessage } from "../Components/helpers";
 import SystemForm from "./SystemForm";
 import {
   Container,
@@ -28,7 +29,7 @@ const UpdateSystem = (props) => {
       await updateSystem(system).unwrap();
       navigate("/system/" + shortName)
     } catch (error) {
-      const message = error.data.message;
+      const message = getErrorMessage(error);
       console.log(message);
       setRequestMessage(message);
     }

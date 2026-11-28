@@ -4,6 +4,7 @@ import {
   Icon,
   Header
 } from "semantic-ui-react";
+import SystemStatus from "./SystemStatus";
 
 
 
@@ -50,6 +51,7 @@ const SystemCard = (props) => {
       <Card.Content extra>
         <Icon name='marker' />
         {location}
+        <div style={{ marginTop: "0.5em" }}><SystemStatus system={system} /></div>
       </Card.Content>
     </Card>
   );

@@ -10,8 +10,10 @@ import {
   Input,
   Button,
   Icon,
+  Message,
   Table
 } from "semantic-ui-react";
+import { getErrorMessage } from "../Components/helpers";
 
 
 // ----------------------------------------------------
@@ -25,6 +27,7 @@ const GroupModal = (props) => {
   const [groupName, setGroupName] = useState("");
   const [group, setGroup] = useState(emptyGroup);
   const [talkgroupList, setTalkgroupList] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const { data: talkgroupsData} = useGetTalkgroupsQuery(props.shortName);
   const { data: groupsData} = useGetGroupsQuery(props.shortName);
@@ -110,6 +113,7 @@ const GroupModal = (props) => {
     setGroupName("");
     setGroup(emptyGroup);
     setTalkgroupList([...talkgroupsData]);
+    setErrorMessage("");
     props.onClose();
   }
 
@@ -124,11 +128,7 @@ const GroupModal = (props) => {
         talkgroups: JSON.stringify(talkgroupNums)
       };
 
-      setGroupName("");
-      setGroup(emptyGroup);
-      setTalkgroupList([...talkgroupsData]);
-      await updateGroup(data);
-      props.onClose(true);
+      await submitGroup(updateGroup, data, true);
     } else {
       const data = {
         shortName: props.shortName,
@@ -136,13 +136,30 @@ const GroupModal = (props) => {
         talkgroups: JSON.stringify(talkgroupNums)
       };
 
-      setGroupName("");
-      setGroup(emptyGroup);
-      setTalkgroupList([...talkgroupsData]);
+      await submitGroup(createGroup, data, false);
+    }
+  }
 
-      await createGroup(data);
+  // Keep the modal open and show the message if the server rejects the group.
+  const submitGroup = async (mutation, data, isUpdate) => {
+    setErrorMessage("");
+    try {
+      const result = await mutation(data).unwrap();
+      if (result && result.success === false) {
+        setErrorMessage(result.message || "The group could not be saved.");
+        return;
+      }
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+      return;
+    }
+    setGroupName("");
+    setGroup(emptyGroup);
+    setTalkgroupList([...talkgroupsData]);
+    if (isUpdate) {
+      props.onClose(true);
+    } else {
       props.onClose();
-
     }
   }
 
@@ -158,6 +175,7 @@ const GroupModal = (props) => {
           {props.editGroupId ? "Edit Group" : "Create Group"}
         </Modal.Header>
         <Modal.Content scrolling>
+          {errorMessage && <Message negative content={errorMessage} />}
           <Modal.Description>
             <Grid container columns={2}>
               <Grid.Column>

@@ -133,6 +133,7 @@ const DesktopContainer = (props) => {
               <Link to="/systems"><Menu.Item link >Listen</Menu.Item></Link>
               <Link to="/events"><Menu.Item link >Events</Menu.Item></Link>
               <Link to="/about"><Menu.Item link >About</Menu.Item></Link>
+              <Menu.Item as="a" link href={`${process.env.REACT_APP_ACCOUNT_SERVER}/register`}>Contribute</Menu.Item>
             </Container>
           </Menu>
           <HomepageHeading />
@@ -171,6 +172,7 @@ const MobileContainer = (props) => {
           </Menu.Item>
           <Menu.Item ><Link to="/systems">Systems</Link></Menu.Item>
           <Menu.Item ><Link to="/about">About</Link></Menu.Item>
+          <Menu.Item ><a href={`${process.env.REACT_APP_ACCOUNT_SERVER}/register`}>Contribute</a></Menu.Item>
         </Sidebar>
 
         <Sidebar.Pusher
@@ -650,9 +652,18 @@ const Main = (props) => {
                 Join us! Record a local radio system and share it with the world. If you have a spare computer, it is easy to get started. With a $25 SDR or two, you can capture an entire system.
                 It does take a little bit of work to get things setup, but we are here to help and answer questions.
               </p>
+              <p style={{ fontSize: '1.33em' }}>
+                <strong>Step 1:</strong> get Trunk Recorder running on your computer.{' '}
+                <strong>Step 2:</strong> create a free account and add your system to start sharing.
+              </p>
               <a href="https://github.com/TrunkRecorder/trunk-recorder/blob/master/README.md">
                 <Button size='large'>
-                  Learn More
+                  What you need first
+                </Button>
+              </a>
+              <a href={`${process.env.REACT_APP_ACCOUNT_SERVER}/register`}>
+                <Button size='large' primary>
+                  Add your radio system
                 </Button>
               </a>
             </Container>
