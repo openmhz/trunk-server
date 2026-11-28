@@ -1,0 +1,38 @@
+# Production from CI-built images instead of building on the server.
+#
+#   COMPOSE_FILE=compose.yaml:compose.registry.yaml   (in prod.env / .env)
+#
+# GitHub Actions builds every image on each merge to master and pushes it as
+# <namespace>/trunk-server-<service>:<commit sha> (see
+# .github/workflows/docker-build.yaml). ./deploy.sh pulls the images for the
+# checked-out commit, tags them :deployed and restarts onto them, keeping the
+# ones it replaced as :previous for --rollback. Plain `docker compose up -d`
+# uses :deployed, i.e. whatever was last deployed.
+#
+# Builds are disabled here so nothing on the server can build an image under
+# a registry name by accident.
+
+services:
+  nginx:
+    build: !reset null
+    image: ${IMAGE_NAMESPACE:-robotastic}/trunk-server-nginx-proxy:${IMAGE_TAG:-deployed}
+
+  mongo:
+    build: !reset null
+    image: ${IMAGE_NAMESPACE:-robotastic}/trunk-server-mongo:${IMAGE_TAG:-deployed}
+
+  backend:
+    build: !reset null
+    image: ${IMAGE_NAMESPACE:-robotastic}/trunk-server-backend:${IMAGE_TAG:-deployed}
+
+  admin:
+    build: !reset null
+    image: ${IMAGE_NAMESPACE:-robotastic}/trunk-server-admin:${IMAGE_TAG:-deployed}
+
+  account:
+    build: !reset null
+    image: ${IMAGE_NAMESPACE:-robotastic}/trunk-server-account:${IMAGE_TAG:-deployed}
+
+  frontend:
+    build: !reset null
+    image: ${IMAGE_NAMESPACE:-robotastic}/trunk-server-frontend:${IMAGE_TAG:-deployed}

@@ -4,21 +4,11 @@ on:
   push:
     branches: [ "master" ]
 
-env:
-  # Setting an environment variable with the value of a configuration variable
-  REACT_APP_GOOGLE_ANALYTICS: ${{ vars.REACT_APP_GOOGLE_ANALYTICS}}
-  REACT_APP_BACKEND_SERVER: ${{ vars.REACT_APP_BACKEND_SERVER}}
-  REACT_APP_FRONTEND_SERVER: ${{ vars.REACT_APP_FRONTEND_SERVER}}
-  REACT_APP_ADMIN_SERVER: ${{ vars.REACT_APP_ADMIN_SERVER}}
-  REACT_APP_ACCOUNT_SERVER: ${{ vars.REACT_APP_ACCOUNT_SERVER}}
-  REACT_APP_COOKIE_DOMAIN: ${{ vars.REACT_APP_COOKIE_DOMAIN}}
-  REACT_APP_ADMIN_EMAIL: ${{ vars.REACT_APP_ADMIN_EMAIL}}
-  REACT_APP_SITE_NAME: ${{ vars.REACT_APP_SITE_NAME}}
-  STAGE: ${{ vars.STAGE}}
-
 jobs:
   push_to_registry:
     strategy:
+      # One image failing shouldn't cancel the others mid-push.
+      fail-fast: false
       matrix:
         # The Node apps build from the repo root (they install from the root
         # package-lock.json); mongo and nginx-proxy build from their own folder.
@@ -54,5 +44,26 @@ jobs:
           file: ${{ matrix.file }}
           platforms: linux/arm64,linux/amd64
           push: true
-          tags: ${{ vars.DOCKER_NAMESPACE }}/trunk-server-${{ matrix.service }}:latest
-          build-args: STAGE=${{vars.STAGE}}
+          # The commit SHA is what ./deploy.sh pulls in registry mode
+          # (compose.registry.yaml); latest is for anyone running the images by hand.
+          tags: |
+            ${{ vars.DOCKER_NAMESPACE }}/trunk-server-${{ matrix.service }}:${{ github.sha }}
+            ${{ vars.DOCKER_NAMESPACE }}/trunk-server-${{ matrix.service }}:latest
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          # The React apps compile these into their bundles, so the images must be
+          # built with production's values (the repo's Actions variables).
+          build-args: |
+            STAGE=${{ vars.STAGE }}
+            NODE_ENV=production
+            REACT_APP_BACKEND_SERVER=${{ vars.REACT_APP_BACKEND_SERVER }}
+            REACT_APP_FRONTEND_SERVER=${{ vars.REACT_APP_FRONTEND_SERVER }}
+            REACT_APP_ADMIN_SERVER=${{ vars.REACT_APP_ADMIN_SERVER }}
+            REACT_APP_ACCOUNT_SERVER=${{ vars.REACT_APP_ACCOUNT_SERVER }}
+            REACT_APP_SITE_NAME=${{ vars.REACT_APP_SITE_NAME }}
+            REACT_APP_ADMIN_EMAIL=${{ vars.REACT_APP_ADMIN_EMAIL }}
+            REACT_APP_GOOGLE_ANALYTICS=${{ vars.REACT_APP_GOOGLE_ANALYTICS }}
+            REACT_APP_ARCHIVE_DAYS=${{ vars.REACT_APP_ARCHIVE_DAYS || '30' }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}

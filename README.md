@@ -114,6 +114,18 @@ It keeps the running images as `<image>-previous`, builds the new ones while the
 
 nginx looks up the app containers through Docker's DNS every couple of seconds (`nginx-proxy/upstreams.conf`), so recreated containers that come back on new IP addresses are picked up without a reload.
 
+#### Deploying images built by GitHub Actions
+Every merge to `master` builds all of the images in GitHub Actions (the *Container Processing* workflow), with production's settings from the repository's Actions variables. Each image is pushed to Docker Hub as `robotastic/trunk-server-<service>:<commit SHA>`. To have the server pull those images instead of building its own, set this in `prod.env`:
+```bash
+COMPOSE_FILE=compose.yaml:compose.registry.yaml
+```
+Then `git pull && ./deploy.sh` pulls the images for the checked-out commit, keeps the running ones as `:previous`, and switches to the new ones (`:deployed`). It needs the workflow for that commit to have finished. If the images aren't ready yet, it stops before changing anything.
+- `./deploy.sh --rollback backend` goes back to `:previous`, as before.
+- `./deploy.sh --tag <sha> backend` deploys any commit CI has built. That's useful for going back further.
+- `data/deploys.log` records what was deployed and when.
+
+The React apps compile their URLs into their bundles, so the repository's Actions variables (`REACT_APP_*`, `STAGE`) must match `prod.env`.
+
 `./docker-prod.sh` and `./docker-test.sh` still work as shorthands for `docker compose` with `prod.env` or `test.env`.
 
 If you are having trouble with Docker Compose not building the images, try adding "--parallel 1". There may have been too many builds happening at once.
