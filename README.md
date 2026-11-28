@@ -211,20 +211,30 @@ db.users.updateOne(
 
 
 ### Maintaining the database
-`mongo/db.sh` runs the maintenance scripts in `mongo/scripts/maintain.js` inside the running mongo container. Run it from the Docker host. Commands that change data are dry runs until you add `--apply`, and every command is safe to repeat.
+`mongo/db.sh` runs the maintenance scripts in `mongo/scripts/maintain.js` inside the running mongo container. Run it from the Docker host. Commands that change data are dry runs until you add `--apply`, every command is safe to repeat, and none of them deletes a system that is receiving calls.
 
 ```bash
 ./mongo/db.sh report                        # read-only: sizes, missing indexes, duplicates, orphans
-./mongo/db.sh indexes --apply               # create the indexes the app needs
+./mongo/db.sh prune-inactive --apply        # delete systems with no calls for 6+ months
+./mongo/db.sh dedupe-systems --apply        # one document per shortName: keep the copy uploads use
 ./mongo/db.sh dedupe --apply                # remove duplicate talkgroups and talkgroups/groups of deleted systems
-./mongo/db.sh remove-system <id> --apply    # delete one copy of a system whose shortName is duplicated
-./mongo/db.sh prune-inactive --apply        # delete systems inactive for 6+ months
+./mongo/db.sh dedupe-users --apply          # remove duplicate accounts and make screen names unique
+./mongo/db.sh indexes --apply               # create the indexes the app needs
+./mongo/db.sh remove-system <id> --apply    # delete one copy of a duplicated shortName by hand
 ./mongo/db.sh clean-calls --apply           # delete calls older than one month (the backend also does this nightly)
 ./mongo/db.sh drop-leftovers --apply        # drop collections nothing uses any more
 ./mongo/db.sh shell                         # mongosh on the scanner database
 ```
 
-A new, empty database gets all of the indexes automatically the first time the mongo container starts. On an existing database, run `report` and then `indexes --apply`. The unique indexes are skipped until the duplicates the report lists are resolved.
+For a full cleanup, take a backup and then run `prune-inactive`, `dedupe-systems`, `dedupe`, `dedupe-users` and `indexes` in that order. Each step's result feeds the next, and the unique indexes are only built once the duplicates are gone.
+
+`dedupe-users` follows these rules:
+- **Accounts that share an email address (ignoring case):** the account that owns an active system is kept. The others are removed if they have no active system and aren't admins, along with any inactive systems they own. Accounts that each own an active system, and admin accounts, are left for a manual merge, and the report lists them.
+- **Accounts that share a screen name:** the account with an active system keeps the name, and the others get a counter appended (`bob2`, `bob3`, …), skipping names already in use.
+
+An active system is one with calls in the last six months, the same rule `prune-inactive` uses.
+
+Indexes are defined only in `maintain.js`. The apps connect with Mongoose's `autoIndex` turned off, so a deploy never starts an index build. A new, empty database gets all of the indexes the first time the mongo container starts. On an existing database, run `report` and then `indexes --apply`.
 
 ### Backups
 `./mongo/backup.sh` writes a gzipped `mongodump` archive of everything except calls to `data/backups/` and keeps the newest 14. `./mongo/backup.sh --full` includes calls. Set `BACKUP_S3_URI` to also copy each dump to a **private** bucket; the dump contains email addresses and password hashes. See the comments at the top of the script for the cron line and how to restore.

@@ -38,7 +38,9 @@ async function connect() {
   if (connecting || mongoose.connection.readyState !== 0) return;
   connecting = true;
   try {
-    await mongoose.connect(secrets.db);
+    // Indexes are created by mongo/db.sh, not by Mongoose at startup (an index
+    // added to a model would otherwise start a build on 80M+ calls at deploy).
+    await mongoose.connect(secrets.db, { autoIndex: false });
   } catch (err) {
     console.error("Mongo connect failed, retrying in 5s: " + ((err && err.message) || err));
     setTimeout(connect, 5000);
