@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { setGroupFilter, setTalkgroupFilter, setAllFilter, setStarredFilter } from "../../features/callPlayer/callPlayerSlice";
 import { useGetGroupsQuery, useGetTalkgroupsQuery } from '../../features/api/apiSlice'
 import { useSelector, useDispatch } from 'react-redux'
@@ -21,7 +21,11 @@ function FilterModal(props) {
   const { data:talkgroupsData, isSuccess:isTalkgroupsSuccess } = useGetTalkgroupsQuery(props.shortName);
   const [selectedTalkgroup, setSelectedTalkgroup] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(false);
-  const [filterStarred, setFilterStarred] = useState(false);
+  // start from the store so a starred filter that came from the URL isn't cleared by "Done"
+  const [filterStarred, setFilterStarred] = useState(globalFilterStarred);
+  useEffect(() => {
+    setFilterStarred(globalFilterStarred);
+  }, [globalFilterStarred, props.open]);
   const [activeTab, setActiveTab] = useState(0);
   const dispatch = useDispatch()
 

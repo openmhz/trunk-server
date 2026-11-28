@@ -1,7 +1,6 @@
 import {
     createSlice,
     createEntityAdapter,
-    createSelector,
     createAsyncThunk
   } from '@reduxjs/toolkit'
   
@@ -61,9 +60,38 @@ export const callsAdapter = createEntityAdapter({
   sortComparer: (a, b) => b.time.localeCompare(a.time),
 })
 
+// Maximum number of calls kept in memory while listening live.
+export const MAX_LIVE_CALLS = 500;
+
+const STARRED_KEY = "openmhz-starred-calls";
+
+const loadStarred = () => {
+  try {
+    const raw = window.localStorage.getItem(STARRED_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+const saveStarred = (starred) => {
+  try {
+    const ids = Object.keys(starred).slice(-2000); // keep the stored list bounded
+    const trimmed = {};
+    ids.forEach((id) => { trimmed[id] = true; });
+    window.localStorage.setItem(STARRED_KEY, JSON.stringify(trimmed));
+  } catch (e) {
+    // storage unavailable (private mode etc.) - the in-memory state still works
+  }
+}
+
 const initialState = {
     loading: false,
+    error: null,        // { message, source } of the last failed fetch, cleared on the next success
+    currentRequestId: null,
     data: callsAdapter.getInitialState(),
+    starredByMe: loadStarred(), // call _id -> true
     oldestCallTime: now,
     newestCallTime: now
   }
@@ -127,153 +155,167 @@ const initialState = {
       return url;
   }
 
-export const addStar = createAsyncThunk(
-  'calls/addStar',
-  async(callId,{getState, requestIdleCallback}) => {
-    const url = process.env.REACT_APP_BACKEND_SERVER + "/add_star/" + callId
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: "{}"
-    
-  }).then(
-    (data) => data.json()
-  )
-  return res;
-  }
-)
 
-export const removeStar = createAsyncThunk(
-  'calls/removeStar',
-  async(callId,{getState, requestIdleCallback}) => {
-    const url = process.env.REACT_APP_BACKEND_SERVER + "/remove_star/" + callId
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: "{}"
-    
-  }).then(
-    (data) => data.json()
-  )
-  return res;
+// Fetch JSON and make sure it is a usable response. A 500 returns JSON without
+// `calls`, so a bare res.json() would blow up later inside a reducer.
+const fetchCallList = async (url) => {
+  let res;
+  try {
+    res = await fetch(url);
+  } catch (e) {
+    throw new Error("Network error while loading calls");
   }
-)
+  if (!res.ok) {
+    throw new Error("Server error " + res.status + " while loading calls");
+  }
+  let body;
+  try {
+    body = await res.json();
+  } catch (e) {
+    throw new Error("Invalid response while loading calls");
+  }
+  if (!body || !Array.isArray(body.calls)) {
+    throw new Error("Unexpected response while loading calls");
+  }
+  return body;
+}
+
+const postStar = async (path, callId) => {
+  const url = process.env.REACT_APP_BACKEND_SERVER + path + callId;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: "{}"
+  });
+  if (!res.ok) throw new Error("Server error " + res.status + " while starring");
+  const body = await res.json();
+  if (!body || !body.call || !body.call._id) throw new Error("Unexpected response while starring");
+  return body;
+}
+
+export const addStar = createAsyncThunk('calls/addStar', (callId) => postStar("/add_star/", callId))
+export const removeStar = createAsyncThunk('calls/removeStar', (callId) => postStar("/remove_star/", callId))
 
 export const getCalls = createAsyncThunk(
   'calls/getCalls',
-  async({},{getState, requestId}) => {
-    const state = getState()
-    const {loading,oldestCallTime, newestCallTime} = getState().calls;
-    const url = buildCallUrl(getState);
-    const res = await fetch(url).then(
-      (data) => data.json()
-    )
-    return res;
-  })
+  async (arg, { getState }) => fetchCallList(buildCallUrl(getState)))
 
-  export const getOlderCalls = createAsyncThunk(
-    'calls/getOlderCalls',
-    async({},{getState, requestId} ) => {
-      const {loading,oldestCallTime, newestCallTime} = getState().calls;
-      const url = buildCallUrl(getState,"older",oldestCallTime);
-      const res = await fetch(url).then(
-        (data) => data.json()
-      )
-      return res;
-    })
+export const getOlderCalls = createAsyncThunk(
+  'calls/getOlderCalls',
+  async (arg, { getState }) => fetchCallList(buildCallUrl(getState, "older", getState().calls.oldestCallTime)))
 
-    export const getNewerCalls = createAsyncThunk(
-      'calls/getNewerCalls',
-      async({},{getState, requestId} ) => {
-        const {loading,oldestCallTime, newestCallTime} = getState().calls;
-        const url = buildCallUrl(getState,"newer",newestCallTime);
-        const res = await fetch(url).then(
-          (data) => data.json()
-        )
-        return res;
-      })
+export const getNewerCalls = createAsyncThunk(
+  'calls/getNewerCalls',
+  async (arg, { getState }) => fetchCallList(buildCallUrl(getState, "newer", getState().calls.newestCallTime)))
+
+const withPlayed = (calls) => calls.map((call) => ({ ...call, played: false }));
+
+const updateTimes = (state) => {
+  const ids = state.data.ids;
+  if (ids.length > 0) {
+    state.newestCallTime = new Date(state.data.entities[ids[0]].time).getTime();
+    state.oldestCallTime = new Date(state.data.entities[ids[ids.length - 1]].time).getTime();
+  }
+}
+
+const fail = (source) => (state, action) => {
+  state.loading = false;
+  state.error = { message: (action.error && action.error.message) || "Couldn't load calls", source };
+}
+
+// Drops the oldest calls beyond `max`, never touching ids listed in `keepIds`.
+export const trimCalls = (state, max, keepIds) => {
+  const ids = state.data.ids;
+  let excess = ids.length - max;
+  if (excess <= 0) return;
+  const keep = new Set(keepIds.filter(Boolean));
+  const remove = [];
+  for (let i = ids.length - 1; i >= 0 && excess > 0; i--) {
+    if (keep.has(ids[i])) continue;
+    remove.push(ids[i]);
+    excess--;
+  }
+  state.data = callsAdapter.removeMany(state.data, remove);
+}
 
 export const callsSlice = createSlice({
   name: 'calls',
   initialState,
   reducers: {
-    addCall: (state, action) => {
-      const call = {...action.payload, played: false}
-      state.data = callsAdapter.addOne(state.data, call)
+    // Live call from the socket. prepare() lets callers name calls that must survive trimming
+    // (the playing / selected call).
+    addCall: {
+      reducer: (state, action) => {
+        const { call, keepIds, max } = action.payload;
+        state.data = callsAdapter.addOne(state.data, { ...call, played: false });
+        trimCalls(state, max, [call._id, ...keepIds]);
+        if (state.data.ids.length > 0) {
+          state.oldestCallTime = new Date(state.data.entities[state.data.ids[state.data.ids.length - 1]].time).getTime();
+        }
+      },
+      prepare: (call, keepIds = [], max = MAX_LIVE_CALLS) => ({ payload: { call, keepIds, max } })
     },
     playedCall: (state,action) => {
       state.data = callsAdapter.updateOne(state.data,{id: action.payload, changes: {played: true}});
+    },
+    failedCall: (state, action) => {
+      state.data = callsAdapter.updateOne(state.data, { id: action.payload, changes: { failed: true } });
+    },
+    clearCallsError: (state) => {
+      state.error = null;
     }
   },
   extraReducers: {
-    [getCalls.pending]: (state) => {
+    [getCalls.pending]: (state, action) => {
       state.loading = true;
+      state.currentRequestId = action.meta.requestId;
     },
-    [getCalls.rejected]: (state) => {
-      state.loading = false;
+    [getCalls.rejected]: (state, action) => {
+      if (action.meta.requestId !== state.currentRequestId) return; // superseded
+      fail('getCalls')(state, action);
     },
-    [getCalls.fulfilled]: (state, {payload}) => {
+    [getCalls.fulfilled]: (state, {payload, meta}) => {
+      if (meta.requestId !== state.currentRequestId) return; // a newer request owns the list
       state.loading = false;
-      const calls = payload.calls.map( (call) => ({...call, played: false}));
-      state.data = callsAdapter.setAll(state.data, calls)
-      if (state.data && (state.data.ids.length > 0)) {
-        const first = state.data.ids[0]
-        const firstTime = state.data.entities[first].time;
-        const last = state.data.ids[state.data.ids.length-1];
-        const lastTime = state.data.entities[last].time;
-        state.newestCallTime = new Date(firstTime).getTime();
-        state.oldestCallTime = new Date(lastTime).getTime();
-      }
+      state.error = null;
+      state.data = callsAdapter.setAll(state.data, withPlayed(payload.calls))
+      updateTimes(state);
     },
     [getOlderCalls.pending]: (state) => {
       state.loading = true;
     },
-    [getOlderCalls.rejected]: (state) => {
-      state.loading = false;
-    }, 
+    [getOlderCalls.rejected]: fail('getOlderCalls'),
     [getOlderCalls.fulfilled]: (state, {payload}) => {
       state.loading = false;
-      const calls = payload.calls.map( (call) => ({...call, played: false}));
-      state.data = callsAdapter.addMany(state.data, calls)
-      if (state.data && (state.data.ids.length > 0)) {
-        const first = state.data.ids[0]
-        const firstTime = state.data.entities[first].time;
-        const last = state.data.ids[state.data.ids.length-1];
-        const lastTime = state.data.entities[last].time;
-        state.newestCallTime = new Date(firstTime).getTime();
-        state.oldestCallTime = new Date(lastTime).getTime();
-      }
+      state.error = null;
+      state.data = callsAdapter.addMany(state.data, withPlayed(payload.calls))
+      updateTimes(state);
     },
     [getNewerCalls.pending]: (state) => {
       state.loading = true;
     },
-    [getNewerCalls.rejected]: (state) => {
-      state.loading = false;
-    }, 
+    [getNewerCalls.rejected]: fail('getNewerCalls'),
     [getNewerCalls.fulfilled]: (state, {payload}) => {
       state.loading = false;
-      const calls = payload.calls.map( (call) => ({...call, played: false}));
-      state.data = callsAdapter.addMany(state.data, calls)
-      if (state.data && (state.data.ids.length > 0)) {
-        const first = state.data.ids[0]
-        const firstTime = state.data.entities[first].time;
-        const last = state.data.ids[state.data.ids.length-1];
-        const lastTime = state.data.entities[last].time;
-        state.newestCallTime = new Date(firstTime).getTime();
-        state.oldestCallTime = new Date(lastTime).getTime();
-      }
+      state.error = null;
+      state.data = callsAdapter.addMany(state.data, withPlayed(payload.calls))
+      updateTimes(state);
     },
     [addStar.fulfilled]: (state, {payload}) => {
-      state.data.entities[payload.call._id] = payload.call;
+      const call = payload.call;
+      state.starredByMe[call._id] = true;
+      saveStarred(state.starredByMe);
+      const existing = state.data.entities[call._id];
+      if (existing) existing.star = call.star; // keep client fields such as `played`
     },
     [removeStar.fulfilled]: (state, {payload}) => {
-      state.data.entities[payload.call._id] = payload.call;
+      const call = payload.call;
+      delete state.starredByMe[call._id];
+      saveStarred(state.starredByMe);
+      const existing = state.data.entities[call._id];
+      if (existing) existing.star = call.star;
     }
   }
 })
-export const { addCall, playedCall } = callsSlice.actions
+export const { addCall, playedCall, failedCall, clearCallsError } = callsSlice.actions
 export const callsReducer = callsSlice.reducer;

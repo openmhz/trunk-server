@@ -11,7 +11,11 @@ import { useDispatch } from 'react-redux'
 import { subDays } from 'date-fns'
 import 'react-datepicker/dist/react-datepicker.css';
 
+const DEFAULT_ARCHIVE_DAYS = 30;
+
 function CalendarModal(props) {
+  const parsedDays = parseInt(props.archive !== undefined ? props.archive : process.env.REACT_APP_ARCHIVE_DAYS, 10);
+  const archiveDays = parsedDays > 0 ? parsedDays : DEFAULT_ARCHIVE_DAYS;
   const [startDate, setStartDate] = useState(new Date());
   const dispatch = useDispatch()
   const onClose = props.onClose;
@@ -20,7 +24,7 @@ function CalendarModal(props) {
     setStartDate(date);
   }
 
-  const handleClose = () => this.props.onClose(false);
+  const handleClose = () => onClose(false);
   const handleDone = (onClose) => {
     dispatch(setDateFilter(startDate.getTime()));
     onClose(true);
@@ -39,7 +43,7 @@ function CalendarModal(props) {
             selected={startDate}
             onChange={handleDateChange}
             maxDate={new Date()}
-            minDate={subDays(new Date(), process.env.REACT_APP_ARCHIVE_DAYS)}
+            minDate={subDays(new Date(), archiveDays)}
             showTimeSelect
             timeFormat="HH:mm"
             timeIntervals={15}

@@ -49,17 +49,17 @@ const ListSystems = (props) => {
 
   let popularSystems = [];
   if (isSuccess && systems.systems) {
-    popularSystems = systems.systems.toSorted((a, b) => b.clientCount - a.clientCount).slice(0, 4);
+    popularSystems = [...systems.systems].sort((a, b) => b.clientCount - a.clientCount).slice(0, 4);
   }
   const handleContactClick = (system) => {
     setContactSystem(system);
     setContactVisible(true);
   };
   
-  const stateList = StateLinkList(states);
-  const systemsByState = SystemsByState(states, handleContactClick);
-  const international = InternationList(other, handleContactClick);
-  const trending = TrendingList(popularSystems, handleContactClick);
+  const stateList = <StateLinkList states={states} />;
+  const systemsByState = <SystemsByState states={states} onContactClick={handleContactClick} />;
+  const international = <InternationList other={other} onContactClick={handleContactClick} />;
+  const trending = <TrendingList popularSystems={popularSystems} onContactClick={handleContactClick} />;
 
   return (
     <div ref={contextRef}>

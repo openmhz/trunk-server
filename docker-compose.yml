@@ -201,6 +201,7 @@ services:
         - REACT_APP_FRONTEND_SERVER
         - REACT_APP_SITE_NAME
         - REACT_APP_GOOGLE_ANALYTICS
+        - REACT_APP_ARCHIVE_DAYS
         - NODE_ENV
     image: "frontend:${TAG}-${STAGE}"
     environment:

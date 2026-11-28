@@ -4,7 +4,7 @@ import {
 
 } from "semantic-ui-react";
 
-const StateLinkList = (states) => {
+const StateLinkList = ({ states }) => {
     let stateList = [];
     if (states) {
         let keys = Object.keys(states);
@@ -24,7 +24,7 @@ const StateLinkList = (states) => {
             ))
         }
     }
-    return stateList;
+    return <>{stateList}</>;
 }
 
 export default StateLinkList

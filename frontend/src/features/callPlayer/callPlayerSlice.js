@@ -22,6 +22,16 @@ const initialState = {
   backgroundAutoplay: false
 }
 
+// shallow array comparison, so an equal list does not replace the stored reference
+export const sameNumbers = (a, b) => {
+  if (a === b) return true;
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
 const compareCalls = (a, b) => {
   const aTimestamp = new Date(a.time).getTime()
   const bTimestamp = new Date(b.time).getTime()
@@ -71,16 +81,22 @@ export const callPlayerSlice = createSlice({
         state.playlist = newlist.sort(compareCalls);
       }
     },
-    setFilter: (state,action) => {
-      var filter={};
-      state.live = !action.payload.live ? state.live : action.payload.live;
-      state.filterStarred = !action.payload.filterStarred ? false : action.payload.filterStarred;
-      state.filterType = !action.payload.filterType ? 0 : action.payload.filterType;
-      state.filterTalkgroups = !action.payload.filterTalkgroups ? [] : action.payload.filterTalkgroups;
-      state.filterGroupId = !action.payload.filterGroupId ? false : action.payload.filterGroupId;
-      state.filterDate = !action.payload.filterDate ? 0 : action.payload.filterDate;
-      state.filterCallId = !action.payload.filterCallId ? false : action.payload.filterCallId;
-      state.shortName = !action.payload.shortName ? state.shortName : action.payload.shortName;
+    setFilter: (state, action) => {
+      const p = action.payload;
+      // Only assign values that actually changed so selectors (and the effects
+      // that depend on them) keep seeing the same references.
+      const assign = (key, value) => {
+        if (state[key] !== value) state[key] = value;
+      };
+      if (p.live) assign('live', p.live);
+      assign('filterStarred', p.filterStarred ? p.filterStarred : false);
+      assign('filterType', p.filterType ? p.filterType : 0);
+      const talkgroups = p.filterTalkgroups ? p.filterTalkgroups : [];
+      if (!sameNumbers(state.filterTalkgroups, talkgroups)) state.filterTalkgroups = talkgroups;
+      assign('filterGroupId', p.filterGroupId ? p.filterGroupId : false);
+      assign('filterDate', p.filterDate ? p.filterDate : false);
+      assign('filterCallId', p.filterCallId ? p.filterCallId : false);
+      if (p.shortName) assign('shortName', p.shortName);
     },
     setLive: (state,action) => {
       state.live = action.payload;
@@ -102,18 +118,18 @@ export const callPlayerSlice = createSlice({
     },
     setAllFilter: (state) => {
       state.filterType = 0;
-      state.filterTalkgroups = [];
-      state.filterGroupId = 0;
+      if (state.filterTalkgroups.length) state.filterTalkgroups = [];
+      state.filterGroupId = false;
     },
     setGroupFilter: (state, action) => {
       state.filterType = 1;
-      state.filterTalkgroups = [];
+      if (state.filterTalkgroups.length) state.filterTalkgroups = [];
       state.filterGroupId = action.payload;
     },
     setTalkgroupFilter: (state, action) => {
       state.filterType = 2;
-      state.filterTalkgroups = action.payload;
-      state.filterGroupId = 0;
+      if (!sameNumbers(state.filterTalkgroups, action.payload)) state.filterTalkgroups = action.payload;
+      state.filterGroupId = false;
     },
 
   },
