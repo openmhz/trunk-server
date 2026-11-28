@@ -5,9 +5,9 @@ import GroupModal from "./components/GroupModal";
 import CalendarModal from "./components/CalendarModal";
 import CallPlayer from "./CallPlayer";
 import Activity from "./Activity";
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector, useDispatch, useStore } from 'react-redux'
 import { setFilter, setDateFilter } from "../features/callPlayer/callPlayerSlice";
-import { getCalls, addCall, getOlderCalls, getNewerCalls } from "../features/calls/callsSlice";
+import { getCalls, addCall, getOlderCalls, getNewerCalls, clearCallsError } from "../features/calls/callsSlice";
 import { useGetGroupsQuery, useGetSystemsQuery, } from '../features/api/apiSlice'
 import {
   Container,
@@ -16,15 +16,13 @@ import {
   Icon,
   Sidebar,
   Message,
+  Button,
+  Loader,
   Sticky
 } from "semantic-ui-react";
 import "./CallPlayer.css";
 import queryString from '../query-string';
-import io from 'socket.io-client';
-
-
-
-const socket = io(process.env.REACT_APP_BACKEND_SERVER);
+import { getSocket, connectSocket } from '../socket';
 
 // ----------------------------------------------------
 function Calls(props) {
@@ -32,12 +30,12 @@ function Calls(props) {
   const { shortName } = useParams();
   const { data: allSystems, isSuccess } = useGetSystemsQuery();
   const { data: groupsData, isSuccess: isGroupsSuccess } = useGetGroupsQuery(shortName);
-  const { loading: callsLoading, data: callsData } = useSelector((state) => state.calls);
+  const { loading: callsLoading, data: callsData, error: callsError } = useSelector((state) => state.calls);
+  const socket = getSocket();
+  const store = useStore();
 
   const [autoPlay, setAutoPlay] = useState(true);
-  const [currentCall, setCurrentCall] = useState(false);
   const [urlOptions, setUrlOptions] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [sidebarOpened, setSidebarOpened] = useState(false);
   const [filterVisible, setFilterVisible] = useState(false);
   const [groupVisible, setGroupVisible] = useState(false);
@@ -47,29 +45,35 @@ function Calls(props) {
   const [selectCallId, setSelectCallId] = useState(false);
   const [initialCallId, setInitialCallId] = useState(false);
   const [live, setLive] = useState(true);
+  const [initShortName, setInitShortName] = useState(null); // which system the filter state was last initialised for
+  const [errorDismissed, setErrorDismissed] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const positionRef = useRef(); // lets us get the Y Scroll offset for the Call List
   const pageYOffset = useRef(); // Store the current Scroll Offset in a way that guarantees the latest value is available when Call Data is updated
-  const shouldPlayAddCallRef = useRef(); // we need to do this to make the current value of isPlaying available in the socket message callback
-  shouldPlayAddCallRef.current = (!isPlaying && autoPlay) ? true : false;
+  // the socket handler is registered once, so it reads the latest values through refs
+  const liveRef = useRef(true);
+  const starredRef = useRef(false);
+  const initialCallIdRef = useRef(false);
   const uri = queryString.parse(useLocation().search);
   const filterType = useSelector((state) => state.callPlayer.filterType);
   const filterGroupId = useSelector((state) => state.callPlayer.filterGroupId);
   const filterTalkgroups = useSelector((state) => state.callPlayer.filterTalkgroups);
   const filterStarred = useSelector((state) => state.callPlayer.filterStarred);
   const filterDate = useSelector((state) => state.callPlayer.filterDate);
+  const storeShortName = useSelector((state) => state.callPlayer.shortName);
+  // primitive form of the talkgroup list, so effects don't re-run for an equal list
+  const talkgroupKey = filterTalkgroups.join(',');
+  // Don't fetch or start the socket until the filter state belongs to this system
+  // (otherwise the first pass would use the previous system's filters).
+  const ready = (initShortName === shortName) && (storeShortName === shortName);
+  liveRef.current = live;
+  starredRef.current = filterStarred;
+  initialCallIdRef.current = initialCallId;
   //const live = useSelector((state) => state.callPlayer.live);
 
   const pathname = useLocation().pathname;
-
-  let currentCallId = false;
-  //let system = false;
-
-  if (currentCall) {
-    currentCallId = currentCall._id;
-  }
 
   let system = useMemo(() => {
     if (allSystems) {
@@ -100,7 +104,6 @@ function Calls(props) {
 
     dispatch(setFilter(filter));
     setLive(false);
-    stopSocket();
     setActivityVisible(false)
   }
 
@@ -126,24 +129,6 @@ function Calls(props) {
   }
 
 
-  const handleSocketMessage = (data) => {
-    const message = JSON.parse(data)
-    switch (message.type) {
-      case 'calls':
-
-        if (positionRef.current) {
-          pageYOffset.current = { direction: "top", position: positionRef.current.clientHeight };
-        }
-        setSelectCallId(message._id);
-        dispatch(addCall(message));
-        const time = new Date(message.time);
-        console.log("Got Socket Message: " + message._id + " Start Time: " + time.toLocaleTimeString());
-        break
-      default:
-        break
-    }
-  }
-
   const startSocket = () => {
     const filter = getFilterDescription();
     console.log("Starting Socket - Filter Code: " + filter.code + " Filter Type: " + filter.type);
@@ -151,14 +136,17 @@ function Calls(props) {
       filterCode: filter.code,
       filterType: filter.type,
       filterName: "OpenMHz",
-      filterStarred: filter.starred,
+      filterStarred: filter.filterStarred,
       shortName: shortName
     });
   }
 
   const stopSocket = () => {
-    console.log("Stopping Socket")
-    socket.emit("stop");
+    // emitting while disconnected would buffer the event and replay it after a reconnect
+    if (socket.connected) {
+      console.log("Stopping Socket")
+      socket.emit("stop");
+    }
   }
 
   const updateUri = () => {
@@ -200,12 +188,15 @@ function Calls(props) {
 
   }
 
-  const handleLiveToggle = (currentlyLive) => {
+  const handleLiveToggle = () => {
     if (!live) {
-      dispatch(setDateFilter(false));
-      dispatch(getCalls({}));
+      setInitialCallId(false);
       setLive(true);
-      startSocket();
+      if (filterDate) {
+        dispatch(setDateFilter(false)); // the filter effect refetches
+      } else {
+        dispatch(getCalls({}));
+      }
     }
   }
 
@@ -214,7 +205,6 @@ function Calls(props) {
 
     if (didUpdate) {
       setLive(false);
-      stopSocket();
     }
   }
 
@@ -244,9 +234,9 @@ function Calls(props) {
   }
 
   useLayoutEffect(() => {
-    if (pageYOffset.current) {
+    if (pageYOffset.current && positionRef.current) {
       const scrollAmount = parseInt(positionRef.current.clientHeight) - parseInt(pageYOffset.current.position);
-      if (pageYOffset.current.direction == "top") {
+      if (pageYOffset.current.direction === "top") {
         window.scrollBy({ left: 0, top: scrollAmount, behavior: "auto" });
         pageYOffset.current = { direction: "bottom", position: positionRef.current.clientHeight }; // reset PageY to be the current height incase callsData changes for other reasons
       } else {
@@ -259,7 +249,7 @@ function Calls(props) {
 
 
 
-  const setStateFromUri = async () => {
+  const setStateFromUri = () => {
   
     let filter = {
       filterDate: false,
@@ -270,6 +260,9 @@ function Calls(props) {
       filterCallId: false,
       shortName: shortName
     };
+
+    let isLive = true;
+    let callId = false;
 
     // is there a star filter?
     if (uri.hasOwnProperty('starred')) {
@@ -282,7 +275,7 @@ function Calls(props) {
     if (uri.hasOwnProperty('time')) {
       const date = new Date(parseInt(uri['time']));
       filter.filterDate = date.getTime();
-      setLive(false);
+      isLive = false;
       //filter.live = false;
       if (!urlOptions) setUrlOptions(true);
     }
@@ -290,10 +283,10 @@ function Calls(props) {
     // is this just for one call?
     if (uri.hasOwnProperty('call-id')) {
       const _id = uri['call-id'];
-      setInitialCallId(_id);
+      callId = _id;
       filter.filterCallId = false;
       setAutoPlay(false);
-      setLive(false);
+      isLive = false;
       if (!urlOptions) setUrlOptions(true);
     }
 
@@ -315,59 +308,110 @@ function Calls(props) {
       }
     }
 
+    setLive(isLive);
+    setInitialCallId(callId);
     dispatch(setFilter(filter));
+    setInitShortName(shortName);
   }
 
 
+
+
+  // Initialise the filter state from the URL whenever the system changes
   useEffect(() => {
     setStateFromUri();
+  }, [shortName]);
+
+  // Socket wiring: one shared connection, every handler removed on unmount
+  useEffect(() => {
+    const onConnect = () => {
+      console.log("Socket Connect");
+      setIsConnected(true);
+    };
+    const onDisconnect = () => {
+      console.log("Socket Disconnect");
+      setIsConnected(false);
+    };
+    // "reconnect" is a Manager event in socket.io v4. "connect" also fires after a
+    // reconnect; the start effect below re-sends `start` when isConnected flips back on.
+    const onReconnect = (attempts) => {
+      console.log("Socket Reconnected after attempts: " + attempts);
+      setIsConnected(socket.connected);
+    };
+    const onMessage = (data) => {
+      let message;
+      try {
+        message = JSON.parse(data);
+      } catch (e) {
+        return;
+      }
+      if (!message || message.type !== 'calls') return;
+      if (!liveRef.current) return; // ignore anything that arrives after leaving live mode
+      if (starredRef.current && !message.star) return; // starred-only view: the server doesn't filter live calls
+      // keep the scroll position steady when the user is scrolled down the list
+      if (positionRef.current && window.scrollY > 0) {
+        pageYOffset.current = { direction: "top", position: positionRef.current.clientHeight };
+      }
+      const playingId = store.getState().callPlayer.currentCallId;
+      dispatch(addCall(message, [playingId, initialCallIdRef.current]));
+      setSelectCallId(message._id);
+    };
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.io.on('reconnect', onReconnect);
+    socket.on('new message', onMessage);
+    connectSocket();
+    setIsConnected(socket.connected);
+
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.io.off('reconnect', onReconnect);
+      socket.off('new message', onMessage);
+    };
+  }, []);
+
+  // (Re)load the call list when the system or a filter changes
+  useEffect(() => {
+    if (!ready) return;
+    dispatch(getCalls({}));
+  }, [ready, shortName, filterGroupId, talkgroupKey, filterType, filterDate, filterStarred])
+
+  // Tell the server what to send. Re-runs after a reconnect (isConnected) without refetching.
+  useEffect(() => {
+    if (!ready || !live || !isConnected) return;
+    startSocket();
     return () => {
       stopSocket();
     };
-  }, []);
+  }, [ready, live, isConnected, shortName, filterGroupId, talkgroupKey, filterType, filterStarred])
 
-
-
-
+  // Update the Browser URI only when the user changes something that belongs in it
   useEffect(() => {
-    socket.on('connect', () => {
-      console.log("Socket Connect");
-      setIsConnected(true);
-    });
-
-    socket.on('disconnect', () => {
-      console.log("Socket Disconnect");
-      setIsConnected(false);
-    });
-
-    socket.on('reconnect', (attempts) => {
-      console.log("Socket Reconnected after attempts: " + attempts); // true
-      setIsConnected(true);
-    })
-
-    socket.on("new message", handleSocketMessage);
-
-    return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('pong');
-    };
-  }, []);
-
-  useEffect(() => {
-
-      dispatch(getCalls({}));
-  
-    if (live && isConnected) {
-      startSocket();
-    }
-  }, [shortName, filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred, isConnected])
-
-
-  // Update the Browser URI when any relevant values change
-  useEffect(() => {
+    if (!ready) return;
     updateUri();
-  }, [filterGroupId, filterTalkgroups, filterType, filterDate, filterStarred, selectCallId, initialCallId])
+  }, [ready, filterGroupId, talkgroupKey, filterType, filterDate, filterStarred, initialCallId])
+
+  // Retry a failed list load automatically, and let the user dismiss the message
+  useEffect(() => {
+    setErrorDismissed(false);
+    if (callsError && callsError.source === 'getCalls') {
+      const timer = setTimeout(() => dispatch(getCalls({})), 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [callsError])
+
+  const handleRetry = () => {
+    dispatch(clearCallsError());
+    if (callsError && callsError.source === 'getOlderCalls') {
+      dispatch(getOlderCalls({}));
+    } else if (callsError && callsError.source === 'getNewerCalls') {
+      dispatch(getNewerCalls({}));
+    } else {
+      dispatch(getCalls({}));
+    }
+  }
 
   useEffect(() => {
     if (!urlOptions && groupsData && (groupsData.length > 0)) {
@@ -450,6 +494,16 @@ function Calls(props) {
         </Menu.Menu>
       </Menu>
 
+      {callsError && !errorDismissed &&
+        <Message warning onDismiss={() => setErrorDismissed(true)}
+          style={{ position: 'fixed', top: '4em', left: '1em', right: '1em', zIndex: 900 }}>
+          <Message.Header>Couldn't load calls{callsError.source === 'getCalls' ? ' — retrying' : ''}</Message.Header>
+          <p>{callsError.message} <Button size="mini" compact onClick={handleRetry}>Retry</Button></p>
+        </Message>
+      }
+      {callsLoading && callsData.ids.length === 0 &&
+        <Loader active inline="centered" style={{ marginTop: '8em' }} />
+      }
       {activityVisible
         ? <Activity navigate={handleActivityNavigate} />
         : <CallPlayer system={system} callsData={callsData} selectCallId={selectCallId} initialCallId={initialCallId} handleNewer={handleNewer} handleOlder={handleOlder} />
