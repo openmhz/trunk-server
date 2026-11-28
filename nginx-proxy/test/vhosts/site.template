@@ -6,11 +6,8 @@ map $http_upgrade $backend_connection {
 	''      '';
 }
 
-upstream backend_api {
-	server backend:3005;
-	keepalive 64;
-	keepalive_timeout 60s;
-}
+# backend_api, frontend_app, account_app and admin_app.
+include /etc/nginx/upstreams.conf;
 
 server {
 	listen 80;
@@ -23,12 +20,12 @@ server {
     }
 
    location /static {
-		proxy_pass http://frontend:3000;
+		proxy_pass http://frontend_app;
 		access_log off;
     }
 
 	location /favicon.ico {
-		proxy_pass http://frontend:3000;
+		proxy_pass http://frontend_app;
 		expires 1M;
 		add_header Surrogate-Control "public, max-age=604800";  
 		add_header Cache-Control "max-age=604800, public";
@@ -36,7 +33,7 @@ server {
 	}
 
 	location ~* \.(gif|jpg|png)$ {
-                proxy_pass http://frontend:3000;
+                proxy_pass http://frontend_app;
 
 				add_header Pragma public;
 				add_header Surrogate-Control "public, max-age=604800";  
@@ -45,7 +42,7 @@ server {
     }
 
 	location  /silence.m4a {
-                proxy_pass http://frontend:3000;
+                proxy_pass http://frontend_app;
 				access_log /dev/stdout main;
 
 				add_header Surrogate-Control "public, max-age=604800";  
@@ -54,7 +51,7 @@ server {
     }
 	
    location / {
-				proxy_pass http://frontend:3000;
+				proxy_pass http://frontend_app;
 				include /etc/nginx/proxy.conf;
 				access_log /dev/stdout main;
     }
@@ -70,7 +67,7 @@ server {
     }
 
    location / {
-				proxy_pass http://account:3009;
+				proxy_pass http://account_app;
 				include /etc/nginx/proxy.conf;
 				access_log    off; 
     }
@@ -86,7 +83,7 @@ server {
     }
 
    location / {
-				proxy_pass http://admin:3008;
+				proxy_pass http://admin_app;
 				include /etc/nginx/proxy.conf;
 				access_log    off; 
     }

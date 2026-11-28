@@ -12,11 +12,8 @@ map $http_upgrade $backend_connection {
 proxy_cache_path /var/cache/nginx/api levels=1:2 keys_zone=api_cache:20m
                  max_size=500m inactive=10m use_temp_path=off;
 
-upstream backend_api {
-	server backend:3005;
-	keepalive 64;
-	keepalive_timeout 60s;
-}
+# backend_api, frontend_app, account_app and admin_app.
+include /etc/nginx/upstreams.conf;
 
 server {
 	listen 80;
@@ -50,12 +47,12 @@ server {
     }
 
    location /static {
-		proxy_pass http://frontend:3000;
+		proxy_pass http://frontend_app;
 		access_log off;
     }
 
 	location /favicon.ico {
-		proxy_pass http://frontend:3000;
+		proxy_pass http://frontend_app;
 		expires 1M;
 		add_header Surrogate-Control "public, max-age=2629746";  
 		add_header Cache-Control "max-age=2629746, public";
@@ -63,7 +60,7 @@ server {
 	}
 
 	location /*.png {
-                proxy_pass http://frontend:3000;
+                proxy_pass http://frontend_app;
                 access_log off;
                 expires 1M;
 				add_header Surrogate-Control "public, max-age=2629746";  
@@ -71,7 +68,7 @@ server {
     }
 
 	location  /*.m4a {
-                proxy_pass http://frontend:3000;
+                proxy_pass http://frontend_app;
                 access_log off;
                 expires 1M;
 				add_header Surrogate-Control "public, max-age=2629746";  
@@ -79,7 +76,7 @@ server {
     }
 
    location / {
-		proxy_pass http://frontend:3000;
+		proxy_pass http://frontend_app;
 		access_log /dev/stdout main;
     }
 }
@@ -194,7 +191,7 @@ server {
 		}
 
 		location / {
-			proxy_pass http://account:3009;
+			proxy_pass http://account_app;
 			proxy_http_version 1.1;
 			proxy_set_header Upgrade $http_upgrade;
 			proxy_set_header Connection "upgrade";
@@ -225,7 +222,7 @@ server {
 		}
 
 		location / {
-			proxy_pass http://admin:3008;
+			proxy_pass http://admin_app;
 			proxy_http_version 1.1;
 			proxy_set_header Upgrade $http_upgrade;
 			proxy_set_header Connection "upgrade";

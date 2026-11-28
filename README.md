@@ -101,6 +101,16 @@ Fill in:
 
 `./docker-prod.sh` - sets up docker-compose to run with the correct environment variables for production
 
+`./deploy.sh` - deploys the checked-out code to production with only a few seconds of downtime per service. Run `git pull` first.
+```bash
+./deploy.sh                      # backend, admin, account and frontend
+./deploy.sh backend admin        # just these
+./deploy.sh --rollback admin     # back to the image that was running before the last deploy
+```
+It keeps the running images as `<image>-previous`, builds the new ones while the old containers keep serving, swaps the containers, and reloads nginx. Don't stop containers before building: on 2026-11-28 that took the API down for 27 minutes.
+
+nginx looks up the app containers through Docker's DNS every couple of seconds (`nginx-proxy/upstreams.conf`), so recreated containers that come back on new IP addresses are picked up without a reload. Before this change, nginx kept the addresses it found at startup, and admin and account returned 502 after a deploy until nginx was reloaded.
+
 If you are having trouble with Docker Compose not building the images, try adding "--parallel 1". There may have been too many builds happening at once.
 
 ### Service I Like
