@@ -1,25 +1,37 @@
 import React, { useState } from "react";
-import { acceptTerms } from "../features/user/userSlice";
-import { Segment, Container, Button, Header } from "semantic-ui-react";
+import { acceptTerms, logoutUser } from "../features/user/userSlice";
+import { goToNextLocation } from "./nextLocation";
+import { Segment, Container, Button, Header, Message } from "semantic-ui-react";
 import { useDispatch, useSelector } from 'react-redux'
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const Terms = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
   const [requestMessage, setRequestMessage] = useState(null);
+  const [searchParams] = useSearchParams();
+  const nextLocation = searchParams.get("nextLocation");
 
   const handleAccept = async () => {
     const result = await dispatch(acceptTerms(user)).unwrap();
     if (result.success) {
-      navigate("/profile");
+      // default: the admin app (another origin), where systems are managed
+      goToNextLocation(nextLocation, navigate, "admin");
     } else {
       console.error(result);
+      setRequestMessage(typeof result.message === "string" ? result.message : "We couldn't save your acceptance. Please try again.");
     }
   };
 
-  const handleDecline = () => {};
+  const handleDecline = async () => {
+    try {
+      await dispatch(logoutUser({})).unwrap();
+    } catch (e) {
+      console.error(e);
+    }
+    navigate("/login", { state: { notice: "You need to accept the Terms of Service to contribute to " + (process.env.REACT_APP_SITE_NAME || "OpenMHz") + ". You've been logged out." } });
+  };
 
   return (
     <div>
@@ -108,6 +120,7 @@ By using OpenMHz, you acknowledge that you have read, understood, and agree to b
 
 These Terms were written to help set expectations around usage. If you think something is missing or could be better stated, please reach out.
         </Segment>
+        {requestMessage && <Message negative>{requestMessage}</Message>}
         {user.terms !== 1.1 && (
           <Button.Group attached="bottom">
             <Button onClick={handleDecline}>Decline</Button>

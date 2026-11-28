@@ -186,6 +186,8 @@ export const userSlice = createSlice({
         userId: "",
         admin: false,
         email: "",
+        // false when registration worked but the confirmation email failed to send
+        confirmEmailSent: true,
         firstName: "",
         lastName: "",
         location: "",
@@ -219,6 +221,24 @@ export const userSlice = createSlice({
             } else {
                 state.authenticated = false;
                 state.hasAuthenticated = true;
+                // The server only reports this after a correct password. Keep the
+                // id/email so the "Resend confirmation email" page can work.
+                if (payload.reason === "unconfirmed email" && payload.userId) {
+                    state.userId = payload.userId;
+                    state.email = payload.email || "";
+                }
+            }
+        },
+        [registerUser.fulfilled]: (state, { payload }) => {
+            if (payload.success && payload.userId) {
+                state.userId = payload.userId;
+                state.email = payload.email || "";
+                state.confirmEmailSent = payload.emailSent !== false;
+            }
+        },
+        [sendConfirmEmail.fulfilled]: (state, { payload }) => {
+            if (payload.success) {
+                state.confirmEmailSent = true;
             }
         },
         [updateProfile.fulfilled]: (state, data) => {
@@ -264,12 +284,6 @@ export const userSlice = createSlice({
 
         },
         [logoutUser.fulfilled]: (state, { payload }) => {
-            if (payload.success) {
-                state.authenticated = false;
-                state.userId = null;
-            }
-        },
-        [loginUser.fulfilled]: (state, { payload }) => {
             if (payload.success) {
                 state.authenticated = false;
                 state.userId = null;

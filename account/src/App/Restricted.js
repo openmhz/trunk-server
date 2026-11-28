@@ -21,7 +21,8 @@ const Restricted = ({ children }) => {
   if (hasAuthenticated) {
     if (authenticated) {
       if ((pathname != "/terms") && (terms != 1.1)) {
-        navigate("/terms")
+        // after accepting, return to the page they asked for
+        navigate("/terms?nextLocation=account")
       } else {
         return children;
       }

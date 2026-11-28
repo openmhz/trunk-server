@@ -18,10 +18,12 @@ function Register(props) {
   const onRegisterSubmit = async (user) => {
     const result = await dispatch(registerUser(user)).unwrap();
     if (result.success) {
-      navigate("/sent-confirm-email");
+      // the store now has userId/email (registerUser.fulfilled). If the email
+      // couldn't be sent, the waiting page explains and offers Resend.
+      navigate(result.emailSent === false ? "/wait-confirm-email" : "/sent-confirm-email");
     } else {
       console.error(result);
-      setRequestMessage(result.message);
+      setRequestMessage(typeof result.message === "string" ? result.message : "Registration failed. Please try again.");
     }
   };
 

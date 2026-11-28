@@ -8,7 +8,7 @@ const navStyle = {
 
 const Navigation = (props) => {
   const dispatch = useDispatch();
-  const { email } = useSelector((state) => state.user);
+  const { email, authenticated } = useSelector((state) => state.user);
 
   const logout = event => {
     event.preventDefault();
@@ -22,14 +22,17 @@ const Navigation = (props) => {
         <Menu.Item name="systems" header>
           {process.env.REACT_APP_SITE_NAME}
         </Menu.Item>
-        <Menu.Menu position="right">
-          <Dropdown item text={ email }>
-            <Dropdown.Menu>
-              <Dropdown.Item href={profileLink}>Profile</Dropdown.Item>
-              <Dropdown.Item onClick={logout}>Logout</Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-        </Menu.Menu>
+        {authenticated && (
+          <Menu.Menu position="right">
+            <Menu.Item href={process.env.REACT_APP_ADMIN_SERVER}>Manage your radio systems</Menu.Item>
+            <Dropdown item text={ email }>
+              <Dropdown.Menu>
+                <Dropdown.Item href={profileLink}>Profile</Dropdown.Item>
+                <Dropdown.Item onClick={logout}>Logout</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          </Menu.Menu>
+        )}
       </Menu>
     </div>
   );
