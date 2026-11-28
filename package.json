@@ -10,7 +10,7 @@
     "packages/shared"
   ],
   "scripts": {
-    "test": "npm run test --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present && node --test test/*.test.js",
     "build": "npm run build --workspaces --if-present"
   },
   "engines": {

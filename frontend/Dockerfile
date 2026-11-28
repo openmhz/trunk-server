@@ -34,6 +34,7 @@ COPY packages/shared/package.json packages/shared/
 RUN npm ci --workspace frontend --omit=dev --no-audit --no-fund
 # The test overlay (test-compose.yml) runs the app under nodemon.
 RUN npm install -g nodemon
+COPY packages/shared/ packages/shared/
 COPY frontend/server/ frontend/
 COPY --from=build /app/frontend/build frontend/public
 WORKDIR /app/frontend

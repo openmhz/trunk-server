@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@artsy/fresnel": "6.1.0",
+    "@openmhz/shared": "*",
     "@reduxjs/toolkit": "^1.9.1",
     "@visx/axis": "^3.1.0",
     "@visx/curve": "^3.0.0",
@@ -32,7 +33,6 @@
     "react-scripts": "5.0.1",
     "semantic-ui-css": "2.5.0",
     "semantic-ui-react": "2.1.4",
-    "serve-favicon": "^2.5.0",
     "socket.io-client": "^4.5.4",
     "wavesurfer.js": "7.8.6"
   },

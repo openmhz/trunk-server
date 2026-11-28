@@ -2,7 +2,6 @@ var ObjectID = require('mongodb').ObjectID;
 var db = require('./db');
 const express = require("express");
 const path = require("path");
-const secrets = require("./config/secrets");
 const configureExpress = require("./config/express");
 const { Podcast, Item, FeedOptions } = require('podcast');
 
