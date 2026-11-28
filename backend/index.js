@@ -17,6 +17,9 @@ const { ObjectId } = require('mongodb');
 const Group = require("./models/group");
 
 var multer = require('multer');
+const { wrap, errorHandler, installProcessHandlers } = require('./lib/safety');
+
+installProcessHandlers("backend");
 
 // -------------------------------------------
 var app = express();
@@ -64,26 +67,28 @@ if ((typeof mongo_user !== 'undefined') && (typeof mongo_password !== 'undefined
 }
 
 
+mongoose.connection.on('connecting', () => console.log('Mongoose is connecting'));
+mongoose.connection.on('connected', () => console.log('Mongoose is connected'));
+mongoose.connection.on('disconnecting', () => console.log('Mongoose is disconnecting'));
+mongoose.connection.on("error", (err) => console.error("Mongoose error: " + err));
+
+// Retry until Mongo is reachable. Before the process handlers were added a
+// failed first connect crashed the process and Docker retried; now we must.
+let connecting = false;
 const connect = async () => {
-  // Demonstrate the readyState and on event emitters
-  console.log(mongoose.connection.readyState); //logs 0
-  mongoose.connection.on('connecting', () => {
-    console.log('Mongoose is connecting')
-  });
-  mongoose.connection.on('connected', () => {
-    console.log('Mongoose is connected');
-  });
-  mongoose.connection.on('disconnecting', () => {
-    console.log('Mongoose is disconnecting');
-  });
-
-  await mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true, maxPoolSize: 50 });
-  console.log("All Done");
-}
+  if (connecting || mongoose.connection.readyState !== 0) return;
+  connecting = true;
+  try {
+    await mongoose.connect(mongoUrl, { maxPoolSize: 50 });
+  } catch (err) {
+    console.error("Mongoose connect failed, retrying in 5s: " + err);
+    setTimeout(connect, 5000);
+  } finally {
+    connecting = false;
+  }
+};
 connect();
-
-mongoose.connection.on("error", console.error)
-mongoose.connection.on("disconnected", connect)
+mongoose.connection.on("disconnected", () => setTimeout(connect, 1000));
 
 
 var upload = multer({
@@ -91,6 +96,8 @@ var upload = multer({
 });
 
 const clients = require("./client_registry");
+const { makeStartHandler } = require("./socket_start");
+const handleStart = makeStartHandler({ clients, Group, firehoseKey: firehose_key });
 
 function addSystemClients(req, res, next) {
   req.systemClients = clients.systemCounts();
@@ -104,47 +111,52 @@ function addTotalClients(req, res, next) {
 
 
 /*------    CALLS   ----------*/
-app.get('/card/:id', calls.get_card);
-app.post('/add_star/:id', calls.add_star);
-app.post('/remove_star/:id', calls.remove_star);
-app.get('/:shortName/call/:id', calls.get_call);
-app.get('/:shortName/calls/latest', calls.get_latest_calls);
-app.get('/:shortName/calls/next', calls.get_next_calls);
-app.get('/:shortName/calls/newer', calls.get_newer_calls);
-app.get('/:shortName/calls/older', calls.get_older_calls);
-app.get('/:shortName/calls/date', calls.get_date_calls);
-app.get('/:shortName/calls/:time/older', calls.get_iphone_calls);
-app.get('/:shortName/calls', calls.get_calls);
+app.get('/card/:id', wrap(calls.get_card));
+app.post('/add_star/:id', wrap(calls.add_star));
+app.post('/remove_star/:id', wrap(calls.remove_star));
+app.get('/:shortName/call/:id', wrap(calls.get_call));
+app.get('/:shortName/calls/latest', wrap(calls.get_latest_calls));
+app.get('/:shortName/calls/next', wrap(calls.get_next_calls));
+app.get('/:shortName/calls/newer', wrap(calls.get_newer_calls));
+app.get('/:shortName/calls/older', wrap(calls.get_older_calls));
+app.get('/:shortName/calls/date', wrap(calls.get_date_calls));
+app.get('/:shortName/calls/:time/older', wrap(calls.get_iphone_calls));
+app.get('/:shortName/calls', wrap(calls.get_calls));
 
 
 /*------    UPLOADS   ---------- upload.single('call'),  uploads.upload,*/
-app.post('/:shortName/upload', upload.single('call'), uploads.upload, async function (req, res) {
-  notify_clients(req.call);
+app.post('/:shortName/upload', upload.single('call'), wrap(uploads.upload), function (req, res) {
+  // The recorder already has its 200; a failure here must not reach Express.
+  try {
+    notify_clients(req.call);
+  } catch (err) {
+    console.error("[" + req.params.shortName + "] Error notifying clients: " + err);
+  }
 });
 
 /*------    SYSTEMS   ----------*/
-app.get('/systems', addSystemClients, systems.get_systems);
-app.post('/:shortName/contact', systems.contact_system);
-app.post('/:shortName/authorize', systems.authorize_system);
+app.get('/systems', wrap(addSystemClients), wrap(systems.get_systems));
+app.post('/:shortName/contact', wrap(systems.contact_system));
+app.post('/:shortName/authorize', wrap(systems.authorize_system));
 
 /*------    TALKGROUPS   ----------*/
-app.get('/:shortName/talkgroups', talkgroups.get_talkgroups);
+app.get('/:shortName/talkgroups', wrap(talkgroups.get_talkgroups));
 
 /*------    GROUPS   ----------*/
-app.get('/:shortName/groups', talkgroups.get_groups);
+app.get('/:shortName/groups', wrap(talkgroups.get_groups));
 
 
 /*------    EVENTS   ----------*/
-app.post('/events', events.addNewEvent);
-app.get('/events', events.getEvents);
-app.get('/events/:id', events.getEvent);
+app.post('/events', wrap(events.addNewEvent));
+app.get('/events', wrap(events.getEvents));
+app.get('/events/:id', wrap(events.getEvent));
 
 /*------    STATS   ----------*/
-app.get('/:shortName/stats', stats.get_stats);
-app.get('/stats', addTotalClients, sys_stats.siteStats)
+app.get('/:shortName/stats', wrap(stats.get_stats));
+app.get('/stats', addTotalClients, wrap(sys_stats.siteStats))
 
 /*------    SYSTEM STATUS   ----------*/
-app.get('/status/:shortName', systems.get_system_status);
+app.get('/status/:shortName', wrap(systems.get_system_status));
 
 
 function get_clients(req, res) {
@@ -161,7 +173,8 @@ function get_clients(req, res) {
       var age = (Date.now() - client.timestamp) / 1000;
       var obj = {
         shortName: client.shortName,
-        filterCode: client.filterCode,
+        // A firehose client's filterCode is the firehose key; never publish it.
+        filterCode: client.firehose ? "firehose" : client.filterCode,
         filterName: client.filterName,
         filterType: client.filterType,
         filterStarred: client.filterStarred,
@@ -179,12 +192,11 @@ function get_clients(req, res) {
 }
 
 /*------    CLIENTS   ----------*/
-app.get('/clients', get_clients);
-app.get('/:shortName/clients', get_clients);
-app.use(function (err, req, res, next) {
-
-  console.log("Error: " + err);
-});
+app.get('/clients', wrap(get_clients));
+app.get('/:shortName/clients', wrap(get_clients));
+// Previously this only logged, so any error left the request hanging until
+// nginx timed out. Now it answers once.
+app.use(errorHandler);
 
 
 
@@ -214,85 +226,11 @@ io.sockets.on('connection', function (client) {
   const ipAddress = cf_ipAddress || x_ipAddress || header_ipAddress; 
   clients.add(client.id, client);
   client.on('start', async function (data) {
-    const entry = clients.get(client.id);
-    if (entry) {
-      // Stop delivering under any previous filter; re-indexed once this one validates.
-      clients.unindex(entry);
-      if ((data.filterType != "firehose") && (!data.shortName || (typeof data.shortName != "string"))) {  // If it is not firehose, then it must have a shortName
-        console.error("Error - Socket - Invalid ShortName: " + data.shortName + " ClientID: " + client.id + " IP: " + ipAddress);
-        clients.remove(client.id);
-        return;
-      }
-
-      entry.active = true;
-      entry.shortName = data.shortName.toLowerCase();
-      entry.filterCode = String(data.filterCode);
-      entry.filterName = data.filterName;
-      entry.filterStarred = data.filterStarred;
-      entry.filterType = String(data.filterType);
-      entry.talkgroupNums = [];
-      entry.timestamp = new Date();
-      entry.firehose = false;
-      entry.ipAddress = ipAddress;
-
-      // Validate the filterCode and filterType
-      if (typeof entry.filterCode != "string") {
-        console.error("Error - Socket - Invalid filterCode: " + data.filterCode + " ShortName: " + data.shortName.toLowerCase() + " ClientID: " + client.id + " IP: " + ipAddress);
-        clients.remove(client.id);
-        return;
-      }
-
-      if (typeof entry.filterType != "string") {
-        console.error("Error - Socket - Invalid filterType: " + data.filterType + " ShortName: " + data.shortName.toLowerCase() + " ClientID: " + client.id + " IP: " + ipAddress);
-        clients.remove(client.id);
-        return;
-      }
-
-      // Check if the filterType is firehose and the filterCode is the firehose key
-      if (data.filterType == "firehose") {
-        if (firehose_key && (typeof data.filterCode == "string") && (data.filterCode == firehose_key)) {
-          console.log("Enabling Firehose mode for Client: " + client.id + " IP: " + ipAddress);
-          entry.firehose = true;
-        } else {
-          console.error("Error - Socket - Invalid Firehose Key: " + data.filterCode + " ClientID: " + client.id + " Filter Name: " + client.filterName + " IP: " + ipAddress);
-          clients.remove(client.id);
-          return;
-        }
-      } else if ((data.filterType == "group")) {       // Handle filterType == "group"
-        if ((typeof data.filterCode != "string") || (data.filterCode.indexOf(',') != -1) || !ObjectId.isValid(data.filterCode)) {
-          console.error("Error - Socket - Invalid Group ID: " + data.filterCode + " ShortName: " + data.shortName.toLowerCase() + " ClientID: " + client.id + " IP: " + ipAddress);
-          clients.remove(client.id);
-          return;
-        }
-
-        const group = await Group.findOne({ 'shortName': data.shortName.toLowerCase(), '_id': ObjectId.createFromHexString(data.filterCode) });
-
-        if (!clients.get(client.id)) {
-          console.error("Error - Socket - Client not found ShortName: " + data.shortName + " ClientID: " + client.id + " IP: " + ipAddress);
-          return;
-        }
-        if (group) {
-          entry.talkgroupNums = group.talkgroups;
-        } else {
-          console.error("Error - Socket - Invalid group " + data.filterCode + " Shortname: " + data.shortName + " ClientID: " + client.id + " IP: " + ipAddress);
-          clients.remove(client.id);
-          return;
-        }
-        // Handle filterType == "talkgroup"
-      } else if ((data.filterType == "talkgroup") && Array.isArray(data.filterCode)) {
-        entry.talkgroupNums = data.filterCode;
-      } else if ((data.filterType == "all") && (data.filterCode == "")) {
-        // Handle filterType == "all"
-        entry.talkgroupNums = [];
-      } else {
-        console.error("Error - Socket - Invalid Filter Type: " + data.filterType + " Filter Code: " + data.filterCode + " Filter Name: " + data.filterName + " ShortName: " + data.shortName.toLowerCase() + " ClientID: " + client.id + " IP: " + ipAddress);
-        clients.remove(client.id);
-        return;
-      }
-      // All checks passed: start delivering calls under the new filter.
-      clients.index(entry);
-    } else {
-      console.error("Error - Socket.io [Start] either client not found, shortName:" + data.shortName + " ClientID: " + client.id + " IP: " + ipAddress);
+    try {
+      await handleStart(client, ipAddress, data);
+    } catch (err) {
+      // A DB error during a group lookup must not become an unhandled rejection.
+      console.error("Error - Socket [Start] ClientID: " + client.id + " IP: " + ipAddress + " " + ((err && err.stack) || err));
     }
   });
 
@@ -300,6 +238,7 @@ io.sockets.on('connection', function (client) {
     const entry = clients.get(client.id);
     if (entry) {
       entry.active = false;
+      entry.startSeq = (entry.startSeq || 0) + 1; // cancel any 'start' still awaiting a lookup
       clients.unindex(entry);
     } else {
       console.error("Error - Socket.io [Stop] Client not found ");
@@ -328,7 +267,7 @@ schedule.scheduleJob('30 3 * * *', function () {
 
 server.listen(app.get("port"), (err) => {
   if (err) {
-    console.err(err.stack)
+    console.error(err.stack)
   } else {
     console.log(`App listening on port ${app.get("port")} [${process.env.NODE_ENV} mode]`)
   }

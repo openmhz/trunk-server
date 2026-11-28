@@ -1,3 +1,4 @@
+
 const { ObjectId } = require('mongodb');
 const { spawn } = require('node:child_process');
 const https = require('https');
@@ -7,7 +8,6 @@ var System = require("../models/system");
 var Talkgroup = require("../models/talkgroup");
 const AdmZip = require("adm-zip");
 const  Call = require("../models/call");
-const FrozenCall = require("../models/frozenCall");
 
 var frontend_server = process.env['REACT_APP_FRONTEND_SERVER'] != null ? process.env['REACT_APP_FRONTEND_SERVER'] : 'https://openmhz.com';
 const os = require('os');
@@ -15,13 +15,20 @@ var fs = require('fs');
 
 const { PutObjectCommand, S3Client } = require("@aws-sdk/client-s3");
 const { fromIni } = require("@aws-sdk/credential-providers");
-const e = require('express');
 
 var s3_endpoint = process.env['S3_ENDPOINT'] != null ? process.env['S3_ENDPOINT'] : 'https://s3.us-west-1.wasabisys.com';
 var s3_region = process.env['S3_REGION'] != null ? process.env['S3_REGION'] : 'us-west-1';
 var s3_bucket = process.env['S3_BUCKET'] != null ? process.env['S3_BUCKET'] : 'openmhz-west';
 var s3_profile = process.env['S3_PROFILE'] != null ? process.env['S3_PROFILE'] : 'wasabi-account';
 
+// The largest event so far had 610 calls.
+const MAX_EVENT_CALLS = 1000;
+const MAX_TEXT_LENGTH = 500;
+const DOWNLOAD_TIMEOUT_MS = 30 * 1000;
+// Packaging can take minutes: one job at a time keeps a burst of submissions
+// from saturating the API process.
+const packagingQueue = [];
+let packagingBusy = false;
 
 const client = new S3Client({
     credentials: fromIni({ profile: s3_profile }),
@@ -32,20 +39,28 @@ const client = new S3Client({
     maxAttempts: 2
 });
 
-
+function badRequest(res, message) {
+    res.status(400).json({ success: false, message: message });
+}
 
 exports.getEvent = async function (req, res, next) {
-
+    const objectId = req.params.id;
+    if (!ObjectId.isValid(objectId) || String(objectId).length !== 24) {
+        res.status(404).json({ success: false, message: "Event not found" });
+        return;
+    }
     try {
-        var objectId = req.params.id;
         const event = await Event.findById(objectId).exec();
+        if (!event) {
+            res.status(404).json({ success: false, message: "Event not found" });
+            return;
+        }
         res.contentType('json');
         res.send(JSON.stringify(event));
     }
     catch (err) {
-        console.error("Error fetching Event " + req.params.id + ": " + err);
-        res.status(500);
-        res.send(`Error fetching Event ${req.params.id}: ` + err);
+        console.error("Error fetching Event " + objectId + ": " + err);
+        res.status(500).send(`Error fetching Event ${objectId}`);
     }
 }
 
@@ -57,27 +72,33 @@ exports.getEvents = async function (req, res, next) {
     }
     catch (err) {
         console.error("Error fetching Events " + err);
-        res.status(500);
-        res.send("Error fetching Events" + err);
+        res.status(500).send("Error fetching Events");
     }
 }
 
 
-
-async function downloadFile(folderName, url) {
+// Resolves once the file is fully written. Rejects on a non-200 response or a
+// stalled download, instead of saving an S3 error page as audio.
+function downloadFile(folderName, url) {
     return new Promise((resolve, reject) => {
-        https.get(url, (response) => {
+        const request = https.get(url, (response) => {
+            if (response.statusCode !== 200) {
+                response.resume();
+                reject(new Error(`Download failed with HTTP ${response.statusCode}: ${url}`));
+                return;
+            }
             const filename = new URL(url).pathname.split('/').pop();
             const filePath = `${folderName}/${filename}`;
-            let stream = fs.createWriteStream(filePath);
+            const stream = fs.createWriteStream(filePath);
             response.on("error", reject);
-
-            stream.on("finish", () => {
-                stream.close();
-                resolve();
-            }).on("error", reject);
+            stream.on("error", reject);
+            stream.on("finish", () => stream.close(() => resolve()));
             response.pipe(stream);
-        }).on("error", reject);
+        });
+        request.on("error", reject);
+        request.setTimeout(DOWNLOAD_TIMEOUT_MS, () => {
+            request.destroy(new Error(`Download timed out: ${url}`));
+        });
     });
 }
 
@@ -87,57 +108,56 @@ const exportEventJson = (eventFolder, event) => {
     fs.writeFileSync(filename, JSON.stringify(event));
 }
 
-const createEventZip = async (folder, filename, zipFolder) => {
+const createEventZip = (folder, filename, zipFolder) => {
+    const zip = new AdmZip();
+    zip.addLocalFolder(folder, zipFolder);
+    zip.writeZip(filename);
+    console.log(`Created ${filename} successfully for event from ${folder}`);
+}
+
+
+// Throws if the file is missing or the upload fails. Previously a missing file
+// emitted an unhandled stream 'error', which crashed the whole API (the
+// production crashes on 2026-11-24 and 2026-11-25).
+const uploadFile = async (localFile, s3File) => {
+    const { size } = await fs.promises.stat(localFile);
+    const body = fs.createReadStream(localFile);
+    let streamError = null;
+    body.on("error", (err) => { streamError = err; });
     try {
-        const zip = new AdmZip();
-        zip.addLocalFolder(folder, zipFolder);
-        zip.writeZip(filename);
-        console.log(`Created ${filename} successfully for event from ${folder}`);
-    } catch (e) {
-        console.error("Event Error trying to zip: " + filename + " error: " + e);
+        await client.send(new PutObjectCommand({
+            Bucket: s3_bucket,
+            Key: s3File,
+            Body: body,
+            ContentLength: size,
+            ACL: 'public-read'
+        }));
+    } finally {
+        body.destroy();
+    }
+    if (streamError) {
+        throw streamError;
     }
 }
 
 
-const uploadFile = async (zipFile, s3File) => {
-    var s3Src = fs.createReadStream(zipFile);
-
-    const command = new PutObjectCommand({
-        Bucket: s3_bucket,
-        Key: s3File,
-        Body: s3Src,
-        ACL: 'public-read'
-    });
-
-    try {
-        await client.send(command);
-        s3Src.destroy();
-    } catch (err) {
-        console.error("Event S3 Upload Error " + err);
-    }
-}
-
-
-const ffmpeg = async (command) => {
+const ffmpeg = (command) => {
     // https://stackoverflow.com/questions/68101810/how-to-execute-ffmpeg-commands-synchronously
     return new Promise((resolve, reject) => {
-        const ffmpeg = spawn("/usr/bin/ffmpeg", command);
-        //ffmpeg.once('error', reject);
-        ffmpeg.stderr.on("data", (data) => {
-            console.error(data.toString()); //I'm not sure what debug is
+        const proc = spawn("/usr/bin/ffmpeg", command);
+        // Without this a failure to start ffmpeg is an unhandled 'error' event.
+        proc.once('error', reject);
+        proc.stderr.on("data", (data) => {
+            console.error(data.toString());
         });
-        ffmpeg.stdout.on("data", (data) => {
-            //console.log(data.toString()); //I'm not sure what debug is
-        });
-        ffmpeg.on("exit", (code, signal) => {
-            if (signal)
-                code = signal;
-            if (code != 0) {
-                reject(`Returned exit code ${code}`);
-                console.log('Error');
-            }
-            else {
-                resolve(); // Call resolve here
+        proc.stdout.on("data", () => {});
+        proc.on("exit", (code, signal) => {
+            if (signal) {
+                reject(new Error(`ffmpeg killed by ${signal}`));
+            } else if (code !== 0) {
+                reject(new Error(`ffmpeg returned exit code ${code}`));
+            } else {
+                resolve();
             }
         });
     });
@@ -149,6 +169,8 @@ const escapeMetadata = (input) => {
         result = result.replace(/(\;)/g, '\\;');
         result = result.replace(/(\#)/g, '\\#');
         result = result.replace(/(\=)/g, '\\=');
+        // A newline would start a new metadata key.
+        result = result.replace(/[\r\n]+/g, ' ');
         return result;
     } else {
         return "";
@@ -160,140 +182,121 @@ const createChapters = (event) => {
     chapters = chapters + "title=" + escapeMetadata(event.title) + "\n";
     chapters = chapters + "artist=OpenMHz\n";
     for (const call of event.calls) {
-        chapters = chapters + "[CHAPTER]\nTIMEBASE=1/1000\nSTART=" + (totalTime * 1000) + "\n";
-        totalTime = totalTime + call.len;
-        chapters = chapters + "END=" + (totalTime * 1000) + "\n";
+        chapters = chapters + "[CHAPTER]\nTIMEBASE=1/1000\nSTART=" + Math.round(totalTime * 1000) + "\n";
+        totalTime = totalTime + (call.len || 0);
+        chapters = chapters + "END=" + Math.round(totalTime * 1000) + "\n";
         chapters = chapters + "title=" + escapeMetadata(call.talkgroupDescription) + "\n";
     }
     return chapters;
 }
 
+// Throws if ffmpeg fails; the caller decides what to skip.
 const createPodcast = async (tmpEventFolder, podcastFile, event) => {
-    let inputs = [];
-    let command = [];
+    const tmpFile = tmpEventFolder + "/tmp.m4a";
     let concat = "";
-    let tmpFile = tmpEventFolder + "/tmp.m4a"
     for (const call of event.calls) {
         const filename = tmpEventFolder + "/" + new URL(call.url).pathname.split('/').pop();
-        inputs.push(filename);
-
+        concat = concat + "file '" + filename.replace(/'/g, "'\\''") + "'\n";
     }
-    inputs.forEach((value, i) => {
-        concat = concat + "file '" + value + "'\n";
-    });
-    try {
-        const concatFile = tmpEventFolder + "/FILES.txt"
-        fs.writeFileSync(concatFile, concat, "utf8");
-        // https://video.stackexchange.com/questions/21315/concatenating-split-media-files-using-concat-protocol
-        //ffmpeg -f concat -safe 0 -i mylist.txt -c copy output
-        command.push("-hide_banner");
-        command.push("-loglevel");
-        command.push("error");
-        command.push("-f");
-        command.push("concat");
-        command.push("-safe");
-        command.push("0");
-        command.push("-i");
-        command.push(concatFile);
-        command.push("-acodec");
-        command.push("aac");
-        command.push(tmpFile);
-        await ffmpeg(command);
+    const concatFile = tmpEventFolder + "/FILES.txt";
+    fs.writeFileSync(concatFile, concat, "utf8");
+    // https://video.stackexchange.com/questions/21315/concatenating-split-media-files-using-concat-protocol
+    await ffmpeg(["-hide_banner", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", concatFile, "-acodec", "aac", tmpFile]);
 
-
-        const chapters = createChapters(event);
-        const chaptersFile = tmpEventFolder + "/CHAPTERS.txt"
-        fs.writeFileSync(chaptersFile, chapters, "utf8");
-        command = [];
-        command.push("-hide_banner");
-        command.push("-loglevel");
-        command.push("error");
-        command.push("-i");
-        command.push(tmpFile)
-        command.push("-i");
-        command.push(chaptersFile)
-        command.push("-map_metadata")
-        command.push("1")
-        command.push("-codec");
-        command.push("copy");
-        command.push(podcastFile)
-        //console.log("Running command: " + command);
-        await ffmpeg(command);
-    } catch (e) {
-        console.error("Error creating podcast " + e);
-    }
+    const chaptersFile = tmpEventFolder + "/CHAPTERS.txt";
+    fs.writeFileSync(chaptersFile, createChapters(event), "utf8");
+    await ffmpeg(["-hide_banner", "-loglevel", "error", "-i", tmpFile, "-i", chaptersFile, "-map_metadata", "1", "-codec", "copy", podcastFile]);
 }
 
 const cleanupEvent = (folder, filename) => {
     fs.rmSync(folder, { recursive: true, force: true });
-    fs.rmSync(filename);
+    fs.rmSync(filename, { force: true });
 }
 
-const savePodcast = (event, podcastUrl) => {
+const savePodcast = async (event, podcastUrl) => {
     let podcast = new Podcast(event.toObject());
     podcast.downloadUrl = podcastUrl;
     let totalTime = 0;
     event.calls.forEach((call) => {
-        totalTime = totalTime + call.len;
-        if (podcast.systems.indexOf(call.systemName) === -1) {
+        totalTime = totalTime + (call.len || 0);
+        if (call.systemName && podcast.systems.indexOf(call.systemName) === -1) {
             podcast.systems.push(call.systemName);
         }
     });
     podcast.len = totalTime;
     podcast.eventUrl = frontend_server + "/events/" + event._id;
-    podcast.save();
+    await podcast.save();
 }
 
-const packageEvent = (eventId) => {
+// Builds the zip and the podcast for a saved event. Each half is independent:
+// if the podcast fails the zip is still published.
+const packageEvent = async (eventId) => {
+    const event = await Event.findById(eventId).exec();
+    if (!event) {
+        throw new Error("Unable to load Event " + eventId);
+    }
     const tmpdir = os.tmpdir();
-    return new Promise(async (resolve, reject) => {
-        var objectId = eventId;
-        const event = await Event.findById(objectId).exec();
-        if (!event) {
-            reject("Unable to load Event " + eventId);
+    let eventFolder = "event_" + Date.now();
+    event.shortNames.forEach((shortName) => {
+        eventFolder = eventFolder + "_" + shortName;
+    });
+    const tmpEventFolder = tmpdir + "/" + eventFolder;
+    const zipFile = tmpdir + "/" + eventFolder + ".zip";
+    const podcastFile = tmpEventFolder + "/" + eventFolder + ".m4a";
+    const s3ZipFile = "events/" + eventFolder + ".zip";
+    const s3PodcastFile = "podcasts/" + eventFolder + ".m4a";
+
+    try {
+        fs.mkdirSync(tmpEventFolder, { recursive: true });
+
+        for (const call of event.calls) {
+            await downloadFile(tmpEventFolder, call.url);
         }
-        let eventFolder = "event_" + Date.now();
-        event.shortNames.forEach((shortName) => {
-            eventFolder = eventFolder + "_" + shortName;
-        });
-        const tmpEventFolder = tmpdir + "/" + eventFolder
-        const zipFile = tmpdir + "/" + eventFolder + ".zip";
-        const podcastFile = tmpEventFolder + "/" + eventFolder + ".m4a";
-        const s3ZipFile = "events/" + eventFolder + ".zip";
-        const s3PodcastFile = "podcasts/" + eventFolder + ".m4a";
+
+        exportEventJson(tmpEventFolder, event);
+        createEventZip(tmpEventFolder, zipFile, eventFolder);
+        await uploadFile(zipFile, s3ZipFile);
+        event.downloadUrl = s3_endpoint + "/" + s3_bucket + "/" + s3ZipFile;
+        await event.save();
 
         try {
-            if (!fs.existsSync(tmpEventFolder)) {
-                fs.mkdirSync(tmpEventFolder);
-            }
-
-            for (const call of event.calls) {
-                await downloadFile(tmpEventFolder, call.url)
-            }
-
-            exportEventJson(tmpEventFolder, event);
-            createEventZip(tmpEventFolder, zipFile, eventFolder);
-            await uploadFile(zipFile, s3ZipFile);
-
-            const downloadUrl = s3_endpoint + "/" + s3_bucket + "/" + s3ZipFile;
-            const podcastUrl = s3_endpoint + "/" + s3_bucket + "/" + s3PodcastFile;
-            event.downloadUrl = downloadUrl;
-            event.podcastUrl = podcastUrl;
-            await event.save();
             await createPodcast(tmpEventFolder, podcastFile, event);
             await uploadFile(podcastFile, s3PodcastFile);
+            const podcastUrl = s3_endpoint + "/" + s3_bucket + "/" + s3PodcastFile;
+            event.podcastUrl = podcastUrl;
+            await event.save();
             await savePodcast(event, podcastUrl);
-            //console.log("uploaded to: " + podcastUrl);
-
-
-        } catch (e) {
-            console.error("Failed processing event " + e);
-            reject(e);
+        } catch (err) {
+            console.error("Event " + eventId + ": podcast skipped: " + err);
         }
+    } finally {
         cleanupEvent(tmpEventFolder, zipFile);
-        resolve('resolved');
-    });
+    }
 };
+
+function enqueuePackaging(eventId) {
+    packagingQueue.push(eventId);
+    runPackagingQueue();
+}
+
+async function runPackagingQueue() {
+    if (packagingBusy) return;
+    packagingBusy = true;
+    try {
+        while (packagingQueue.length > 0) {
+            const eventId = packagingQueue.shift();
+            const started = Date.now();
+            try {
+                await packageEvent(eventId);
+                console.log("Packaged event " + eventId + " in " + Math.round((Date.now() - started) / 1000) + "s");
+            } catch (err) {
+                console.error("Failed packaging event " + eventId + ": " + ((err && err.stack) || err));
+            }
+        }
+    } finally {
+        packagingBusy = false;
+    }
+}
 
 const compareCalls = (a, b) => {
     const aTimestamp = new Date(a.time).getTime()
@@ -328,8 +331,7 @@ const freezeCalls = async (calls) => {
         return talkgroups[shortName][tgNum];
     }
 
-    for (const i in calls) {
-        const call = calls[i];
+    for (const call of calls) {
         const talkgroup = await getTalkgroup(call.shortName, call.talkgroupNum);
         const system = await getSystem(call.shortName);
 
@@ -349,62 +351,76 @@ const freezeCalls = async (calls) => {
     return frozenCalls;
 }
 
-exports.addNewEvent = async function (req, res, next) {
-    process.nextTick(async function () {
-        let event = new Event();
-        if (!req.body) {
-            console.error("No Request Body")
-            next();
+const cleanText = (value) => String(value).replace(/[^a-zA-Z0-9 \.\-\_]/g, "").slice(0, MAX_TEXT_LENGTH);
+
+exports.addNewEvent = async function (req, res) {
+    const body = req.body || {};
+    const { title, description, callIds } = body;
+
+    if (typeof title !== "string" || title.trim() === "") {
+        return badRequest(res, "A title is required.");
+    }
+    if (description !== undefined && typeof description !== "string") {
+        return badRequest(res, "Description must be text.");
+    }
+    if (!Array.isArray(callIds) || callIds.length === 0) {
+        return badRequest(res, "Add at least one call to the event.");
+    }
+    if (callIds.length > MAX_EVENT_CALLS) {
+        return badRequest(res, `An event can have at most ${MAX_EVENT_CALLS} calls.`);
+    }
+    const uniqueIds = [...new Set(callIds)];
+    if (!uniqueIds.every((id) => typeof id === "string" && id.length === 24 && ObjectId.isValid(id))) {
+        return badRequest(res, "One or more call ids are invalid.");
+    }
+    const objectIds = uniqueIds.map((id) => ObjectId.createFromHexString(id));
+
+    let calls;
+    try {
+        calls = await Call.find({ "_id": { $in: objectIds } });
+    } catch (err) {
+        console.error("Error creating event: " + err);
+        res.status(500).send("Error creating event");
+        return;
+    }
+    if (calls.length !== uniqueIds.length) {
+        res.status(500).send("Not all of the Calls were found");
+        return;
+    }
+
+    const event = new Event();
+    event.title = cleanText(title);
+    event.description = cleanText(description || "");
+    calls = calls.sort(compareCalls);
+    event.endTime = new Date(calls[0].time);
+    event.startTime = new Date(calls[calls.length - 1].time);
+    // 29 days after the first call. (This used setDate() on today's date with the
+    // start's day-of-month, which gave the wrong day across month boundaries.)
+    event.expireTime = new Date(event.startTime.getTime() + 29 * 24 * 60 * 60 * 1000);
+    event.numCalls = calls.length;
+    calls.forEach((call) => {
+        if (event.shortNames.indexOf(call.shortName) === -1) {
+            event.shortNames.push(call.shortName);
         }
-        //console.log(req);
-        //console.log(req.body);
-        const title = req.body.title;
-        const description = req.body.description;
-        const callIds = req.body.callIds;
-        let objectIds = [];
-        callIds.forEach((id) => {
-            objectIds.push(new ObjectId(id));
-        })
+    });
 
-        event.title = title.replace(/[^a-zA-Z0-9 \.\-\_]/g, "");
-        event.description = description.replace(/[^a-zA-Z0-9 \.\-\_]/g, "");
-        try {
-            let calls = await Call.find({ "_id": { $in: objectIds } });
-            if (callIds.length != calls.length) {
-                res.status(500);
-                res.send("Not all of the Calls were found");
-            }
-            calls = calls.sort(compareCalls);
-            event.endTime = new Date(calls[0].time);
-            event.startTime = new Date(calls[calls.length - 1].time);
-            event.expireTime = new Date();
-            event.expireTime.setDate(event.startTime.getDate() + 29);
-            event.numCalls = calls.length;
-            calls.forEach((call) => {
-                if (event.shortNames.indexOf(call.shortName) === -1) {
-                    event.shortNames.push(call.shortName);
-                }
-            });
-            event.calls = await freezeCalls(calls);
+    try {
+        event.calls = await freezeCalls(calls);
+        await event.save();
+    } catch (err) {
+        console.error("Error creating event: " + err);
+        res.status(500).send("Error creating event");
+        return;
+    }
 
-            const savedEvent = await event.save();
-            //console.log("Event ID " + savedEvent._id);
-            const url = "/events/" + event._id;
-
-            await packageEvent(savedEvent._id);
-
-            res.contentType('json');
-            res.send(JSON.stringify({ url: url }));
-
-        }
-        catch (err) {
-            console.error("Error creating event" + err);
-            res.status(500);
-            res.send("Error creating event" + err);
-        }
-
-
-    })
+    // Answer now and package in the background. The request used to stay open
+    // for the whole download/zip/ffmpeg run, so people resubmitted and several
+    // copies of the same event were packaged at once. The event page shows the
+    // download link once packaging has filled it in.
+    res.contentType('json');
+    res.send(JSON.stringify({ url: "/events/" + event._id }));
+    enqueuePackaging(event._id);
 };
 
-
+// Exposed for tests only.
+exports._internal = { uploadFile, downloadFile };
