@@ -1,37 +1,6 @@
-var mongoose = require('mongoose');
-var bcrypt   = require('bcrypt-nodejs');
-var User = require('./user');
+// Schema shared with the other servers: packages/shared/models.js. Exported as a
+// schema because uploads.js registers it on its own connection as well.
+const mongoose = require("mongoose");
+const { systemSchema } = require("@openmhz/shared");
 
-const systemSchema = mongoose.Schema({
-    name: String,
-    shortName: String,
-    systemType: String,
-    county: String,
-    country: String,
-    city: String,
-    state: String,
-    description: String,
-    status: String,
-    showScreenName: Boolean,
-    allowContact: {
-          type: Boolean,
-          default: true
-      },
-    callAvg: Number,
-    callCount: Number,
-    ignoreUnknownTalkgroup : Boolean,
-    active: {type: Boolean, default: false},
-    lastActive: Date,
-    userId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
-    key: String
-  });
-
-  systemSchema.methods.generateHash = function(password) {
-    return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
-  };
-  
-  systemSchema.methods.validPassword = function(password) {
-    return bcrypt.compareSync(password, this.local.password);
-  };
-
-  module.exports = systemSchema;
+module.exports = systemSchema(mongoose);

@@ -1,14 +1,5 @@
-var mongoose = require('mongoose');
+// Schema shared with the other servers: packages/shared/models.js
+const mongoose = require("mongoose");
+const { groupSchema, getModel } = require("@openmhz/shared");
 
-
-
-var groupSchema = mongoose.Schema({
-  shortName: String,
-  groupName: String,
-  groupId: String,
-  position: Number,
-  talkgroups: [Number]
-});
-
-
-module.exports = mongoose.model('Group', groupSchema);
+module.exports = getModel(mongoose, "Group", () => groupSchema(mongoose));

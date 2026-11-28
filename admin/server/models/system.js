@@ -1,35 +1,5 @@
-var mongoose = require('mongoose');
-var bcrypt   = require('bcrypt');
-var User = require('./user');
+// Schema shared with the other servers: packages/shared/models.js
+const mongoose = require("mongoose");
+const { systemSchema, getModel } = require("@openmhz/shared");
 
-var systemSchema = mongoose.Schema({
-  name: String,
-  shortName: String,
-  systemType: String,
-  county: String,
-  country: String,
-  city: String,
-  state: String,
-  description: String,
-  status: String,
-  showScreenName: Boolean,
-  allowContact: {
-		type: Boolean,
-		default: true
-	},
-  ignoreUnknownTalkgroup : Boolean,
-  active: {type: Boolean, default: false},
-  lastActive: Date,
-  userId:  {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
-  key: String
-});
-
-systemSchema.methods.generateHash = function(password) {
-  return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
-};
-
-systemSchema.methods.validPassword = function(password) {
-  return bcrypt.compareSync(password, this.local.password);
-};
-
-module.exports = mongoose.model('System', systemSchema);
+module.exports = getModel(mongoose, "System", () => systemSchema(mongoose));
