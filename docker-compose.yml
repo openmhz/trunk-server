@@ -15,6 +15,12 @@ services:
       - "443:443"
       - "5602:5602"
     restart: always
+    # nginx logs to the container's stdout; cap it so it can't fill the disk.
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
     volumes:
       - ${PWD}/data/log/syslog:/var/log/syslog
       - ${PWD}/data/log/nginx:/var/log/nginx

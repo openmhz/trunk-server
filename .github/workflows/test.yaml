@@ -37,3 +37,25 @@ jobs:
           bash -n mongo/db.sh
           bash -n mongo/backup.sh
           node --check mongo/scripts/maintain.js
+
+  # nginx exits at startup if its config is invalid, which takes every site
+  # down, so check both stages' configs on every change.
+  nginx-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the prod and test nginx configs
+        run: |
+          set -e
+          mkdir -p le/live/openmhz.test
+          openssl req -x509 -nodes -newkey rsa:2048 -days 1 -subj "/CN=openmhz.test" \
+            -keyout le/live/openmhz.test/privkey.pem -out le/live/openmhz.test/fullchain.pem 2>/dev/null
+          docker network create nginx-check
+          for stage in prod test; do
+            docker build -q --build-arg STAGE=$stage -t nginx-check:$stage nginx-proxy >/dev/null
+            docker run --rm --network nginx-check -e DOMAIN_NAME=openmhz.test \
+              -v "$PWD/le:/etc/letsencrypt:ro" --entrypoint sh nginx-check:$stage -c \
+              'envsubst "\$DOMAIN_NAME" < /etc/nginx/conf.d/site.template > /etc/nginx/conf.d/default.conf && nginx -t'
+            echo "$stage config OK"
+          done
