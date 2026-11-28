@@ -1,5 +1,6 @@
 import Navigation from "./Navigation"
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
+import { Container, Header } from 'semantic-ui-react';
 
 import {AdminRestricted, Restricted} from "./Restricted"
 
@@ -25,7 +26,7 @@ const App = (params) => {
 					<Route path="/all-systems" element={ <AdminRestricted><AllSystems/></AdminRestricted>}  />
 					<Route path="/active-users" element={ <AdminRestricted><ActiveUsers/></AdminRestricted>}  />
 					<Route path="/" element={ <Restricted><ListSystems/></Restricted>} />
-					<Route render={() => (<div>Miss</div>)} />
+					<Route path="*" element={<Container text><Header as="h2">Page not found</Header><p>That page does not exist. <Link to="/list-systems">Back to your systems</Link></p></Container>} />
 				</Routes>
 			</div>
 		)

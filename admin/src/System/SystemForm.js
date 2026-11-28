@@ -73,7 +73,7 @@ const SystemForm = (props) => {
     if (shortName.length < 4 || shortName.length > 10) {
       setShortNameError(true)
       messages.push(
-        "Short Name for the system has to be 4-10 charecters"
+        "Short Name for the system has to be 4-10 characters"
       );
       error = true;
     } else {
@@ -90,7 +90,7 @@ const SystemForm = (props) => {
 
     if (showStatus && status.length < 4) {
       setStatusError(true);
-      messages.push("If showing a aStatus message it must be at least 4 characters");
+      messages.push("If showing a status message it must be at least 4 characters");
       error = true;
     } else {
       setStatusError(false);

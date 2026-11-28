@@ -19,6 +19,7 @@ import {
             <Link to="/systems"><Menu.Item link>Systems</Menu.Item></Link>
             <Link to="/events"><Menu.Item link>Events</Menu.Item></Link>
             <Link to="/about"><Menu.Item link>About</Menu.Item></Link>
+            <Menu.Item link as="a" href={`${process.env.REACT_APP_ACCOUNT_SERVER}/register`}>Contribute</Menu.Item>
           </Menu>
       );
     }

@@ -1,6 +1,15 @@
 const mongoose = require("mongoose");
 
-const MONGO_URL = process.env.TEST_MONGO_URL || "mongodb://127.0.0.1:27118/admin_test";
+// node --test runs each test file in its own process, in parallel, so every
+// process gets its own database; sharing one let one file's setup and
+// dropDatabase() wipe another's data mid-run.
+function perProcessUrl(base) {
+  const url = new URL(base);
+  const name = (url.pathname.replace(/^\//, "") || "admin_test") + "_" + process.pid;
+  url.pathname = "/" + name;
+  return url.toString();
+}
+const MONGO_URL = perProcessUrl(process.env.TEST_MONGO_URL || "mongodb://127.0.0.1:27118/admin_test");
 
 async function connect() {
   await mongoose.connect(MONGO_URL, { serverSelectionTimeoutMS: 5000 });
