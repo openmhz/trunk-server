@@ -5,7 +5,7 @@ const assert = require("node:assert");
 const express = require("express");
 const http = require("http");
 const { start, profile } = require("./helpers");
-const { wrap, errorHandler } = require("../lib/safety");
+const { wrap, errorHandler } = require("@openmhz/shared");
 
 let t;
 test.before(async () => { t = await start(); });

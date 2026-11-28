@@ -6,7 +6,8 @@
     "backend",
     "frontend",
     "account",
-    "admin"
+    "admin",
+    "packages/shared"
   ],
   "scripts": {
     "test": "npm run test --workspaces --if-present",

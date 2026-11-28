@@ -5,6 +5,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.670.0",
     "@aws-sdk/credential-providers": "^3.670.0",
+    "@openmhz/shared": "*",
     "@opentelemetry/auto-instrumentations-node": "^0.50.2",
     "@opentelemetry/resources": "^1.26.0",
     "@smithy/node-http-handler": "^3.2.4",

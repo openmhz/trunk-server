@@ -1,4 +1,4 @@
-const { wrap } = require("./safety");
+const { wrap } = require("@openmhz/shared");
 const users = require("../controllers/users");
 
 // All account routes, every handler wrapped so async errors reach errorHandler.
